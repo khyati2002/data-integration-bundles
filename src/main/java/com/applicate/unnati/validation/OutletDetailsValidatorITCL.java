@@ -1,5 +1,7 @@
 package com.applicate.unnati.validation;
 
+import com.applicate.services.channelkart.client.properties.PropertyDefinition;
+import com.applicate.services.channelkart.client.properties.PropertyRegistry;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.OutletDetails;
@@ -11,9 +13,15 @@ public class OutletDetailsValidatorITCL extends AbstractValidationRule<OutletDet
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
 
+        PropertyRegistry propertyRegistry = PropertyRegistry.getInstance();
         String regexY_N = "^(Y|N)$";
         String regexLoyaltyFlag = "^(loyalty|non loyalty)$";
         StringBuilder ruleResult = new StringBuilder();
+
+        if (propertyRegistry.getAsBoolean(PropertyDefinition.USE_SUPPLIER_FROM_OUTLET_METADATA)) {
+            return OperationResult.StepResult.OK;
+        }
+
         if (cdm.getExtendedAttributes() != null) {
             if (cdm.getExtendedAttributes().has("custOrder")) {
                 if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("custOrder").asText())) {
@@ -35,8 +43,7 @@ public class OutletDetailsValidatorITCL extends AbstractValidationRule<OutletDet
 
         if (null != cdm.getOutletCategory()) {
             if (Pattern.matches(regexLoyaltyFlag, cdm.getOutletCategory())) {
-                if (cdm.getOutletCategory().equalsIgnoreCase("non loyalty") && cdm.getExtendedAttributes()
-                        .get("custLoyalty").asText().equals("Y")) {
+                if (cdm.getOutletCategory().equalsIgnoreCase("non loyalty")) {
                     ruleResult.append("Loyalty value cannot be Y for non loyalty outlets");
                 }
             } else {

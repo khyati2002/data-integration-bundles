@@ -1,6 +1,7 @@
 package com.applicate.unnati.validation;
 
-
+import com.applicate.services.channelkart.client.properties.PropertyDefinition;
+import com.applicate.services.channelkart.client.properties.PropertyRegistry;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.StringUtils;
@@ -24,6 +25,8 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
 
+        PropertyRegistry propertyRegistry = PropertyRegistry.getInstance();
+
         try {
 
             List<String> duplicateWDCheck = new ArrayList<String>();
@@ -39,46 +42,47 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
 
             if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("duplicateOutlet")) {
                 if ((cdm.getExtendedAttributes().get("duplicateOutlet")) != null) {
-                    if(cdm.getExtendedAttributes().get("duplicateOutlet").asText().equals("yes")){
+                    if (cdm.getExtendedAttributes().get("duplicateOutlet").asText().equals("yes")) {
                         ruleResult.add("Outletcode can not be duplicate.");
                     }
                 }
             }
 
-            if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("giftVoucher")) {
-                if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("giftVoucher").asText())) {
-                    ruleResult.add("Value given for giftVoucher can only be Y or N");
+            if (!propertyRegistry.getAsBoolean(PropertyDefinition.USE_SUPPLIER_FROM_OUTLET_METADATA)) {
+                if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("giftVoucher")) {
+                    if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("giftVoucher").asText())) {
+                        ruleResult.add("Value given for giftVoucher can only be Y or N");
+                    }
+                } else {
+                    ruleResult.add("Value given for giftVoucher can not be null");
                 }
-            } else {
-                ruleResult.add("Value given for giftVoucher can not be null");
-            }
 
-            if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("ITCProducts")) {
-                if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("ITCProducts").asText())) {
-                    ruleResult.add("Value given for ITCProducts can only be Y or N");
+                if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("ITCProducts")) {
+                    if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("ITCProducts").asText())) {
+                        ruleResult.add("Value given for ITCProducts can only be Y or N");
+                    }
+                } else {
+                    ruleResult.add("Value given for ITCProducts can not be null");
                 }
-            } else {
-                ruleResult.add("Value given for ITCProducts can not be null");
-            }
 
-            if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("autoRedemption")) {
-                if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("autoRedemption").asText())) {
-                    ruleResult.add("Value given for autoRedemption can only be Y or N");
-                } else if (cdm.getOutletCategory() != null && "non loyalty".equals(cdm.getOutletCategory())
-                        && "N".equals(cdm.getExtendedAttributes().get("autoRedemption").asText())) {
-                    ruleResult.add("Value of autoRedemption for a non loyalty outlet can only be Y");
+                if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("autoRedemption")) {
+                    if (!Pattern.matches(regexY_N, cdm.getExtendedAttributes().get("autoRedemption").asText())) {
+                        ruleResult.add("Value given for autoRedemption can only be Y or N");
+                    } else if (cdm.getOutletCategory() != null && "non loyalty".equals(cdm.getOutletCategory()) && "N".equals(cdm.getExtendedAttributes().get("autoRedemption").asText())) {
+                        ruleResult.add("Value of autoRedemption for a non loyalty outlet can only be Y");
+                    }
+                } else {
+                    ruleResult.add("Value given for autoRedemption can not be null");
                 }
-            } else {
-                ruleResult.add("Value given for autoRedemption can not be null");
-            }
 
-            if (cdm.getOutletCategory() != null) {
-                String outletCategory = cdm.getOutletCategory();
-                if (!(outletCategory.equals("loyalty") || outletCategory.equals("non loyalty"))) {
-                    ruleResult.add("The value for loyalty flag should be either Loyalty or Non Loyalty.");
+                if (cdm.getOutletCategory() != null) {
+                    String outletCategory = cdm.getOutletCategory();
+                    if (!(outletCategory.equals("loyalty") || outletCategory.equals("non loyalty"))) {
+                        ruleResult.add("The value for loyalty flag should be either Loyalty or Non Loyalty.");
+                    }
+                } else {
+                    ruleResult.add("The value for loyalty flag can not be null");
                 }
-            } else {
-                ruleResult.add("The value for loyalty flag can not be null");
             }
 
             if (StringUtils.hasNullOrEmptyValues(cdm.getOutletCategory())) {
@@ -86,7 +90,7 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
             } else {
                 if (cdm.getOutletCategory().equals("loyalty")) {
                     String outletClass = cdm.getOutletClass();
-                    if(outletClass== null){
+                    if (outletClass == null) {
                         ruleResult.add("The value for loyalty type can not be null");
                     }
                 }
@@ -97,10 +101,8 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
                         ruleResult.add("The value for loyalty type can not be null");
                     }
 
-                    if ((outletClass.equals("FC FOODS") || outletClass.equals("FC COMMON")
-                            || outletClass.equals("FC PCP"))) {
-                        ruleResult.add(
-                                "The value of loyalty type for non loyalty type outlet cannot be FC FOODS , FC COMMON, or FC PCP.");
+                    if ((outletClass.equals("FC FOODS") || outletClass.equals("FC COMMON") || outletClass.equals("FC PCP"))) {
+                        ruleResult.add("The value of loyalty type for non loyalty type outlet cannot be FC FOODS , FC COMMON, or FC PCP.");
                     }
 
                 }
@@ -108,7 +110,7 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
             }
 
             Location location = cdm.getLocation();
-            if(location != null) {
+            if (location != null) {
                 if (location.getBranch() != null) {
                     if (!Pattern.matches(capitalCaseRegex, location.getBranch())) {
                         ruleResult.add("Value given for branch should contain only alphabets with capital case.Current given value is not compatible");
@@ -124,7 +126,7 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
                 } else {
                     ruleResult.add("District can not be null");
                 }
-            }else {
+            } else {
                 ruleResult.add("Location details can not be null");
             }
 
@@ -135,60 +137,63 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
             } else {
                 ruleResult.add("District can not be null");
             }
+            if (!propertyRegistry.getAsBoolean(PropertyDefinition.USE_SUPPLIER_FROM_OUTLET_METADATA)) {
 
-            if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("supplierMapping")) {
-                if (NullUtils.isNotNull(cdm.getExtendedAttributes().get("supplierMapping"))) {
-                    List<Map<String, String>> supplierList = JSONUtils.convert(cdm.getExtendedAttributes().get("supplierMapping"), new TypeReference<List<Map<String, String>>>() {});
+                if (cdm.getExtendedAttributes() != null && cdm.getExtendedAttributes().has("supplierMapping")) {
+                    if (NullUtils.isNotNull(cdm.getExtendedAttributes().get("supplierMapping"))) {
+                        List<Map<String, String>> supplierList = JSONUtils.convert(cdm.getExtendedAttributes().get("supplierMapping"), new TypeReference<List<Map<String, String>>>() {
+                        });
 
-                    supplierList.forEach(supplierMapping -> {
-                        if (supplierMapping.containsKey("WDDest")) {
-                            if (NullUtils.isNull(supplierMapping.get("WDDest"))) {
+                        supplierList.forEach(supplierMapping -> {
+                            if (supplierMapping.containsKey("WDDest")) {
+                                if (NullUtils.isNull(supplierMapping.get("WDDest"))) {
+                                    ruleResult.add("WDDest can not be null");
+                                } else if (duplicateWDCheck.contains(supplierMapping.get("WDDest"))) {
+                                    ruleResult.add("WDDest can not be duplicate");
+                                }
+                                duplicateWDCheck.add(supplierMapping.get("WDDest"));
+                            } else {
                                 ruleResult.add("WDDest can not be null");
-                            } else if (duplicateWDCheck.contains(supplierMapping.get("WDDest"))) {
-                                ruleResult.add("WDDest can not be duplicate");
                             }
-                            duplicateWDCheck.add(supplierMapping.get("WDDest"));
-                        } else {
-                            ruleResult.add("WDDest can not be null");
-                        }
 
-                        if (supplierMapping.containsKey("CustID")) {
-                            if (NullUtils.isNull(supplierMapping.get("CustID"))) {
+                            if (supplierMapping.containsKey("CustID")) {
+                                if (NullUtils.isNull(supplierMapping.get("CustID"))) {
+                                    ruleResult.add("custID can not be null");
+                                }
+                            } else {
                                 ruleResult.add("custID can not be null");
                             }
-                        } else {
-                            ruleResult.add("custID can not be null");
-                        }
 
-                        if (supplierMapping.containsKey("SIFYID")) {
-                            if (NullUtils.isNull(supplierMapping.get("SIFYID"))) {
+                            if (supplierMapping.containsKey("SIFYID")) {
+                                if (NullUtils.isNull(supplierMapping.get("SIFYID"))) {
+                                    ruleResult.add("SIFYID can not be null");
+                                }
+                            } else {
                                 ruleResult.add("SIFYID can not be null");
                             }
-                        } else {
-                            ruleResult.add("SIFYID can not be null");
-                        }
 
-                        if (supplierMapping.containsKey("UID")) {
-                            if (NullUtils.isNull(supplierMapping.get("UID"))) {
+                            if (supplierMapping.containsKey("UID")) {
+                                if (NullUtils.isNull(supplierMapping.get("UID"))) {
+                                    ruleResult.add("UID can not be null");
+                                }
+                            } else {
                                 ruleResult.add("UID can not be null");
                             }
-                        } else {
-                            ruleResult.add("UID can not be null");
-                        }
 
-                        if (supplierMapping.containsKey("RCSId")) {
-                            if (NullUtils.isNull(supplierMapping.get("RCSId"))) {
+                            if (supplierMapping.containsKey("RCSId")) {
+                                if (NullUtils.isNull(supplierMapping.get("RCSId"))) {
+                                    ruleResult.add("RCSId can not be null");
+                                }
+                            } else {
                                 ruleResult.add("RCSId can not be null");
                             }
-                        } else {
-                            ruleResult.add("RCSId can not be null");
-                        }
-                    });
+                        });
+                    } else {
+                        ruleResult.add("Value given for Supplier Mapping can not be null");
+                    }
                 } else {
                     ruleResult.add("Value given for Supplier Mapping can not be null");
                 }
-            } else {
-                ruleResult.add("Value given for Supplier Mapping can not be null");
             }
 
             if (ruleResult.size() > 0) {
