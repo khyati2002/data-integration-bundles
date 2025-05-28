@@ -7,19 +7,20 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import com.salescode.dim.jooq.generated.tables.pojos.CustomerAccount;
 
-
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class DeliveryPJPtransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class DeliveryPJPtransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     private final CustomerAccountsService accountsService = (CustomerAccountsService) ServiceLocator.lookup(CustomerAccount.class);
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> inputMap) {
+    public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
         List<Map<String, Object>> responseList = new ArrayList<>();
 
         LocalDateTime currentDate = LocalDateTime.now(); // get current date
@@ -38,7 +39,7 @@ public class DeliveryPJPtransformer extends AbstractTransformer<Map<String, Obje
         if (responseList.isEmpty()) {
             throw new DataTransformationService.TransformationException("Day not available for the current month");
         }
-        return (Map<String, Object>) responseList;
+        return responseList;
     }
 
     private DayOfWeek getDayOfWeek(int day) {
@@ -86,17 +87,17 @@ public class DeliveryPJPtransformer extends AbstractTransformer<Map<String, Obje
 
         responseMap.put("beat", beat);
         responseMap.put("loginId", loginId);
-        responseMap.put("outletCode", outletCode);
+        responseMap.put("outletcode", outletCode);
         responseMap.put("type", type);
-        responseMap.put("supplierId", inputMap.get("branch_code") != null ? inputMap.get("branch_code").toString() : "");
+        responseMap.put("supplierid", inputMap.get("branch_code") != null ? inputMap.get("branch_code").toString() : "");
         responseMap.put("month", date.getMonth().name());
         responseMap.put("year", String.valueOf(date.getYear()));
         responseMap.put("activeStatus", inputMap.get("activo") != null ? addStatus(inputMap.get("activo").toString()) : "");
         responseMap.put("pjpPlan", inputMap.get("day") != null ? inputMap.get("day").toString() : "");
 
 
-        date = date.withHour(0).withMinute(0).withSecond(0).withNano(0);
-        responseMap.put("pjpDate", Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
+        date = date.withHour(5).withMinute(30).withSecond(0).withNano(0);
+        responseMap.put("pjpDate", date);
 
 
         String formattedDate = formatDateForId(date);

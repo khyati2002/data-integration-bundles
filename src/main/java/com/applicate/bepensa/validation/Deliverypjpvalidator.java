@@ -1,24 +1,20 @@
 package com.applicate.bepensa.validation;
 
 import com.applicate.services.channelkart.services.OutletDetailsService;
-
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
-import com.salescode.dim.jooq.generated.tables.pojos.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPJP;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.User;
 
-
-import java.util.Set;
-
-public class Deliverypjpvalidator extends AbstractValidationRule<DeliveryPjp> {
+public class Deliverypjpvalidator extends AbstractValidationRule<DeliveryPJP> {
     private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
     private final OutletDetailsService outletService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
 
     @Override
-    public OperationResult.StepResult apply(DeliveryPjp deliveryPJP) {
+    public OperationResult.StepResult apply(DeliveryPJP deliveryPJP) {
         boolean isSupplierPresent = isSupplierPresent(deliveryPJP.getLoginid());
         boolean isOutletPresent = isOutletPresent(deliveryPJP.getOutletcode());
 
@@ -36,12 +32,13 @@ public class Deliverypjpvalidator extends AbstractValidationRule<DeliveryPjp> {
     private boolean isSupplierPresent(String salesrep) {
         User user = userService.findByLoginId(salesrep);
         if (user != null) {
-            Set<String> designations = user.getDesignation();
-            for (String designation : designations) {
-                if (designation.equalsIgnoreCase("salesrep")) {
-                    return true;
-                }
-            }
+//            Set<String> designations = user.getDesignation();
+//            for (String designation : designations) {
+//                if (designation.equalsIgnoreCase("salesrep")) {
+//                    return true;
+//                }
+//            }
+            return true;
         }
         return false;
     }
