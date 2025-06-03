@@ -4,6 +4,7 @@ package com.applicate.unnati.enrichment;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.impl.TargetResults;
 import com.salescode.dim.jooq.impl.Targets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
@@ -52,6 +53,12 @@ public class TargetsEnrichmentITCL extends AbstractEnrichment<Targets> {
         LocalDateTime endDate = LocalDateTime.of(endOfMonthDate, LocalTime.of(23, 59, 59));
         cdm.setEndDate(endDate);
 
+
+        List<TargetResults> targetResults = cdm.getTargetResults();
+        for(TargetResults targetResults1 : targetResults){
+            targetResults1.setId(cdm.getId());
+            targetResults1.setTargetId(cdm.getId());
+        }
         return OperationResult.StepResult.OK;
     }
 
