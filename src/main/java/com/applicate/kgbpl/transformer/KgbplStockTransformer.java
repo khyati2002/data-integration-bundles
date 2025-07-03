@@ -16,13 +16,33 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
         List<Map<String, Object>> responseList = new ArrayList<>();
         Map<String, Object> responseMap = new HashMap<>();
 
-        String itemId = inputMap.get("ItemId") != null ? inputMap.get("ItemId").toString() : "";
-        String styleId = inputMap.get("InventStyleId") != null ? inputMap.get("InventStyleId").toString() : "";
-        String configId = inputMap.get("configId") != null ? inputMap.get("configId").toString() : "";
-        String skuCode = itemId + "_" + styleId + "_" + configId;
+        String itemId = getValue(inputMap, "ItemId");
+        String styleId = getValue(inputMap, "InventStyleId");
+        String configId = getValue(inputMap, "configId");
+        String sizeId = getValue(inputMap, "InventSizeId");
+        String dataAreaId = getValue(inputMap, "dataAreaId");
 
-        String warehouseId = inputMap.get("InventSiteId") != null ? inputMap.get("InventSiteId").toString() : "";
-        String caseQty = inputMap.get("AvailPhysical") != null ? inputMap.get("AvailPhysical").toString() : "";
+        // Build SKU Code dynamically
+        StringBuilder skuBuilder = new StringBuilder(itemId)
+                .append("_").append(styleId)
+                .append("_").append(configId);
+
+        if (!sizeId.isEmpty()) {
+            skuBuilder.append("_").append(sizeId);
+        }
+
+        if (!dataAreaId.isEmpty()) {
+            skuBuilder.append("_").append(dataAreaId);
+        }
+
+        String skuCode = skuBuilder.toString();
+
+        String siteId = getValue(inputMap, "InventSiteId");
+        String warehouseId = !siteId.isEmpty() && !dataAreaId.isEmpty()
+                ? siteId + "-" + dataAreaId
+                : siteId;
+
+        String caseQty = getValue(inputMap, "AvailPhysical");
 
         responseMap.put("skuCode", skuCode);
         responseMap.put("warehouseId", warehouseId);
@@ -53,5 +73,10 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
 
         responseList.add(responseMap);
         return responseList;
+    }
+
+    private String getValue(Map<String, Object> map, String key) {
+        Object val = map.get(key);
+        return (val != null) ? val.toString().trim() : "";
     }
 }
