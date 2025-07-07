@@ -56,7 +56,7 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
 
         responseMap.put("skuCode", skuCode);
         responseMap.put("warehouseId", warehouseId);
-        responseMap.put("supplierId", warehouseId);
+        responseMap.put("supplier", supplierId);
         responseMap.put("batchId", "unassigned");
         responseMap.put("caseQty", caseQty);
         responseMap.put("pieceQty", 0);
