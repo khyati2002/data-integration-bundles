@@ -1,5 +1,6 @@
 package com.applicate.unnati.transformer;
 
+import com.mysql.cj.util.StringUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,7 @@ import static org.apache.commons.collections.MapUtils.getString;
 
 public class OutletDetailTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 	private static final Logger logger = LoggerFactory.getLogger(com.applicate.services.channelkart.unnati.transformer.OutletDetailTransformer.class);
-	private static final String IMMIDIATEPARENT = "immediateParent";
+	private static final String IMMEDIATEPARENT = "immediateParent";
 	private static final String ACTIVE = "active";
 
 	@Override
@@ -44,8 +45,14 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		output.put("contactName", ownerName);
 		userName.put("name", ownerName);
 
-		output.put("latitude", Double.parseDouble(getString(responseEnvelope, "OutletLat")));
-		output.put("longitude", Double.parseDouble(getString(responseEnvelope, "OutletLong")));
+		String outletLatStr = getString(responseEnvelope, "OutletLat");
+		if(!StringUtils.isNullOrEmpty(outletLatStr)) {
+			output.put("latitude", Double.parseDouble(outletLatStr));
+		}
+		String outletLongStr = getString(responseEnvelope, "OutletLong");
+		if(!StringUtils.isNullOrEmpty(outletLongStr)) {
+			output.put("longitude", Double.parseDouble(outletLongStr));
+		}
 
 		output.put("outletType", getString(responseEnvelope, "OutletType"));
 		output.put("channel", getString(responseEnvelope, "ChannelType"));
@@ -92,7 +99,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 			List<Map<String, Object>> userNameParents = supplierMapping.stream().map(supplier -> {
 				String wdDest = getString(supplier, "WDDest");
 				Map<String, Object> map = new HashMap<>();
-				map.put(IMMIDIATEPARENT, wdDest);
+				map.put(IMMEDIATEPARENT, wdDest);
 				return map;
 			}).collect(Collectors.toList());
 
@@ -104,8 +111,8 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 				return map;
 			}).collect(Collectors.toList());
 
-			userName.put(IMMIDIATEPARENT, userNameParents);
-			output.put(IMMIDIATEPARENT, hierarchyParents);
+			userName.put(IMMEDIATEPARENT, userNameParents);
+			output.put(IMMEDIATEPARENT, hierarchyParents);
 
 		}
 		return output;
