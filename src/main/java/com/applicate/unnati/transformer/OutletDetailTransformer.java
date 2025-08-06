@@ -17,7 +17,7 @@ import static org.apache.commons.collections.MapUtils.getString;
 
 
 public class OutletDetailTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
-	private static final Logger logger = LoggerFactory.getLogger(com.applicate.services.channelkart.unnati.transformer.OutletDetailTransformer.class);
+	private static final Logger logger = LoggerFactory.getLogger(com.applicate.unnati.transformer.OutletDetailTransformer.class);
 	private static final String IMMEDIATEPARENT = "immediateParent";
 	private static final String ACTIVE = "active";
 
