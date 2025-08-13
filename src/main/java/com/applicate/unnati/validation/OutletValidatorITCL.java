@@ -10,6 +10,8 @@ import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.Location;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -21,9 +23,24 @@ public class OutletValidatorITCL extends AbstractValidationRule<OutletDetails> {
     final String MobileNumberRegex = "(^[0-9]{10}$)";
     final String capitalCaseRegex = "(^[A-Z]*$)";
     String regexY_N = "^(Y|N)$";
+    private static final Logger logger = LoggerFactory.getLogger(OutletValidatorITCL.class);
+
 
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
+        logger.info("Entering OutletValidatorITCL validation");
+
+        if (cdm != null) {
+            logger.info("Validation Input Data: outletCode={}, outletCategory={}, outletClass={}, locationBranch={}, locationDistrict={}, extendedAttributes={}",
+                    cdm.getOutletcode(),
+                    cdm.getOutletCategory(),
+                    cdm.getOutletClass(),
+                    cdm.getLocation() != null ? cdm.getLocation().getBranch() : null,
+                    cdm.getLocation() != null ? cdm.getLocation().getDistrict() : null,
+                    cdm.getExtendedAttributes());
+        } else {
+            logger.warn("Received null OutletDetails object for validation");
+        }
 
         PropertyRegistry propertyRegistry = PropertyRegistry.getInstance();
 

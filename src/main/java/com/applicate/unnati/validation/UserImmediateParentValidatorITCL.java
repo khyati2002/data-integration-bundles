@@ -8,6 +8,8 @@ import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.HierarchyMetadata;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,9 +24,20 @@ public class UserImmediateParentValidatorITCL extends AbstractValidationRule<Use
     private static final String IMMEDIATE_PARENT_MESSAGE_3 = "Given immediate parent is not active any more.Please verify the input data.";
     private static final String IMMEDIATE_PARENT_MESSAGE_4 = "District and Branch value of loginId is not matching with Supplier's location.Please verify the input data.";
 
+    private static final Logger logger = LoggerFactory.getLogger(UserImmediateParentValidatorITCL.class);
+
 
     @Override
     public OperationResult.StepResult apply(User cdm) {
+        logger.info("Entering validation: {}", UserImmediateParentValidatorITCL.class.getSimpleName());
+        logger.debug("Validation input details - loginId: {}, designation: {}, locationBranch: {}, locationDistrict: {}, locationHierarchy: {}, immediateParentList: {}",
+                cdm.getLoginid(),
+                cdm.getDesignation(),
+                cdm.getLocation() != null ? cdm.getLocation().getBranch() : null,
+                cdm.getLocation() != null ? cdm.getLocation().getDistrict() : null,
+                cdm.getLocationHierarchy(),
+                cdm.getImmediateParent());
+
        UserService userService = (UserService) ServiceLocator.lookup(User.class);
         Set<String> ruleResult = new HashSet<>();
         List<HierarchyMetadata> parentList = cdm.getImmediateParent();

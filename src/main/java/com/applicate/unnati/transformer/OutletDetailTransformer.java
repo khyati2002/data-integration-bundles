@@ -115,6 +115,12 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 			output.put(IMMEDIATEPARENT, hierarchyParents);
 
 		}
+		logger.info("OutletName: {}", output.get("outletName"));
+		logger.info("Channel: {}", output.get("channel"));
+		logger.info("OutletCode: {}", output.get("outletCode"));
+		logger.info("LoyaltyType (outletClass): {}", output.get("outletClass"));
+		logger.info("District: {}", ((Map<String, Object>) output.get("location")).get("district"));
+		logger.info("Branch: {}", ((Map<String, Object>) output.get("location")).get("branch"));
 		return output;
 	}
 }
