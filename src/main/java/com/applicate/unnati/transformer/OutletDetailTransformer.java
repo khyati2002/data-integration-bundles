@@ -23,6 +23,29 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 
 	@Override
 	public Map<String, Object> transform(Map<String, Object> responseEnvelope) {
+
+		logger.info("=== Starting OutletDetailTransformer ===");
+		logger.info("Raw responseEnvelope: {}", responseEnvelope);
+
+		if (responseEnvelope == null || responseEnvelope.isEmpty()) {
+			logger.warn("Response envelope is null or empty!");
+			return new LinkedHashMap<>();
+		}
+
+		// Log each expected field before parsing
+		logger.info("UID: {}", responseEnvelope.get("UID"));
+		logger.info("TYPE: {}", responseEnvelope.get("TYPE"));
+		logger.info("CUSTName: {}", responseEnvelope.get("CUSTName"));
+		logger.info("OwnerName: {}", responseEnvelope.get("OwnerName"));
+		logger.info("OutletLat: {}", responseEnvelope.get("OutletLat"));
+		logger.info("OutletLong: {}", responseEnvelope.get("OutletLong"));
+		logger.info("OutletType: {}", responseEnvelope.get("OutletType"));
+		logger.info("ChannelType: {}", responseEnvelope.get("ChannelType"));
+		logger.info("LoyaltyType: {}", responseEnvelope.get("LoyaltyType"));
+		logger.info("Branch: {}", responseEnvelope.get("Branch"));
+		logger.info("DISTRICT: {}", responseEnvelope.get("DISTRICT"));
+		logger.info("supplierMapping: {}", responseEnvelope.get("supplierMapping"));
+
 		Map<String, Object> output = new LinkedHashMap<>();
 
 		Map<String, Object> userName = new LinkedHashMap<>();
