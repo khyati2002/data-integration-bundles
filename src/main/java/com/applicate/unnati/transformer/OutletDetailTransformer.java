@@ -51,7 +51,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		Map<String, Object> userName = new LinkedHashMap<>();
 		Map<String, Object> extendedAttributes = new LinkedHashMap<>();
 
-		String uid = getString(responseEnvelope, "UID");
+		String uid = getString(responseEnvelope, "uid");
 		logger.info("Parsed uid: {}", uid);
 		output.put("outletCode", uid);
 		logger.info("Set outletCode: {}", output.get("outletCode"));
@@ -60,38 +60,38 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		logger.info("Set user loginId and userAccountId: {}", userName);
 
 
-		String type = getString(responseEnvelope, "TYPE");
+		String type = getString(responseEnvelope, "type");
 		logger.info("Parsed type: {}", type);
 		output.put("outletCategory", type);
 		extendedAttributes.put("loyaltyFlag", type);
 		userName.put("extendedAttributes", extendedAttributes);
 		logger.info("Set outletCategory and extendedAttributes: {}", extendedAttributes);
 
-		String custName = getString(responseEnvelope, "CUSTName");
+		String custName = getString(responseEnvelope, "custname");
 		logger.info("Parsed custname: {}", custName);
 		output.put("outletName", custName);
 
-		String ownerName = getString(responseEnvelope, "OwnerName");
+		String ownerName = getString(responseEnvelope, "ownername");
 		logger.info("Parsed ownername: {}", ownerName);
 		output.put("contactName", ownerName);
 		userName.put("name", ownerName);
 
-		String outletLatStr = getString(responseEnvelope, "OutletLat");
+		String outletLatStr = getString(responseEnvelope, "outletlat");
 		logger.info("Parsed outletlat: {}", outletLatStr);
 		if (!StringUtils.isNullOrEmpty(outletLatStr)) {
 			output.put("latitude", Double.parseDouble(outletLatStr));
 			logger.info("Set latitude: {}", output.get("latitude"));
 		}
-		String outletLongStr = getString(responseEnvelope, "OutletLong");
+		String outletLongStr = getString(responseEnvelope, "outletlong");
 		logger.info("Parsed outletlong: {}", outletLongStr);
 		if (!StringUtils.isNullOrEmpty(outletLongStr)) {
 			output.put("longitude", Double.parseDouble(outletLongStr));
 			logger.info("Set longitude: {}", output.get("longitude"));
 		}
 
-		output.put("outletType", getString(responseEnvelope, "OutletType"));
-		output.put("channel", getString(responseEnvelope, "ChannelType"));
-		output.put("outletClass", getString(responseEnvelope, "LoyaltyType"));
+		output.put("outletType", getString(responseEnvelope, "outlettype"));
+		output.put("channel", getString(responseEnvelope, "channeltype"));
+		output.put("outletClass", getString(responseEnvelope, "loyaltytype"));
 		logger.info("Set outletType, channel, outletClass: {}, {}, {}", output.get("outletType"), output.get("channel"), output.get("outletClass"));
 
 		output.put("userName", userName);
@@ -100,12 +100,12 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		Map<String, Object> locationHierarchy = new LinkedHashMap<>();
 
 		location.put("country", "India");
-		location.put("branch", getString(responseEnvelope, "Branch"));
-		location.put("district", getString(responseEnvelope, "DISTRICT"));
+		location.put("branch", getString(responseEnvelope, "branch"));
+		location.put("district", getString(responseEnvelope, "district"));
 
 		locationHierarchy.put("country", "India");
-		locationHierarchy.put("branch", getString(responseEnvelope, "Branch"));
-		locationHierarchy.put("district", getString(responseEnvelope, "DISTRICT"));
+		locationHierarchy.put("branch", getString(responseEnvelope, "branch"));
+		locationHierarchy.put("district", getString(responseEnvelope, "district"));
 
 
 		userName.put("locationHierarchy", locationHierarchy);
@@ -124,7 +124,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 
 
 		List<Map<String, Object>> supplierMapping = null;
-		Object rawSupplierMapping = responseEnvelope.get("supplierMapping");
+		Object rawSupplierMapping = responseEnvelope.get("suppliermapping");
 		logger.info("Raw supplierMapping: {}", rawSupplierMapping);
 
 
@@ -148,7 +148,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 			logger.info("userNameParents: {}", userNameParents);
 
 			List<Map<String, Object>> hierarchyParents = supplierMapping.stream().map(supplier -> {
-				String uid2 = getString(responseEnvelope, "UID");
+				String uid2 = getString(responseEnvelope, "uid");
 				String wdDest = getString(supplier, "WDDest");
 				Map<String, Object> map = new HashMap<>();
 				map.put("hierarchy", uid2 + " > " + wdDest);
