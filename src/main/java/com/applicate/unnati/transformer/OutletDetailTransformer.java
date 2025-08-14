@@ -32,19 +32,19 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 			return new LinkedHashMap<>();
 		}
 
-		// Log each expected field before parsing
-		logger.info("UID: {}", responseEnvelope.get("UID"));
-		logger.info("TYPE: {}", responseEnvelope.get("TYPE"));
-		logger.info("CUSTName: {}", responseEnvelope.get("CUSTName"));
-		logger.info("OwnerName: {}", responseEnvelope.get("OwnerName"));
-		logger.info("OutletLat: {}", responseEnvelope.get("OutletLat"));
-		logger.info("OutletLong: {}", responseEnvelope.get("OutletLong"));
-		logger.info("OutletType: {}", responseEnvelope.get("OutletType"));
-		logger.info("ChannelType: {}", responseEnvelope.get("ChannelType"));
-		logger.info("LoyaltyType: {}", responseEnvelope.get("LoyaltyType"));
-		logger.info("Branch: {}", responseEnvelope.get("Branch"));
-		logger.info("DISTRICT: {}", responseEnvelope.get("DISTRICT"));
-		logger.info("supplierMapping: {}", responseEnvelope.get("supplierMapping"));
+		// Step 1: Log raw fields (matching case from your example)
+		logger.info("uid: {}", responseEnvelope.get("uid"));
+		logger.info("type: {}", responseEnvelope.get("type"));
+		logger.info("custname: {}", responseEnvelope.get("custname"));
+		logger.info("ownername: {}", responseEnvelope.get("ownername"));
+		logger.info("outletlat: {}", responseEnvelope.get("outletlat"));
+		logger.info("outletlong: {}", responseEnvelope.get("outletlong"));
+		logger.info("outlettype: {}", responseEnvelope.get("outlettype"));
+		logger.info("channeltype: {}", responseEnvelope.get("channeltype"));
+		logger.info("loyaltytype: {}", responseEnvelope.get("loyaltytype"));
+		logger.info("branch: {}", responseEnvelope.get("branch"));
+		logger.info("district: {}", responseEnvelope.get("district"));
+		logger.info("suppliermapping: {}", responseEnvelope.get("suppliermapping"));
 
 		Map<String, Object> output = new LinkedHashMap<>();
 
@@ -52,34 +52,47 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		Map<String, Object> extendedAttributes = new LinkedHashMap<>();
 
 		String uid = getString(responseEnvelope, "UID");
+		logger.info("Parsed uid: {}", uid);
 		output.put("outletCode", uid);
+		logger.info("Set outletCode: {}", output.get("outletCode"));
 		userName.put("loginId", uid);
 		userName.put("userAccountId", uid);
+		logger.info("Set user loginId and userAccountId: {}", userName);
+
 
 		String type = getString(responseEnvelope, "TYPE");
+		logger.info("Parsed type: {}", type);
 		output.put("outletCategory", type);
 		extendedAttributes.put("loyaltyFlag", type);
 		userName.put("extendedAttributes", extendedAttributes);
+		logger.info("Set outletCategory and extendedAttributes: {}", extendedAttributes);
 
 		String custName = getString(responseEnvelope, "CUSTName");
+		logger.info("Parsed custname: {}", custName);
 		output.put("outletName", custName);
 
 		String ownerName = getString(responseEnvelope, "OwnerName");
+		logger.info("Parsed ownername: {}", ownerName);
 		output.put("contactName", ownerName);
 		userName.put("name", ownerName);
 
 		String outletLatStr = getString(responseEnvelope, "OutletLat");
-		if(!StringUtils.isNullOrEmpty(outletLatStr)) {
+		logger.info("Parsed outletlat: {}", outletLatStr);
+		if (!StringUtils.isNullOrEmpty(outletLatStr)) {
 			output.put("latitude", Double.parseDouble(outletLatStr));
+			logger.info("Set latitude: {}", output.get("latitude"));
 		}
 		String outletLongStr = getString(responseEnvelope, "OutletLong");
-		if(!StringUtils.isNullOrEmpty(outletLongStr)) {
+		logger.info("Parsed outletlong: {}", outletLongStr);
+		if (!StringUtils.isNullOrEmpty(outletLongStr)) {
 			output.put("longitude", Double.parseDouble(outletLongStr));
+			logger.info("Set longitude: {}", output.get("longitude"));
 		}
 
 		output.put("outletType", getString(responseEnvelope, "OutletType"));
 		output.put("channel", getString(responseEnvelope, "ChannelType"));
 		output.put("outletClass", getString(responseEnvelope, "LoyaltyType"));
+		logger.info("Set outletType, channel, outletClass: {}, {}, {}", output.get("outletType"), output.get("channel"), output.get("outletClass"));
 
 		output.put("userName", userName);
 
@@ -97,6 +110,8 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 
 		userName.put("locationHierarchy", locationHierarchy);
 		output.put("location", location);
+		logger.info("Set location and locationHierarchy: {}, {}", location, locationHierarchy);
+
 
 		output.put("activeStatus", ACTIVE);
 		output.put("activeStatusReason", ACTIVE);
@@ -105,15 +120,20 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		userName.put("activeStatusReason", ACTIVE);
 		userName.put("designation", List.of("retailer"));
 		userName.put("contactType", "retailer");
+		logger.info("Set active status fields for output and userName");
+
 
 		List<Map<String, Object>> supplierMapping = null;
 		Object rawSupplierMapping = responseEnvelope.get("supplierMapping");
+		logger.info("Raw supplierMapping: {}", rawSupplierMapping);
+
 
 		try {
 			String mappingStr = (String) rawSupplierMapping;
 			ObjectMapper mapper = new ObjectMapper();
 			supplierMapping = mapper.readValue(mappingStr, new TypeReference<List<Map<String, Object>>>() {
 			});
+			logger.info("Parsed supplierMapping: {}", supplierMapping);
 		} catch (Exception e) {
 			logger.error("Failed to parse supplierMapping string", e);
 		}
@@ -125,6 +145,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 				map.put(IMMEDIATEPARENT, wdDest);
 				return map;
 			}).collect(Collectors.toList());
+			logger.info("userNameParents: {}", userNameParents);
 
 			List<Map<String, Object>> hierarchyParents = supplierMapping.stream().map(supplier -> {
 				String uid2 = getString(responseEnvelope, "UID");
@@ -133,11 +154,13 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 				map.put("hierarchy", uid2 + " > " + wdDest);
 				return map;
 			}).collect(Collectors.toList());
+			logger.info("hierarchyParents: {}", hierarchyParents);
 
 			userName.put(IMMEDIATEPARENT, userNameParents);
 			output.put(IMMEDIATEPARENT, hierarchyParents);
 
 		}
+		logger.info("Final output: {}", output);
 		logger.info("OutletName: {}", output.get("outletName"));
 		logger.info("Channel: {}", output.get("channel"));
 		logger.info("OutletCode: {}", output.get("outletCode"));
