@@ -7,24 +7,15 @@ import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class OutletDetailsNullValueValidatorITCL extends AbstractValidationRule<OutletDetails> {
 
-    private static final Logger logger = LoggerFactory.getLogger(OutletDetailsNullValueValidatorITCL.class);
+
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
-
-        logger.info("Entering validation: {}", OutletDetailsNullValueValidatorITCL.class.getSimpleName());
-        logger.debug("Validation input details - outletName: {}, outletCode: {}, channel: {}, extendedAttributes: {}",
-                cdm.getOutletName(),
-                cdm.getOutletcode(),
-                cdm.getChannel(),
-                cdm.getExtendedAttributes());
 
         PropertyRegistry propertyRegistry = PropertyRegistry.getInstance();
 
