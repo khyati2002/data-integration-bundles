@@ -21,22 +21,20 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
         String configId = getValue(inputMap, "configId");
         String sizeId = getValue(inputMap, "InventSizeId");
         String dataAreaId = getValue(inputMap, "dataAreaId");
+        String colorId = getValue(inputMap, "InventColorId"); // ✅ new field
 
-        // Build SKU Code dynamically
-        StringBuilder skuBuilder = new StringBuilder(itemId)
-                .append("_").append(styleId)
-                .append("_").append(configId);
+        StringBuilder skuBuilder = new StringBuilder();
+        skuBuilder.append(itemId).append("_").append(styleId).append("_").append(configId);
 
         if (!sizeId.isEmpty()) {
             skuBuilder.append("_").append(sizeId);
         }
-
-        if (!dataAreaId.isEmpty()) {
-            skuBuilder.append("_").append(dataAreaId);
+        if (!colorId.isEmpty()) { // ✅ include colorId if present
+            skuBuilder.append("_").append(colorId);
         }
 
+        skuBuilder.append("_").append(dataAreaId);
         String skuCode = skuBuilder.toString();
-
         String siteId = getValue(inputMap, "InventSiteId");
         String warehouseId = !siteId.isEmpty() && !dataAreaId.isEmpty()
                 ? siteId + "-" + dataAreaId
