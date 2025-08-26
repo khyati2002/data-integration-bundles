@@ -40,7 +40,6 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
         skuBuilder.append("_").append(dataAreaId);
         String skuCode = skuBuilder.toString();
 
-        log.info("KGBPL Skucode => {}",skuCode);
 
         String siteId = getValue(inputMap, "InventSiteId");
         String warehouseId = !siteId.isEmpty() && !dataAreaId.isEmpty()
@@ -54,7 +53,7 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
             caseQty = Double.parseDouble(caseQtyStr);
         } catch (Exception ignored) {}
         responseMap.put("caseQty", caseQty); // ✅ Double
-
+        log.info("KGBPL skuCode => {}, caseQty => {}", skuCode, caseQty);
         // ✅ Determine supplierId from dataAreaId
         String supplierId = "";
         if ("kbpl".equalsIgnoreCase(dataAreaId)) {
