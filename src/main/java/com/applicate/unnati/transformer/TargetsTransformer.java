@@ -1,8 +1,6 @@
 package com.applicate.unnati.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
