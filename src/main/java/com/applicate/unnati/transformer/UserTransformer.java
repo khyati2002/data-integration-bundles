@@ -2,6 +2,7 @@ package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.tables.pojos.Location;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,7 +49,7 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         result.put("useraccountid", getString(inputMap, "useraccountid"));
         result.put("usercontext", getString(inputMap, "usercontext"));
         result.put("webcontext", getString(inputMap, "webcontext"));
-        result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
+        result.put("locationHierarchy", parseLocationHierarchy(inputMap, "locationHierarchy"));
         result.put("source", getString(inputMap, "source"));
         result.put("registeredNumber", getString(inputMap, "registeredNumber"));
         result.put("facebookpsid", getString(inputMap, "facebookpsid"));
@@ -148,6 +149,21 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         } catch (Exception e) {
             return null;
         }
+    }
+
+
+    private Location parseLocationHierarchy(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        String str = value.toString();
+        String[] parts = str.split("\\|");
+        Location location = new Location();
+        if (parts.length > 0) location.setZone(parts[0]);
+        if (parts.length > 1) location.setState(parts[1]);
+        if (parts.length > 2) location.setCity(parts[2]);
+        if (parts.length > 3) location.setArea(parts[3]);
+        return location;
     }
     
 }
