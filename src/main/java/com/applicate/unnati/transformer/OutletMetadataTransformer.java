@@ -41,10 +41,8 @@ public class OutletMetadataTransformer extends AbstractTransformer<Map<String, O
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
         result.put("changed", getBoolean(inputMap, "changed"));
         result.put("createdBy", getString(inputMap, "createdBy"));
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
         result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
         result.put("hash", getString(inputMap, "hash"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
         result.put("lob", getString(inputMap, "lob"));
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("source", getString(inputMap, "source"));
@@ -61,7 +59,7 @@ public class OutletMetadataTransformer extends AbstractTransformer<Map<String, O
         result.put("status", getString(inputMap, "status"));
         result.put("supplierCode", getString(inputMap, "supplierCode"));
         result.put("supplierUniqueCode", getString(inputMap, "supplierUniqueCode"));
-        result.put("syncedTime", getLocalDateTime(inputMap, "syncedTime"));
+        result.put("syncedTime", getString(inputMap, "syncedTime"));
 
         return result;
     }
@@ -100,42 +98,6 @@ public class OutletMetadataTransformer extends AbstractTransformer<Map<String, O
         }
     }
 
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-
-            String dateTimeStr = value.toString();
-            if (dateTimeStr.trim().isEmpty()) {
-                return null;
-            }
-
-            // Try multiple formatters for better compatibility
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-                    return LocalDateTime.parse(dateTimeStr, formatter);
-                } catch (DateTimeParseException e) {
-                    // Continue to next formatter
-                }
-            }
-
-            // If all formatters fail, try to handle epoch timestamp
-            try {
-                long epochMilli = Long.parseLong(dateTimeStr);
-                return LocalDateTime.ofEpochSecond(epochMilli / 1000, 0, java.time.ZoneOffset.UTC);
-            } catch (NumberFormatException e) {
-                // Final fallback - return null
-                return null;
-            }
-
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
         Object value = map.get(key);
