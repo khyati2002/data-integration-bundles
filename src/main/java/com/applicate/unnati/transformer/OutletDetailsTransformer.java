@@ -16,12 +16,7 @@ import java.util.Map;
 public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final DateTimeFormatter[] DATE_FORMATTERS = new DateTimeFormatter[] {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
-            DateTimeFormatter.ISO_DATE_TIME
-    };
+
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
@@ -34,14 +29,12 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
         result.put("createdBy", getString(inputMap, "createdBy"));
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
         result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
         result.put("lob", getString(inputMap, "lob"));
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("version", getInteger(inputMap, "version"));
 
-        // OutletDetails specific fields
+
         result.put("address", getString(inputMap, "address"));
         result.put("beat", getString(inputMap, "beat"));
         result.put("beatName", getString(inputMap, "beatName"));
@@ -57,7 +50,7 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
         result.put("loginid", getString(inputMap, "loginid"));
         result.put("source", getString(inputMap, "source"));
-        result.put("lastOrderDate", getLocalDateTime(inputMap, "lastOrderDate"));
+        result.put("lastOrderDate", getString(inputMap, "lastOrderDate"));
         result.put("latitude", getBigDecimal(inputMap, "latitude"));
         result.put("longitude", getBigDecimal(inputMap, "longitude"));
         result.put("account", getString(inputMap, "account"));
@@ -69,7 +62,7 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("tinNo", getString(inputMap, "tinNo"));
         result.put("hash", getString(inputMap, "hash"));
         result.put("coordinate", getGeometry(inputMap, "coordinate"));
-        result.put("doo", getLocalDateTime(inputMap, "doo"));
+        result.put("doo", getString(inputMap, "doo"));
         result.put("hierarchy", getString(inputMap, "hierarchy"));
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("changed", getByte(inputMap, "changed"));
@@ -85,7 +78,7 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("priceListId", getString(inputMap, "priceListId"));
         result.put("prodauthcode", getString(inputMap, "prodauthcode"));
         result.put("outletWhatsappNumber", getString(inputMap, "outletWhatsappNumber"));
-        result.put("dateOfClosing", getLocalDateTime(inputMap, "dateOfClosing"));
+        result.put("dateOfClosing", getString(inputMap, "dateOfClosing"));
         result.put("vpo", getString(inputMap, "vpo"));
         result.put("segment", getString(inputMap, "segment"));
         result.put("outletAttr1", getString(inputMap, "outletAttr1"));
@@ -166,29 +159,6 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
             }
             return Byte.valueOf(value.toString());
         } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-        try {
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-            String raw = value.toString().trim();
-            if (raw.contains("T") && raw.contains("Z")) {
-                raw = raw.substring(0, raw.indexOf("T")) + " " + raw.substring(raw.indexOf("T") + 1, raw.indexOf("Z"));
-            }
-
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-                    return LocalDateTime.parse(raw, formatter);
-                } catch (Exception ignored) {}
-            }
-            return null;
-        } catch (Exception e) {
             return null;
         }
     }

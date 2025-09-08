@@ -16,17 +16,6 @@ public class OutletMetadataTransformer extends AbstractTransformer<Map<String, O
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Multiple date time formatters to handle various input formats
-    private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
-            DateTimeFormatter.ISO_DATE_TIME
-    };
-
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {

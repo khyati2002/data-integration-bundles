@@ -14,12 +14,7 @@ import java.util.Map;
 public class TargetsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final DateTimeFormatter[] DATE_FORMATTERS = new DateTimeFormatter[] {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
-            DateTimeFormatter.ISO_DATE_TIME
-    };
+
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
@@ -33,22 +28,20 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
         result.put("createdBy", getString(inputMap, "createdBy"));
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
         result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
         result.put("hash", getString(inputMap, "hash"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
         result.put("lob", getString(inputMap, "lob"));
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("source", getString(inputMap, "source"));
         result.put("version", getInteger(inputMap, "version"));
 
         // Targets specific fields
-        result.put("endDate", getLocalDateTime(inputMap, "endDate"));
+        result.put("endDate", getString(inputMap, "endDate"));
         result.put("outletType", getString(inputMap, "outletType"));
         result.put("outletValue", getJsonNode(inputMap, "outletValue"));
         result.put("productType", getString(inputMap, "productType"));
         result.put("productValue", getJsonNode(inputMap, "productValue"));
-        result.put("startDate", getLocalDateTime(inputMap, "startDate"));
+        result.put("startDate", getString(inputMap, "startDate"));
         result.put("target", getDouble(inputMap, "target"));
         result.put("targetId", getString(inputMap, "targetId"));
         result.put("targetName", getString(inputMap, "targetName"));
@@ -113,28 +106,6 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         }
     }
 
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-        try {
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-            String raw = value.toString().trim();
-            if (raw.contains("T") && raw.contains("Z")) {
-                raw = raw.substring(0, raw.indexOf("T")) + " " + raw.substring(raw.indexOf("T") + 1, raw.indexOf("Z"));
-            }
-
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-                    return LocalDateTime.parse(raw, formatter);
-                } catch (Exception ignored) {}
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
         Object value = map.get(key);
