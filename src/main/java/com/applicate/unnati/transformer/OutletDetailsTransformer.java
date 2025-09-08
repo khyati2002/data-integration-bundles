@@ -211,7 +211,7 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
             return Collections.emptyMap();
         }
         try {
-            if (value instanceof User) {
+            if (value instanceof User || value instanceof Map) {
                 return userTransformer.transform((Map<String, Object>)value);
             }
         } catch (Exception ignored){}
