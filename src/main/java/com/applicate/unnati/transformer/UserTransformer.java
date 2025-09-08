@@ -153,22 +153,19 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         }
     }
 
-
     private Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
         Location location = new Location();
-
         if (value instanceof Map) {
             Map<?, ?> m = (Map<?, ?>) value;
+            location.setCountry((String)m.get("country"));
             location.setZone((String) m.get("zone"));
             location.setState((String) m.get("state"));
             location.setCity((String) m.get("city"));
             location.setArea((String) m.get("area"));
             return location;
         }
-
         if (value instanceof String) {
             String s = ((String) value).trim();
             if (s.contains("|")) {
@@ -180,7 +177,6 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
                 return location;
             }
         }
-
         return null;
     }
 
