@@ -2,6 +2,7 @@ package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.tables.pojos.TargetResults;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,7 +10,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TargetsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
@@ -55,6 +58,7 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         result.put("targetconditionunit", getString(inputMap, "targetconditionunit"));
         result.put("userValueStr", getString(inputMap, "userValueStr"));
         result.put("outletValueStr", getString(inputMap, "outletValueStr"));
+        result.put("targetResults", getList(inputMap, "targetResults", TargetResults.class));
 
         return result;
     }
@@ -106,6 +110,22 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         }
     }
 
+    private <T> List<T> getList(Map<String, Object> map, String key, Class<T> clazz) {
+        Object value = map.get(key);
+        if (value == null) return Collections.emptyList();
+
+        try {
+            if (value instanceof List<?>) {
+                return ((List<?>) value).stream()
+                        .filter(clazz::isInstance)
+                        .map(clazz::cast)
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+        }
+        return Collections.emptyList();
+    }
+
 
     private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
         Object value = map.get(key);
@@ -134,7 +154,5 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
             return null;
         }
     }
-
-    // Test data for Targets
 
 }

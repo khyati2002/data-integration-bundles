@@ -19,10 +19,7 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         if (inputMap == null) {
             return Collections.emptyMap();
         }
-
         Map<String, Object> result = new LinkedHashMap<>();
-
-
         result.put("id", getString(inputMap, "id"));
         result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
@@ -47,7 +44,6 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("currentVolumn", getDouble(inputMap, "currentVolumn"));
         result.put("hash", getString(inputMap, "hash"));
         result.put("changed", getByte(inputMap, "changed"));
-
         return result;
     }
 
@@ -129,7 +125,7 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
 
     private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return "{}"; 
+        if (value == null) return "{}";
         try {
             if (value instanceof JSON) {
                 return ((JSON) value).data();
@@ -170,6 +166,61 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         return null;
     }
 
-
-
 }
+
+
+/*
+sample srd
+
+
+public static String rawStreamingData = "{\n" +
+        "  \"requestId\": \"test-req-SCORE-001\",\n" +
+        "  \"groupId\": \"2025-09-08\",\n" +
+        "  \"lob\": \"cktestitcloyalty\",\n" +
+        "  \"loginId\": \"integration_user\",\n" +
+        "  \"batchNumber\": 1,\n" +
+        "  \"transformerInfo\": [\n" +
+        "    {\n" +
+        "      \"skipPreprocessing\": false,\n" +
+        "      \"skipPersist\": false,\n" +
+        "      \"entityName\": \"ScoreDetails\",\n" +
+        "      \"transformerId\": \"genericScoreDetailsTransformer\",\n" +
+        "      \"operationType\": \"insert\"\n" +
+        "    }\n" +
+        "  ],\n" +
+        "  \"features\": [\n" +
+        "    {\n" +
+        "      \"id\": \"SCORE12345\",\n" +
+        "      \"activeStatus\": \"ACTIVE\",\n" +
+        "      \"activeStatusReason\": \"Valid score entry\",\n" +
+        "      \"createdBy\": \"system_user\",\n" +
+        "      \"extendedAttributes\": { \"tier\": \"Gold\", \"category\": \"Premium\" },\n" +
+        "      \"lob\": \"FMCG\",\n" +
+        "      \"modifiedBy\": \"admin_user\",\n" +
+        "      \"source\": \"IntegrationAPI\",\n" +
+        "      \"version\": 1,\n" +
+        "      \"closingPoints\": 1250.75,\n" +
+        "      \"endDate\": \"2025-03-07 00:00:00\",\n" +
+        "      \"feature\": \"loyalty_program\",\n" +
+        "      \"openingPoints\": 850.50,\n" +
+        "      \"pointsBreakup\": { \"purchase_points\": 400.25, \"bonus_points\": 200.0 },\n" +
+        "      \"startDate\": \"2025-03-07 00:00:00\",\n" +
+        "      \"totalPoints\": 2100.25,\n" +
+        "  \"locationHierarchy\": {\n" +
+        "    \"zone\": \"NDEL\",\n" +
+        "    \"state\": \"NDIS\",\n" +
+        "    \"city\": \"CITY01\",\n" +
+        "    \"area\": \"AREA01\",\n" +
+        "    \"country\": \"INDIA\"\n" +
+        "      },\n" +
+        "      \"loginid\": \"180602537117\",\n" +
+        "      \"outletcode\": \"C20220005949786\",\n" +
+        "      \"programNumber\": \"PROG2025007\",\n" +
+        "      \"currentVolumn\": 15750.80,\n" +
+        "      \"hash\": \"abc123def456\",\n" +
+        "      \"changed\": 1\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+
+ */
