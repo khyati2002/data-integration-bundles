@@ -146,20 +146,18 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
-    private JSON getJSON(Map<String, Object> map, String key) {
+    private Object getJSON(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                String raw = ((JSON) value).data();
+                return objectMapper.readValue(raw, Map.class);
             }
-            return JSON.valueOf(value.toString());
+            return objectMapper.readValue(value.toString(), Map.class);
         } catch (Exception e) {
-            return null;
+            return value.toString();
         }
     }
 
-    // Test data for ScoreDetails
-    
 }
