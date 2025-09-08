@@ -6,8 +6,7 @@ import com.salescode.dim.jooq.generated.tables.pojos.TargetResults;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,7 +25,7 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
 
         Map<String, Object> result = new LinkedHashMap<>();
 
-        // Common fields from CommonDataModel
+
         result.put("id", getString(inputMap, "id"));
         result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
@@ -38,7 +37,7 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         result.put("source", getString(inputMap, "source"));
         result.put("version", getInteger(inputMap, "version"));
 
-        // Targets specific fields
+
         result.put("endDate", getString(inputMap, "endDate"));
         result.put("outletType", getString(inputMap, "outletType"));
         result.put("outletValue", getJsonNode(inputMap, "outletValue"));
@@ -113,7 +112,6 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
     private <T> List<T> getList(Map<String, Object> map, String key, Class<T> clazz) {
         Object value = map.get(key);
         if (value == null) return Collections.emptyList();
-
         try {
             if (value instanceof List<?>) {
                 return ((List<?>) value).stream()
@@ -126,11 +124,9 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
         return Collections.emptyList();
     }
 
-
     private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
         try {
             if (value instanceof ActiveStatus) {
                 return (ActiveStatus) value;
@@ -144,7 +140,6 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
     private JsonNode getJsonNode(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
         try {
             if (value instanceof JsonNode) {
                 return (JsonNode) value;
@@ -156,3 +151,59 @@ public class TargetsTransformer extends AbstractTransformer<Map<String, Object>,
     }
 
 }
+
+
+/*
+        sample srd
+
+            public static String rawStreamingData = "{\n" +
+            "  \"requestId\": \"test-req-TARGET-001\",\n" +
+            "  \"groupId\": \"2025-09-08\",\n" +
+            "  \"lob\": \"cktestitcloyalty\",\n" +
+            "  \"loginId\": \"integration_user\",\n" +
+            "  \"batchNumber\": 1,\n" +
+            "  \"transformerInfo\": [\n" +
+            "    {\n" +
+            "      \"skipPreprocessing\": false,\n" +
+            "      \"skipPersist\": false,\n" +
+            "      \"entityName\": \"Targets\",\n" +
+            "      \"transformerId\": \"genericTargetsTransformer\",\n" +
+            "      \"operationType\": \"insert\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"features\": [\n" +
+            "    {\n" +
+            "      \"id\": \"TARGET12345\",\n" +
+            "      \"activeStatus\": \"ACTIVE\",\n" +
+            "      \"activeStatusReason\": \"Valid target entry\",\n" +
+            "      \"createdBy\": \"system_user\",\n" +
+            "      \"extendedAttributes\": \"{ \\\"priority\\\": \\\"HIGH\\\", \\\"quarter\\\": \\\"Q3\\\" }\",\n" +
+            "      \"hash\": \"abc123def456\",\n" +
+            "      \"lob\": \"FMCG\",\n" +
+            "      \"modifiedBy\": \"admin_user\",\n" +
+            "      \"source\": \"IntegrationAPI\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"endDate\": \"2025-03-07 00:00:00T00:00:00Z\",\n" +
+            "      \"outletType\": \"RETAIL\",\n" +
+            "      \"outletValue\": \"{ \\\"categories\\\": [\\\"GROCERY\\\", \\\"PHARMACY\\\"], \\\"regions\\\": [\\\"NORTH\\\", \\\"SOUTH\\\"] }\",\n" +
+            "      \"productType\": \"BRAND\",\n" +
+            "      \"productValue\": \"{ \\\"brands\\\": [\\\"BRAND_A\\\", \\\"BRAND_B\\\"], \\\"skus\\\": [\\\"SKU001\\\", \\\"SKU002\\\"] }\",\n" +
+            "      \"startDate\": \"2025-03-07 00:00:00T00:00:00Z\",\n" +
+            "      \"target\": \"50000.75\",\n" +
+            "      \"targetId\": \"TGT2025Q3001\",\n" +
+            "      \"targetName\": \"Q3 Sales Target - Premium Products\",\n" +
+            "      \"targetTable\": \"sales_targets\",\n" +
+            "      \"targetType\": \"SALES_VOLUME\",\n" +
+            "      \"unit\": \"INR\",\n" +
+            "      \"userType\": \"SALES_REP\",\n" +
+            "      \"userValue\": \"{ \\\"roles\\\": [\\\"SALES_EXECUTIVE\\\", \\\"TERRITORY_MANAGER\\\"], \\\"levels\\\": [\\\"L2\\\", \\\"L3\\\"] }\",\n" +
+            "      \"changed\": \"1\",\n" +
+            "      \"targetcondition\": \"80.5\",\n" +
+            "      \"targetconditionunit\": \"PERCENTAGE\",\n" +
+            "      \"userValueStr\": \"SALES_REP|TERRITORY_001|ZONE_NORTH\",\n" +
+            "      \"outletValueStr\": \"RETAIL|GROCERY|TIER_A\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+ */

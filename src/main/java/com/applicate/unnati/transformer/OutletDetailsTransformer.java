@@ -2,13 +2,12 @@ package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.tables.pojos.User;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.Geometry;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,6 +15,7 @@ import java.util.Map;
 public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final UserTransformer userTransformer = new UserTransformer();
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -95,7 +95,7 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("outletDiscount", getBigDecimal(inputMap, "outletDiscount"));
         result.put("discountGroup", getString(inputMap, "discountGroup"));
         result.put("shipToAddress", getString(inputMap, "shipToAddress"));
-
+        result.put("userName", getUser(inputMap, "userName"));
         return result;
     }
 
@@ -204,5 +204,18 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
             return null;
         }
     }
+
+    private Map<String, Object> getUser(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) {
+            return Collections.emptyMap();
+        }
+        try {
+            if (value instanceof User) {
+                return userTransformer.transform((Map<String, Object>)value);
+            }
+        } catch (Exception ignored){}
+        return Collections.emptyMap();
+        }
 
 }
