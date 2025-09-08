@@ -158,15 +158,32 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         Object value = map.get(key);
         if (value == null) return null;
 
-        String str = value.toString();
-        String[] parts = str.split("\\|");
         Location location = new Location();
-        if (parts.length > 0) location.setZone(parts[0]);
-        if (parts.length > 1) location.setState(parts[1]);
-        if (parts.length > 2) location.setCity(parts[2]);
-        if (parts.length > 3) location.setArea(parts[3]);
-        return location;
+
+        if (value instanceof Map) {
+            Map<?, ?> m = (Map<?, ?>) value;
+            location.setZone((String) m.get("zone"));
+            location.setState((String) m.get("state"));
+            location.setCity((String) m.get("city"));
+            location.setArea((String) m.get("area"));
+            return location;
+        }
+
+        if (value instanceof String) {
+            String s = ((String) value).trim();
+            if (s.contains("|")) {
+                String[] parts = s.split("\\|", -1);
+                if (parts.length > 0) location.setZone(parts[0]);
+                if (parts.length > 1) location.setState(parts[1]);
+                if (parts.length > 2) location.setCity(parts[2]);
+                if (parts.length > 3) location.setArea(parts[3]);
+                return location;
+            }
+        }
+
+        return null;
     }
+
 
 
     @SuppressWarnings("unchecked")
