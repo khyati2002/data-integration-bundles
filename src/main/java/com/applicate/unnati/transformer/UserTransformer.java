@@ -9,9 +9,9 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class UserTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
@@ -69,6 +69,8 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         result.put("externalReferenceId", getString(inputMap, "externalReferenceId"));
         result.put("reportPassword", getString(inputMap, "reportPassword"));
         result.put("prodauthcode", getString(inputMap, "prodauthcode"));
+        result.put("designation", getDesignation(inputMap, "designation"));
+
 
         return result;
     }
@@ -165,5 +167,24 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         if (parts.length > 3) location.setArea(parts[3]);
         return location;
     }
-    
+
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getDesignation(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return Collections.emptySet();
+        if (value instanceof Set)
+            return ((Set<?>) value).stream().map(Object::toString).collect(Collectors.toSet());
+
+        if (value instanceof String) {
+            String s = ((String) value).trim();
+            if (s.isEmpty()) return Collections.emptySet();
+            return Arrays.stream(s.split("[,|]"))
+                    .map(String::trim).filter(p -> !p.isEmpty()).collect(Collectors.toSet());
+        }
+
+        return Collections.singleton(value.toString());
+    }
+
+
 }
