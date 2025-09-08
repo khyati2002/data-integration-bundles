@@ -5,9 +5,6 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -116,5 +113,52 @@ public class OutletMetadataTransformer extends AbstractTransformer<Map<String, O
             return null;
         }
     }
-
 }
+/* sample srd
+
+public static String rawStreamingData = "{\n" +
+        "  \"requestId\": \"test-req-OUTLET-METADATA-001\",\n" +
+        "  \"groupId\": \"2025-09-08\",\n" +
+        "  \"lob\": \"cktestitcloyalty\",\n" +
+        "  \"loginId\": \"integration_user\",\n" +
+        "  \"batchNumber\": 1,\n" +
+        "  \"transformerInfo\": [\n" +
+        "    {\n" +
+        "      \"skipPreprocessing\": false,\n" +
+        "      \"skipPersist\": false,\n" +
+        "      \"entityName\": \"OutletMetadata\",\n" +
+        "      \"transformerId\": \"genericOutletMetadataTransformer\",\n" +
+        "      \"operationType\": \"insert\"\n" +
+        "    }\n" +
+        "  ],\n" +
+        "  \"features\": [\n" +
+        "    {\n" +
+        "      \"id\": \"OM12345\",\n" +
+        "      \"activeStatus\": \"ACTIVE\",\n" +
+        "      \"activeStatusReason\": \"Valid outlet metadata entry\",\n" +
+        "      \"changed\": \"true\",\n" +
+        "      \"createdBy\": \"system_user\",\n" +
+        "      \"extendedAttributes\": \"{ \\\"category\\\": \\\"PREMIUM\\\", \\\"tier\\\": \\\"GOLD\\\" }\",\n" +
+        "      \"hash\": \"outlet_meta_hash_abc123\",\n" +
+        "      \"lob\": \"FMCG\",\n" +
+        "      \"modifiedBy\": \"admin_user\",\n" +
+        "      \"source\": \"OutletManagementSystem\",\n" +
+        "      \"version\": \"1\",\n" +
+        "      \"customerCode\": \"CUST001\",\n" +
+        "      \"groupKey\": \"GROUP_KEY_RETAIL_001\",\n" +
+        "      \"loginId\": \"outlet_manager_001\",\n" +
+        "      \"outletCode\": \"OUT_CODE_001\",\n" +
+        "      \"outletId\": \"OUTLET_ID_12345\",\n" +
+        "      \"outletUniqueCode\": \"UNQ_OUT_001_2025\",\n" +
+        "      \"salesrep\": \"SALES_REP_RAMESH_001\",\n" +
+        "      \"status\": \"ACTIVE\",\n" +
+        "      \"supplierCode\": \"SUPP_001\",\n" +
+        "      \"supplierUniqueCode\": \"UNQ_SUPP_001_2025\",\n" +
+        "      \"syncedTime\": \"2025-03-07 00:00:00T00:00:00Z\"\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+
+ */
+
+

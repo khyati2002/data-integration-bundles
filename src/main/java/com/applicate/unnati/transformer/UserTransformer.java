@@ -30,7 +30,6 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("version", getInteger(inputMap, "version"));
 
-        // User specific fields
         result.put("address", getString(inputMap, "address"));
         result.put("contactType", getString(inputMap, "contactType"));
         result.put("countryCode", getString(inputMap, "countryCode"));
@@ -65,8 +64,6 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         result.put("reportPassword", getString(inputMap, "reportPassword"));
         result.put("prodauthcode", getString(inputMap, "prodauthcode"));
         result.put("designation", getDesignation(inputMap, "designation"));
-
-
         return result;
     }
 
@@ -172,9 +169,6 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         return null;
     }
 
-
-
-    @SuppressWarnings("unchecked")
     private Set<String> getDesignation(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return Collections.emptySet();
@@ -187,9 +181,83 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
             return Arrays.stream(s.split("[,|]"))
                     .map(String::trim).filter(p -> !p.isEmpty()).collect(Collectors.toSet());
         }
-
         return Collections.singleton(value.toString());
     }
 
 
 }
+
+
+
+/* Sample srd
+
+public static String rawStreamingData = "{\n" +
+        "  \"requestId\": \"test-req-USER-001\",\n" +
+        "  \"groupId\": \"2025-09-08\",\n" +
+        "  \"lob\": \"cktestitcloyalty\",\n" +
+        "  \"loginId\": \"integration_user\",\n" +
+        "  \"batchNumber\": 1,\n" +
+        "  \"transformerInfo\": [\n" +
+        "    {\n" +
+        "      \"skipPreprocessing\": false,\n" +
+        "      \"skipPersist\": false,\n" +
+        "      \"entityName\": \"User\",\n" +
+        "      \"transformerId\": \"genericUserTransformer\",\n" +
+        "      \"operationType\": \"insert\"\n" +
+        "    }\n" +
+        "  ],\n" +
+        "  \"features\": [\n" +
+        "    {\n" +
+        "      \"id\": \"USER12345\",\n" +
+        "      \"activeStatus\": \"ACTIVE\",\n" +
+        "      \"activeStatusReason\": \"Valid user account\",\n" +
+        "      \"createdBy\": \"system_admin\",\n" +
+        "      \"extendedAttributes\": \"{ \\\"department\\\": \\\"Sales\\\", \\\"experience\\\": \\\"5_years\\\" }\",\n" +
+        "      \"lob\": \"FMCG\",\n" +
+        "      \"modifiedBy\": \"hr_admin\",\n" +
+        "      \"version\": \"1\",\n" +
+        "      \"address\": \"456 Residential Complex, Urban Area, Metropolitan City\",\n" +
+        "      \"contactType\": \"MOBILE\",\n" +
+        "      \"countryCode\": \"IN\",\n" +
+        "      \"email\": \"ramesh.kumar@company.com\",\n" +
+        "      \"hierarchy\": \"NATIONAL|ZONE01|STATE01|REGION01\",\n" +
+        "      \"lastPasswordResetDate\": \"2025-03-07 00:00:00\",\n" +
+        "      \"loginid\": \"ramesh.kumar001\",\n" +
+        "      \"mobile\": \"+91-9876543210\",\n" +
+        "      \"name\": \"Ramesh Kumar\",\n" +
+        "      \"password\": \"encrypted_password_hash\",\n" +
+        "      \"useraccountid\": \"UA2025001\",\n" +
+        "      \"usercontext\": \"SALES_CONTEXT\",\n" +
+        "      \"webcontext\": \"WEB_PORTAL\",\n" +
+        "  \"locationHierarchy\": {\n" +
+        "    \"zone\": \"NDEL\",\n" +
+        "    \"state\": \"NDIS\",\n" +
+        "    \"city\": \"CITY01\",\n" +
+        "    \"area\": \"AREA01\",\n" +
+        "    \"country\": \"INDIA\"\n" +
+        "      },\n" +
+        "      \"designation\": [\"Manager\", \"Team Lead\", \"Field Officer\"],\n" +
+        "      \"source\": \"HR_SYSTEM\",\n" +
+        "      \"registeredNumber\": \"+91-9876543210\",\n" +
+        "      \"facebookpsid\": \"fb_12345678901234567\",\n" +
+        "      \"hash\": \"user_hash_abc123\",\n" +
+        "      \"dialCode\": \"+91\",\n" +
+        "      \"ssoId\": \"sso_ramesh_001\",\n" +
+        "      \"deviceId\": \"device_android_xyz789\",\n" +
+        "      \"verified\": true,\n" +
+        "      \"doa\": \"2025-03-07 00:00:00\",\n" +
+        "      \"dob\": \"1990-05-15 00:00:00\",\n" +
+        "      \"assignedHierarchy\": \"TERRITORY_001|BEAT_001\",\n" +
+        "      \"rowid\": 10005334,\n" +
+        "      \"changed\": 1,\n" +
+        "      \"blocked\": false,\n" +
+        "      \"normalizedHierarchy\": \"ZONE01>STATE01>REGION01>TERRITORY01\",\n" +
+        "      \"alternateId\": \"ALT_ID_001\",\n" +
+        "      \"externalReferenceId\": \"EXT_REF_HR_001\",\n" +
+        "      \"reportPassword\": \"report_encrypted_hash\",\n" +
+        "      \"prodauthcode\": \"PROD_AUTH_001\"\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+
+ */
