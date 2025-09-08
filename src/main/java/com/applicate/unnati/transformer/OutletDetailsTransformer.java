@@ -33,9 +33,6 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         result.put("lob", getString(inputMap, "lob"));
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("version", getInteger(inputMap, "version"));
-        result.put("userName", getString(inputMap, "userName"));
-
-
 
 
         result.put("address", getString(inputMap, "address"));
