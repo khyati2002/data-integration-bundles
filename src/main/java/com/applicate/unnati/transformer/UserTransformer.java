@@ -148,7 +148,7 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
         }
     }
 
-    private String parseLocationHierarchy(Map<String, Object> map, String key) {
+    private Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
@@ -160,25 +160,19 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
             location.setRegion((String) m.get("region"));
             location.setState((String) m.get("state"));
             location.setCity((String) m.get("city"));
-            location.setArea((String) m.get("area"));
-            location.setZone((String) m.get("zone"));
             location.setPincode((String) m.get("pincode"));
-            return buildLocationHierarchy(location);
+            location.setZone((String) m.get("zone"));
+            location.setCountryCode((String) m.get("countryCode"));
+            location.setRegionCode((String) m.get("regionCode"));
+            location.setStateCode((String) m.get("stateCode"));
+            location.setCityCode((String) m.get("cityCode"));
+            location.setZoneCode((String) m.get("zoneCode"));
+            return location;
         }
         return null;
     }
-    private String buildLocationHierarchy(Location loc) {
-        if (loc == null) return null;
 
-        List<String> parts = new ArrayList<>();
-        if (loc.getZone() != null && !loc.getZone().isBlank()) parts.add(loc.getZone());
-        if (loc.getState() != null && !loc.getState().isBlank()) parts.add(loc.getState());
-        if (loc.getCity() != null && !loc.getCity().isBlank()) parts.add(loc.getCity());
-        if (loc.getArea() != null && !loc.getArea().isBlank()) parts.add(loc.getArea());
-        if (loc.getCountry() != null && !loc.getCountry().isBlank()) parts.add(loc.getCountry());
 
-        return String.join(" > ", parts);
-    }
 
     @SuppressWarnings("unchecked")
     private Set<String> getDesignation(Map<String, Object> map, String key) {
