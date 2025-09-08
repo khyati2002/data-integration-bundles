@@ -39,7 +39,7 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("endDate", getString(inputMap, "endDate"));
         result.put("feature", getString(inputMap, "feature"));
         result.put("openingPoints", getDouble(inputMap, "openingPoints"));
-        result.put("pointsBreakup", getJooqJson(inputMap, "pointsBreakup"));
+        result.put("pointsBreakup", getJooqJsonAsString(inputMap, "pointsBreakup"));
         result.put("startDate", getString(inputMap, "startDate"));
         result.put("totalPoints", getDouble(inputMap, "totalPoints"));
         result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
@@ -129,18 +129,19 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
-    private JSON getJooqJson(Map<String, Object> map, String key) {
+    private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
-            return JSON.json(value.toString());
+            return value.toString();
         } catch (Exception e) {
-            return JSON.json("{}");
+            return "{}";
         }
     }
+
 
 }
