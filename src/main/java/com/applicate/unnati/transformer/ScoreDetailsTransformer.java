@@ -34,7 +34,7 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("source", getString(inputMap, "source"));
         result.put("version", getInteger(inputMap, "version"));
 
-        // ScoreDetails specific fields
+
         result.put("closingPoints", getDouble(inputMap, "closingPoints"));
         result.put("endDate", getString(inputMap, "endDate"));
         result.put("feature", getString(inputMap, "feature"));
@@ -42,7 +42,7 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("pointsBreakup", getJooqJsonAsString(inputMap, "pointsBreakup"));
         result.put("startDate", getString(inputMap, "startDate"));
         result.put("totalPoints", getDouble(inputMap, "totalPoints"));
-        result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
+        result.put("locationHierarchy", parseLocationHierarchy(inputMap, "locationHierarchy"));
         result.put("loginid", getString(inputMap, "loginid"));
         result.put("outletcode", getString(inputMap, "outletcode"));
         result.put("programNumber", getString(inputMap, "programNumber"));
@@ -142,6 +142,57 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
             return "{}";
         }
     }
+
+
+    @SuppressWarnings("unchecked")
+    private Object parseLocationHierarchy(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+
+        if (value instanceof Map || value instanceof JsonNode) return value;
+
+
+        if (value instanceof JSON) {
+            try { return objectMapper.readValue(((JSON) value).data(), Map.class); } catch (Exception ignored) {}
+        }
+
+        if (!(value instanceof String)) return value;
+
+        String s = ((String) value).trim();
+
+        // Try plain JSON first (object or array)
+        if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]")) || s.contains(":")) {
+            try { return objectMapper.readValue(s, Map.class); } catch (Exception ignored) {}
+        }
+
+        if (s.startsWith("{") && s.endsWith("}") && s.contains("=") && !s.contains(":")) {
+            String inner = s.substring(1, s.length() - 1).trim();
+            Map<String, Object> out = new LinkedHashMap<>();
+            if (!inner.isEmpty()) {
+                for (String part : inner.split(",\\s*")) {
+                    String[] kv = part.split("=", 2);
+                    out.put(kv[0].trim(), kv.length > 1 ? kv[1].trim() : "");
+                }
+            }
+            return out;
+        }
+
+        if (s.contains("|")) {
+            String[] p = s.split("\\|", -1);
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("zone",  p.length > 0 ? p[0] : "");
+            out.put("state", p.length > 1 ? p[1] : "");
+            out.put("city",  p.length > 2 ? p[2] : "");
+            out.put("area",  p.length > 3 ? p[3] : "");
+            return out;
+        }
+
+        // Final attempt to parse as JSON, otherwise return raw string
+        try { return objectMapper.readValue(s, Map.class); } catch (Exception ignored) {}
+        return s;
+    }
+
 
 
 }
