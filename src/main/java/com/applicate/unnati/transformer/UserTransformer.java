@@ -5,13 +5,8 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.tables.pojos.Location;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class UserTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
@@ -156,26 +151,23 @@ public class UserTransformer extends AbstractTransformer<Map<String, Object>, Ma
     private Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
+
         Location location = new Location();
+
         if (value instanceof Map) {
             Map<?, ?> m = (Map<?, ?>) value;
-            location.setCountry((String)m.get("country"));
-            location.setZone((String) m.get("zone"));
+            location.setCountry((String) m.get("country"));
+            location.setRegion((String) m.get("region"));
             location.setState((String) m.get("state"));
             location.setCity((String) m.get("city"));
-            location.setArea((String) m.get("area"));
+            location.setPincode((String) m.get("pincode"));
+            location.setZone((String) m.get("zone"));
+            location.setCountryCode((String) m.get("countryCode"));
+            location.setRegionCode((String) m.get("regionCode"));
+            location.setStateCode((String) m.get("stateCode"));
+            location.setCityCode((String) m.get("cityCode"));
+            location.setZoneCode((String) m.get("zoneCode"));
             return location;
-        }
-        if (value instanceof String) {
-            String s = ((String) value).trim();
-            if (s.contains("|")) {
-                String[] parts = s.split("\\|", -1);
-                if (parts.length > 0) location.setZone(parts[0]);
-                if (parts.length > 1) location.setState(parts[1]);
-                if (parts.length > 2) location.setCity(parts[2]);
-                if (parts.length > 3) location.setArea(parts[3]);
-                return location;
-            }
         }
         return null;
     }
