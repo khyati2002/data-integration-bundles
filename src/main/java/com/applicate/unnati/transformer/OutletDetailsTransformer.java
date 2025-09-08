@@ -1,88 +1,225 @@
 package com.applicate.unnati.transformer;
 
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.jooq.Geometry;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
-        Map<String, Object> outletMap = new LinkedHashMap<>();
-
-        // Identifiers
-        outletMap.put("id", inputMap.get("id"));
-        outletMap.put("code", inputMap.get("code"));
-        outletMap.put("outletName", inputMap.get("outletName"));
-
-        // Location hierarchy
-        outletMap.put("address", inputMap.get("address"));
-        outletMap.put("branchName", inputMap.get("branchName"));
-        outletMap.put("branchCode", inputMap.get("branchCode"));
-        outletMap.put("townName", inputMap.get("townName"));
-        outletMap.put("townCode", inputMap.get("townCode"));
-        outletMap.put("cityName", inputMap.get("cityName"));
-        outletMap.put("cityCode", inputMap.get("cityCode"));
-        outletMap.put("stateName", inputMap.get("stateName"));
-        outletMap.put("stateCode", inputMap.get("stateCode"));
-        outletMap.put("zoneName", inputMap.get("zoneName"));
-        outletMap.put("zoneCode", inputMap.get("zoneCode"));
-        outletMap.put("distributorCode", inputMap.get("distributorCode"));
-        outletMap.put("distributorName", inputMap.get("distributorName"));
-        outletMap.put("routeCode", inputMap.get("routeCode"));
-        outletMap.put("routeName", inputMap.get("routeName"));
-        outletMap.put("outletTypeCode", inputMap.get("outletTypeCode"));
-        outletMap.put("outletTypeName", inputMap.get("outletTypeName"));
-        outletMap.put("classCode", inputMap.get("classCode"));
-        outletMap.put("className", inputMap.get("className"));
-        outletMap.put("lob", inputMap.get("lob"));
-        outletMap.put("extendedDataSource", inputMap.get("extendedDataSource"));
-        outletMap.put("activeStatus", inputMap.get("activeStatus"));
-        outletMap.put("coordinate", inputMap.get("coordinate"));
-        outletMap.put("createdBy", inputMap.get("createdBy"));
-        outletMap.put("updatedBy", inputMap.get("updatedBy"));
-
-
-        if (inputMap.get("averageSales") != null) {
-            outletMap.put("averageSales", new BigDecimal(inputMap.get("averageSales").toString()));
-        } else {
-            outletMap.put("averageSales", null);
+        if (inputMap == null) {
+            return Collections.emptyMap();
         }
 
+        Map<String, Object> result = new LinkedHashMap<>();
 
-        if (inputMap.get("extendedAttributes") != null) {
-            try {
-                JsonNode node = objectMapper.readTree(inputMap.get("extendedAttributes").toString());
-                outletMap.put("extendedAttributes", node);
-            } catch (Exception e) {
-                outletMap.put("extendedAttributes", null);
-            }
-        } else {
-            outletMap.put("extendedAttributes", null);
-        }
+        result.put("id", getString(inputMap, "id"));
+        result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
+        result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
+        result.put("createdBy", getString(inputMap, "createdBy"));
+        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
+        result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
+        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
+        result.put("lob", getString(inputMap, "lob"));
+        result.put("modifiedBy", getString(inputMap, "modifiedBy"));
+        result.put("version", getInteger(inputMap, "version"));
 
+        // OutletDetails specific fields
+        result.put("address", getString(inputMap, "address"));
+        result.put("beat", getString(inputMap, "beat"));
+        result.put("beatName", getString(inputMap, "beatName"));
+        result.put("channel", getString(inputMap, "channel"));
+        result.put("contactName", getString(inputMap, "contactName"));
+        result.put("contactno", getString(inputMap, "contactno"));
+        result.put("displayAddress", getString(inputMap, "displayAddress"));
+        result.put("frequency", getString(inputMap, "frequency"));
+        result.put("mapped", getBoolean(inputMap, "mapped"));
+        result.put("outletcode", getString(inputMap, "outletcode"));
+        result.put("outletName", getString(inputMap, "outletName"));
+        result.put("outletType", getString(inputMap, "outletType"));
+        result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
+        result.put("loginid", getString(inputMap, "loginid"));
+        result.put("source", getString(inputMap, "source"));
+        result.put("lastOrderDate", getLocalDateTime(inputMap, "lastOrderDate"));
+        result.put("latitude", getBigDecimal(inputMap, "latitude"));
+        result.put("longitude", getBigDecimal(inputMap, "longitude"));
+        result.put("account", getString(inputMap, "account"));
+        result.put("gstNo", getString(inputMap, "gstNo"));
+        result.put("marketId", getString(inputMap, "marketId"));
+        result.put("marketName", getString(inputMap, "marketName"));
+        result.put("outletCategory", getString(inputMap, "outletCategory"));
+        result.put("outletClass", getString(inputMap, "outletClass"));
+        result.put("tinNo", getString(inputMap, "tinNo"));
+        result.put("hash", getString(inputMap, "hash"));
+        result.put("coordinate", getGeometry(inputMap, "coordinate"));
+        result.put("doo", getLocalDateTime(inputMap, "doo"));
+        result.put("hierarchy", getString(inputMap, "hierarchy"));
+        result.put("rowid", getInteger(inputMap, "rowid"));
+        result.put("changed", getByte(inputMap, "changed"));
+        result.put("outletDivision", getString(inputMap, "outletDivision"));
+        result.put("distributionChannel", getString(inputMap, "distributionChannel"));
+        result.put("soldTo", getString(inputMap, "soldTo"));
+        result.put("subChannel", getString(inputMap, "subChannel"));
+        result.put("subTerritory", getString(inputMap, "subTerritory"));
+        result.put("email", getString(inputMap, "email"));
+        result.put("blobKey", getString(inputMap, "blobKey"));
+        result.put("controlGroup", getString(inputMap, "controlGroup"));
+        result.put("normalizedHierarchy", getString(inputMap, "normalizedHierarchy"));
+        result.put("priceListId", getString(inputMap, "priceListId"));
+        result.put("prodauthcode", getString(inputMap, "prodauthcode"));
+        result.put("outletWhatsappNumber", getString(inputMap, "outletWhatsappNumber"));
+        result.put("dateOfClosing", getLocalDateTime(inputMap, "dateOfClosing"));
+        result.put("vpo", getString(inputMap, "vpo"));
+        result.put("segment", getString(inputMap, "segment"));
+        result.put("outletAttr1", getString(inputMap, "outletAttr1"));
+        result.put("outletAttr2", getString(inputMap, "outletAttr2"));
+        result.put("outletAttr3", getString(inputMap, "outletAttr3"));
+        result.put("outletAttr4", getString(inputMap, "outletAttr4"));
+        result.put("outletAttr5", getString(inputMap, "outletAttr5"));
+        result.put("outletAttr6", getString(inputMap, "outletAttr6"));
+        result.put("fssaiNumber", getString(inputMap, "fssaiNumber"));
+        result.put("paymentMode", getString(inputMap, "paymentMode"));
+        result.put("salesMode", getString(inputMap, "salesMode"));
+        result.put("tcsEligibility", getByte(inputMap, "tcsEligibility"));
+        result.put("keyAccount", getByte(inputMap, "keyAccount"));
+        result.put("outletDiscount", getBigDecimal(inputMap, "outletDiscount"));
+        result.put("discountGroup", getString(inputMap, "discountGroup"));
+        result.put("shipToAddress", getString(inputMap, "shipToAddress"));
 
-
-        if (inputMap.get("createdDate") != null) {
-            outletMap.put("createdDate", LocalDateTime.parse(inputMap.get("createdDate").toString()));
-        } else {
-            outletMap.put("createdDate", null);
-        }
-
-        if (inputMap.get("updatedDate") != null) {
-            outletMap.put("updatedDate", LocalDateTime.parse(inputMap.get("updatedDate").toString()));
-        } else {
-            outletMap.put("updatedDate", null);
-        }
-
-        return outletMap;
+        return result;
     }
+
+    private String getString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    private Integer getInteger(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            }
+            return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private BigDecimal getBigDecimal(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof BigDecimal) {
+                return (BigDecimal) value;
+            }
+            if (value instanceof Number) {
+                return BigDecimal.valueOf(((Number) value).doubleValue());
+            }
+            return new BigDecimal(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Boolean getBoolean(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Boolean) {
+                return (Boolean) value;
+            }
+            return Boolean.valueOf(value.toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Byte getByte(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).byteValue();
+            }
+            return Byte.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof LocalDateTime) {
+                return (LocalDateTime) value;
+            }
+            return LocalDateTime.parse(value.toString(), DATE_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof ActiveStatus) {
+                return (ActiveStatus) value;
+            }
+            return ActiveStatus.valueOf(value.toString().toUpperCase());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JsonNode getJsonNode(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof JsonNode) {
+                return (JsonNode) value;
+            }
+            return objectMapper.readTree(value.toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Geometry getGeometry(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Geometry) {
+                return (Geometry) value;
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }
