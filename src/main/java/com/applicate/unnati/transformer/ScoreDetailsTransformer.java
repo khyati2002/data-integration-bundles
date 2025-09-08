@@ -129,17 +129,25 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
 
     private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return null;
-
+        if (value == null) return "{}"; 
         try {
             if (value instanceof JSON) {
                 return ((JSON) value).data();
             }
-            return value.toString();
+            if (value instanceof JsonNode) {
+                return objectMapper.writeValueAsString(value);
+            }
+            if (value instanceof Map || value instanceof Iterable) {
+                return objectMapper.writeValueAsString(value);
+            }
+            String str = value.toString().trim();
+            objectMapper.readTree(str);
+            return str;
         } catch (Exception e) {
             return "{}";
         }
     }
+
     private Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
