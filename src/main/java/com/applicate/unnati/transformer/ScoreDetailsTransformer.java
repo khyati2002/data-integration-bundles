@@ -15,8 +15,12 @@ import java.util.Map;
 public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
+    private static final DateTimeFormatter[] DATE_FORMATTERS = new DateTimeFormatter[] {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+            DateTimeFormatter.ISO_DATE_TIME
+    };
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
@@ -107,12 +111,21 @@ public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Obj
     private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
         try {
             if (value instanceof LocalDateTime) {
                 return (LocalDateTime) value;
             }
-            return LocalDateTime.parse(value.toString(), DATE_FORMATTER);
+            String raw = value.toString().trim();
+            if (raw.contains("T") && raw.contains("Z")) {
+                raw = raw.substring(0, raw.indexOf("T")) + " " + raw.substring(raw.indexOf("T") + 1, raw.indexOf("Z"));
+            }
+
+            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+                try {
+                    return LocalDateTime.parse(raw, formatter);
+                } catch (Exception ignored) {}
+            }
+            return null;
         } catch (Exception e) {
             return null;
         }
