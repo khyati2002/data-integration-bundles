@@ -1,39 +1,165 @@
 package com.applicate.unnati.transformer;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.jooq.JSON;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ScoreDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
-        Map<String, Object> scoreDetailsMap = new LinkedHashMap<>();
+        if (inputMap == null) {
+            return Collections.emptyMap();
+        }
 
-        scoreDetailsMap.put("outletCode", inputMap.get("outletCode"));
-        scoreDetailsMap.put("startDate", inputMap.get("startDate"));
-        scoreDetailsMap.put("endDate", inputMap.get("endDate"));
-        scoreDetailsMap.put("totalPoints", inputMap.get("totalPoints"));
-        scoreDetailsMap.put("currentVolumn", inputMap.get("currentVolumn"));
-        scoreDetailsMap.put("activeStatusReason", inputMap.get("activeStatusReason"));
-        scoreDetailsMap.put("closingPoints", inputMap.get("closingPoints"));
-        scoreDetailsMap.put("activeStatus", inputMap.get("activeStatus"));
-        scoreDetailsMap.put("EXCLUDED_PROPERTIES", inputMap.get("EXCLUDED_PROPERTIES"));
-        scoreDetailsMap.put("preProcessPipelineException", inputMap.get("preProcessPipelineException"));
-        scoreDetailsMap.put("programNumber", inputMap.get("programNumber"));
-        scoreDetailsMap.put("serialVersionUID", inputMap.get("serialVersionUID"));
-        scoreDetailsMap.put("division", inputMap.get("division"));
-        scoreDetailsMap.put("feature", inputMap.get("feature"));
-        scoreDetailsMap.put("source", inputMap.get("source"));
-        scoreDetailsMap.put("openingPoints", inputMap.get("openingPoints"));
-        scoreDetailsMap.put("extendedAttributes", inputMap.get("extendedAttributes"));
-        scoreDetailsMap.put("pointsBreakup", inputMap.get("pointsBreakup"));
-        scoreDetailsMap.put("locationHierarchy", inputMap.get("locationHierarchy"));
-        scoreDetailsMap.put("loginId", inputMap.get("loginId"));
+        Map<String, Object> result = new LinkedHashMap<>();
 
-        return scoreDetailsMap;
+        // Common fields from CommonDataModel
+        result.put("id", getString(inputMap, "id"));
+        result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
+        result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
+        result.put("createdBy", getString(inputMap, "createdBy"));
+        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
+        result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
+        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
+        result.put("lob", getString(inputMap, "lob"));
+        result.put("modifiedBy", getString(inputMap, "modifiedBy"));
+        result.put("source", getString(inputMap, "source"));
+        result.put("version", getInteger(inputMap, "version"));
+
+        // ScoreDetails specific fields
+        result.put("closingPoints", getDouble(inputMap, "closingPoints"));
+        result.put("endDate", getLocalDateTime(inputMap, "endDate"));
+        result.put("feature", getString(inputMap, "feature"));
+        result.put("openingPoints", getDouble(inputMap, "openingPoints"));
+        result.put("pointsBreakup", getJSON(inputMap, "pointsBreakup"));
+        result.put("startDate", getLocalDateTime(inputMap, "startDate"));
+        result.put("totalPoints", getDouble(inputMap, "totalPoints"));
+        result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
+        result.put("loginid", getString(inputMap, "loginid"));
+        result.put("outletcode", getString(inputMap, "outletcode"));
+        result.put("programNumber", getString(inputMap, "programNumber"));
+        result.put("currentVolumn", getDouble(inputMap, "currentVolumn"));
+        result.put("hash", getString(inputMap, "hash"));
+        result.put("changed", getByte(inputMap, "changed"));
+
+        return result;
     }
-}
 
+    private String getString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    private Integer getInteger(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            }
+            return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Double getDouble(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).doubleValue();
+            }
+            return Double.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Byte getByte(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).byteValue();
+            }
+            return Byte.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof LocalDateTime) {
+                return (LocalDateTime) value;
+            }
+            return LocalDateTime.parse(value.toString(), DATE_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof ActiveStatus) {
+                return (ActiveStatus) value;
+            }
+            return ActiveStatus.valueOf(value.toString().toUpperCase());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JsonNode getJsonNode(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof JsonNode) {
+                return (JsonNode) value;
+            }
+            return objectMapper.readTree(value.toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JSON getJSON(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            if (value instanceof JSON) {
+                return (JSON) value;
+            }
+            return JSON.valueOf(value.toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Test data for ScoreDetails
+    
+}
