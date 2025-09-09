@@ -1,221 +1,102 @@
 package com.applicate.unnati.transformer;
 
-import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.salescode.dim.jooq.generated.tables.pojos.User;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-import org.jooq.Geometry;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
+import static org.apache.commons.collections.MapUtils.getString;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final UserTransformer userTransformer = new UserTransformer();
+
+public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+    private static final Logger logger = LoggerFactory.getLogger(com.applicate.unnati.transformer.OutletDetailsTransformer.class);
+    private static final String IMMEDIATEPARENT = "immediateParent";
+    private static final String ACTIVE = "active";
+    private static final String COUNTRY = "India";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String BRANCH = "branch";
+    private static final String DISTRICT = "district";
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> inputMap) {
-        if (inputMap == null) {
-            return Collections.emptyMap();
+    public Map<String, Object> transform(Map<String, Object> responseEnvelope) {
+        Map<String, Object> output = new LinkedHashMap<>();
+        Map<String, Object> userName = new LinkedHashMap<>();
+        Map<String, Object> extendedAttributes = new LinkedHashMap<>();
+        String uid = getString(responseEnvelope, "uid");
+        output.put("outletCode", uid);
+        userName.put("loginId", uid);
+        userName.put("userAccountId", uid);
+        String type = getString(responseEnvelope, "type");
+        output.put("outletCategory", type);
+        extendedAttributes.put("loyaltyFlag", type);
+        userName.put("extendedAttributes", extendedAttributes);
+        String custName = getString(responseEnvelope, "custname");
+        output.put("outletName", custName);
+        String ownerName = getString(responseEnvelope, "ownername");
+        output.put("contactName", ownerName);
+        userName.put("name", ownerName);
+        String outletLatStr = getString(responseEnvelope, "outletlat");
+        if (outletLatStr != null && !outletLatStr.isEmpty()) {
+            output.put("latitude", Double.parseDouble(outletLatStr));
         }
-
-        Map<String, Object> result = new LinkedHashMap<>();
-
-        result.put("id", getString(inputMap, "id"));
-        result.put("activeStatus", getActiveStatus(inputMap, "activeStatus"));
-        result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
-        result.put("createdBy", getString(inputMap, "createdBy"));
-        result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
-        result.put("lob", getString(inputMap, "lob"));
-        result.put("modifiedBy", getString(inputMap, "modifiedBy"));
-        result.put("version", getInteger(inputMap, "version"));
-
-
-        result.put("address", getString(inputMap, "address"));
-        result.put("beat", getString(inputMap, "beat"));
-        result.put("beatName", getString(inputMap, "beatName"));
-        result.put("channel", getString(inputMap, "channel"));
-        result.put("contactName", getString(inputMap, "contactName"));
-        result.put("contactno", getString(inputMap, "contactno"));
-        result.put("displayAddress", getString(inputMap, "displayAddress"));
-        result.put("frequency", getString(inputMap, "frequency"));
-        result.put("mapped", getBoolean(inputMap, "mapped"));
-        result.put("outletcode", getString(inputMap, "outletcode"));
-        result.put("outletName", getString(inputMap, "outletName"));
-        result.put("outletType", getString(inputMap, "outletType"));
-        result.put("locationHierarchy", getString(inputMap, "locationHierarchy"));
-        result.put("loginid", getString(inputMap, "loginid"));
-        result.put("source", getString(inputMap, "source"));
-        result.put("lastOrderDate", getString(inputMap, "lastOrderDate"));
-        result.put("latitude", getBigDecimal(inputMap, "latitude"));
-        result.put("longitude", getBigDecimal(inputMap, "longitude"));
-        result.put("account", getString(inputMap, "account"));
-        result.put("gstNo", getString(inputMap, "gstNo"));
-        result.put("marketId", getString(inputMap, "marketId"));
-        result.put("marketName", getString(inputMap, "marketName"));
-        result.put("outletCategory", getString(inputMap, "outletCategory"));
-        result.put("outletClass", getString(inputMap, "outletClass"));
-        result.put("tinNo", getString(inputMap, "tinNo"));
-        result.put("hash", getString(inputMap, "hash"));
-        result.put("coordinate", getGeometry(inputMap, "coordinate"));
-        result.put("doo", getString(inputMap, "doo"));
-        result.put("hierarchy", getString(inputMap, "hierarchy"));
-        result.put("rowid", getInteger(inputMap, "rowid"));
-        result.put("changed", getByte(inputMap, "changed"));
-        result.put("outletDivision", getString(inputMap, "outletDivision"));
-        result.put("distributionChannel", getString(inputMap, "distributionChannel"));
-        result.put("soldTo", getString(inputMap, "soldTo"));
-        result.put("subChannel", getString(inputMap, "subChannel"));
-        result.put("subTerritory", getString(inputMap, "subTerritory"));
-        result.put("email", getString(inputMap, "email"));
-        result.put("blobKey", getString(inputMap, "blobKey"));
-        result.put("controlGroup", getString(inputMap, "controlGroup"));
-        result.put("normalizedHierarchy", getString(inputMap, "normalizedHierarchy"));
-        result.put("priceListId", getString(inputMap, "priceListId"));
-        result.put("prodauthcode", getString(inputMap, "prodauthcode"));
-        result.put("outletWhatsappNumber", getString(inputMap, "outletWhatsappNumber"));
-        result.put("dateOfClosing", getString(inputMap, "dateOfClosing"));
-        result.put("vpo", getString(inputMap, "vpo"));
-        result.put("segment", getString(inputMap, "segment"));
-        result.put("outletAttr1", getString(inputMap, "outletAttr1"));
-        result.put("outletAttr2", getString(inputMap, "outletAttr2"));
-        result.put("outletAttr3", getString(inputMap, "outletAttr3"));
-        result.put("outletAttr4", getString(inputMap, "outletAttr4"));
-        result.put("outletAttr5", getString(inputMap, "outletAttr5"));
-        result.put("outletAttr6", getString(inputMap, "outletAttr6"));
-        result.put("fssaiNumber", getString(inputMap, "fssaiNumber"));
-        result.put("paymentMode", getString(inputMap, "paymentMode"));
-        result.put("salesMode", getString(inputMap, "salesMode"));
-        result.put("tcsEligibility", getByte(inputMap, "tcsEligibility"));
-        result.put("keyAccount", getByte(inputMap, "keyAccount"));
-        result.put("outletDiscount", getBigDecimal(inputMap, "outletDiscount"));
-        result.put("discountGroup", getString(inputMap, "discountGroup"));
-        result.put("shipToAddress", getString(inputMap, "shipToAddress"));
-        result.put("userName", getUser(inputMap, "userName"));
-        return result;
-    }
-
-    private String getString(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        return value != null ? value.toString() : null;
-    }
-
-    private Integer getInteger(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-            return Integer.valueOf(value.toString());
-        } catch (NumberFormatException e) {
-            return null;
+        String outletLongStr = getString(responseEnvelope, "outletlong");
+        if (outletLongStr != null && !outletLongStr.isEmpty()) {
+            output.put("longitude", Double.parseDouble(outletLongStr));
         }
-    }
-
-    private BigDecimal getBigDecimal(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
+        output.put("outletType", getString(responseEnvelope, "outlettype"));
+        output.put("channel", getString(responseEnvelope, "channeltype"));
+        output.put("outletClass", getString(responseEnvelope, "loyaltytype"));
+        output.put("userName", userName);
+        Map<String, Object> location = new LinkedHashMap<>();
+        Map<String, Object> locationHierarchy = new LinkedHashMap<>();
+        location.put("country", COUNTRY);
+        location.put(BRANCH, getString(responseEnvelope, BRANCH));
+        location.put(DISTRICT, getString(responseEnvelope, DISTRICT));
+        locationHierarchy.put("country", COUNTRY);
+        locationHierarchy.put(BRANCH, getString(responseEnvelope, BRANCH));
+        locationHierarchy.put(DISTRICT, getString(responseEnvelope, DISTRICT));
+        userName.put("locationHierarchy", locationHierarchy);
+        output.put("location", location);
+        output.put("activeStatus", ACTIVE);
+        output.put("activeStatusReason", ACTIVE);
+        userName.put("activeStatus", ACTIVE);
+        userName.put("activeStatusReason", ACTIVE);
+        userName.put("designation", List.of("retailer"));
+        userName.put("contactType", "retailer");
+        List<Map<String, Object>> supplierMapping = null;
+        Object rawSupplierMapping = responseEnvelope.get("suppliermapping");
         try {
-            if (value instanceof BigDecimal) {
-                return (BigDecimal) value;
-            }
-            if (value instanceof Number) {
-                return BigDecimal.valueOf(((Number) value).doubleValue());
-            }
-            return new BigDecimal(value.toString());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private Boolean getBoolean(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof Boolean) {
-                return (Boolean) value;
-            }
-            return Boolean.valueOf(value.toString());
+            String mappingStr = (String) rawSupplierMapping;
+            supplierMapping = OBJECT_MAPPER.readValue(mappingStr, new TypeReference<List<Map<String, Object>>>() {
+            });
         } catch (Exception e) {
-            return null;
+            logger.error("Failed to parse supplierMapping string", e);
         }
-    }
-
-    private Byte getByte(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof Number) {
-                return ((Number) value).byteValue();
+        if (supplierMapping != null && !supplierMapping.isEmpty()) {
+            List<Map<String, Object>> userNameParents = new ArrayList<>();
+            List<Map<String, Object>> hierarchyParents = new ArrayList<>();
+            for (Map<String, Object> supplier : supplierMapping) {
+                String wdDest = getString(supplier, "WDDest");
+                Map<String, Object> parentMap = new HashMap<>();
+                parentMap.put(IMMEDIATEPARENT, wdDest);
+                userNameParents.add(parentMap);
+                String uid2 = getString(responseEnvelope, "uid");
+                Map<String, Object> hierarchyMap = new HashMap<>();
+                hierarchyMap.put("hierarchy", uid2 + " > " + wdDest);
+                hierarchyParents.add(hierarchyMap);
             }
-            return Byte.valueOf(value.toString());
-        } catch (NumberFormatException e) {
-            return null;
+
+            userName.put(IMMEDIATEPARENT, userNameParents);
+            output.put(IMMEDIATEPARENT, hierarchyParents);
         }
+        return output;
     }
-
-    private ActiveStatus getActiveStatus(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof ActiveStatus) {
-                return (ActiveStatus) value;
-            }
-            return ActiveStatus.valueOf(value.toString().toUpperCase());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private JsonNode getJsonNode(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof JsonNode) {
-                return (JsonNode) value;
-            }
-            return objectMapper.readTree(value.toString());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Geometry getGeometry(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof Geometry) {
-                return (Geometry) value;
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Map<String, Object> getUser(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) {
-            return Collections.emptyMap();
-        }
-        try {
-            if (value instanceof User || value instanceof Map) {
-                return userTransformer.transform((Map<String, Object>)value);
-            }
-        } catch (Exception ignored){}
-        return Collections.emptyMap();
-        }
-
 }
+
