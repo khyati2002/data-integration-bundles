@@ -100,3 +100,49 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
     }
 }
 
+
+/* sample srd
+
+public static String rawStreamingData = "{\n" +
+        "  \"requestId\": \"12345\",\n" +
+        "  \"groupId\": \"2025-05-02\",\n" +
+        "  \"lob\": \"cktestitcloyalty\",\n" +
+        "  \"loginId\": \"integration_user\",\n" +
+        "  \"batchNumber\": 0,\n" +
+        "  \"transformerInfo\": [\n" +
+        "    {\n" +
+        "      \"skipPreprocessing\": false,\n" +
+        "      \"skipPersist\": false,\n" +
+        "      \"entityName\": \"OutletDetails\",\n" +
+        "      \"transformerId\": \"genericOutletDetailsTransformer\",\n" +
+        "      \"operationType\": \"insert\"\n" +
+        "    }\n" +
+        "  ],\n" +
+        "  \"features\": [\n" +
+        "    {\n" +
+        "      \"uid\": \"OUTLET123456\",\n" +
+        "      \"type\": \"LOYALTY\",\n" +
+        "      \"custname\": \"BABUL STORES\",\n" +
+        "      \"ownername\": \"BABUL STORES\",\n" +
+        "      \"outletlat\": \"26.424693999999999\",\n" +
+        "      \"outletlong\": \"90.973511000000002\",\n" +
+        "      \"outlettype\": \"Dual (FMCG + Tobacco)\",\n" +
+        "      \"channeltype\": \"Rural Wholesale\",\n" +
+        "      \"loyaltytype\": \"SWD Others\",\n" +
+        "      \"branch\": \"EGAU\",\n" +
+        "      \"district\": \"EDIS\",\n" +
+        "      \"suppliermapping\": \"["
+        + "        { \\\"CustID\\\": \\\"C651/20-21\\\", \\\"SIFYID\\\": \\\"GA2799DMM333C651/20-21\\\", "
+        + "          \\\"WDDest\\\": \\\"GA2799\\\", \\\"UID\\\": \\\"EGAU-SL-54327\\\", "
+        + "          \\\"RCSID\\\": \\\"181203463573\\\", \\\"WDName\\\": \\\"HARISH TRADING CO\\\" }"
+        + "]\"\n"+
+        "    }\n" +
+        "  ],\n" +
+        "  \"appId\": \"integration\",\n" +
+        "  \"retryCount\": 0,\n" +
+        "  \"preserveOnFailure\": true,\n" +
+        "  \"ignoreS3Log\": false,\n" +
+        "  \"topicName\": \"unnati-dataintegration\"\n" +
+        "}";
+
+ */
