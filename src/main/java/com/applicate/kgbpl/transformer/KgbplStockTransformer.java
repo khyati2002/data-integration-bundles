@@ -62,7 +62,10 @@ public class KgbplStockTransformer extends AbstractTransformer<Map<String, Objec
             supplierId = "KGPLCompanySupplier";
         } else if ("eafp".equalsIgnoreCase(dataAreaId)) {
             supplierId = "EnrichCompanySupplier";
+        } else if ("wbpl".equalsIgnoreCase(dataAreaId)) {
+            supplierId = "WaveCompanySupplier";
         }
+
 
         responseMap.put("skuCode", skuCode);
         responseMap.put("warehouseId", warehouseId);
