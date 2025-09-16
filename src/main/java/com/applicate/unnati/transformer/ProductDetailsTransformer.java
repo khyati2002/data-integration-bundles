@@ -4,12 +4,9 @@ import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.jooq.JSON;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -123,7 +120,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         result.put("lineDiscountGroup", getString(inputMap, "lineDiscountGroup"));
         result.put("skuPieceWeight", getFloat(inputMap, "skuPieceWeight"));
         result.put("skuPcWeightUom", getString(inputMap, "skuPcWeightUom"));
-        result.put("skuCaseVol", getJsonNode(inputMap, "skuCaseVol"));
+        result.put("skuCaseVol", getJooqJsonAsString(inputMap, "skuCaseVol"));
         result.put("shelfLifeDays", getInteger(inputMap, "shelfLifeDays"));
 
         result.put("empties", getString(inputMap, "empties"));
@@ -145,7 +142,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         result.put("priceListId", getString(inputMap, "priceListId"));
         result.put("distributorSkuCode", getString(inputMap, "distributorSkuCode"));
 
-        result.put("translation", getJsonNode(inputMap, "translation"));
+        result.put("translation", getJooqJsonAsString(inputMap, "translation"));
 
         return result;
     }
@@ -209,6 +206,27 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
             return objectMapper.readTree(value.toString());
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private String getJooqJsonAsString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return "{}";
+        try {
+            if (value instanceof JSON) {
+                return ((JSON) value).data();
+            }
+            if (value instanceof JsonNode) {
+                return objectMapper.writeValueAsString(value);
+            }
+            if (value instanceof Map || value instanceof Iterable) {
+                return objectMapper.writeValueAsString(value);
+            }
+            String str = value.toString().trim();
+            objectMapper.readTree(str);
+            return str;
+        } catch (Exception e) {
+            return "{}";
         }
     }
 }
