@@ -1,4 +1,4 @@
-package com.applicate.unnati.validation;
+package com.applicate.hccb.validation;
 
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
@@ -7,7 +7,6 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.OutletDetails;
-import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * Checks if the Outlet is being activated.

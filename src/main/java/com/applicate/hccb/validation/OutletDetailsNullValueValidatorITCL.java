@@ -1,4 +1,4 @@
-package com.applicate.unnati.validation;
+package com.applicate.hccb.validation;
 
 
 import com.applicate.services.channelkart.client.properties.PropertyDefinition;
