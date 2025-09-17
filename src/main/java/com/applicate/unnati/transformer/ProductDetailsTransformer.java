@@ -120,7 +120,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         result.put("lineDiscountGroup", getString(inputMap, "lineDiscountGroup"));
         result.put("skuPieceWeight", getFloat(inputMap, "skuPieceWeight"));
         result.put("skuPcWeightUom", getString(inputMap, "skuPcWeightUom"));
-        result.put("skuCaseVol", getJooqJson(inputMap, "skuCaseVol"));
+        result.put("skuCaseVol", getJooqJsonAsString(inputMap, "skuCaseVol"));
         result.put("shelfLifeDays", getInteger(inputMap, "shelfLifeDays"));
 
         result.put("empties", getString(inputMap, "empties"));
@@ -142,7 +142,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         result.put("priceListId", getString(inputMap, "priceListId"));
         result.put("distributorSkuCode", getString(inputMap, "distributorSkuCode"));
 
-        result.put("translation", getJooqJson(inputMap, "translation"));
+        result.put("translation", getJooqJsonAsString(inputMap, "translation"));
 
         return result;
     }
@@ -209,24 +209,24 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         }
     }
 
-    private JSON getJooqJson(Map<String, Object> map, String key) {
+    private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return null;
+        if (value == null) return "{}";
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
             if (value instanceof JsonNode) {
-                return JSON.json(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
             if (value instanceof Map || value instanceof Iterable) {
-                return JSON.json(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
             String str = value.toString().trim();
             objectMapper.readTree(str);
-            return JSON.json(str);
+            return str;
         } catch (Exception e) {
-            return JSON.json("{}");
+            return "{}";
         }
     }
 }
