@@ -2,13 +2,15 @@ package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.tables.pojos.Productmetadata;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ProductDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
@@ -141,8 +143,8 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
 
         result.put("priceListId", getString(inputMap, "priceListId"));
         result.put("distributorSkuCode", getString(inputMap, "distributorSkuCode"));
-
         result.put("translation", getJooqJsonAsString(inputMap, "translation"));
+        result.put("productMetaData", getList(inputMap, "productMetaData", Productmetadata.class));
 
         return result;
     }
@@ -228,6 +230,21 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         } catch (Exception e) {
             return "{}";
         }
+    }
+
+    private <T> List<T> getList(Map<String, Object> map, String key, Class<T> clazz) {
+        Object value = map.get(key);
+        if (value == null) return Collections.emptyList();
+        try {
+            if (value instanceof List<?>) {
+                return ((List<?>) value).stream()
+                        .filter(clazz::isInstance)
+                        .map(clazz::cast)
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+        }
+        return Collections.emptyList();
     }
 }
 
