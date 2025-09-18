@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.salescode.dim.jooq.generated.tables.pojos.Location;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -40,7 +41,7 @@ public class ProductMetaDataTransformer {
         output.put("skuCode", asString(inputMap.get("skuCode")));
         output.put("tax", asString(inputMap.get("tax")));
         output.put("taxAmount", asBigDecimal(inputMap.get("taxAmount")));
-        output.put("locationHierarchy", asString(inputMap.get("locationHierarchy")));
+        output.put("locationHierarchy",parseLocationHierarchy(inputMap, "locationHierarchy"));
         output.put("loginid", asString(inputMap.get("loginid")));
         output.put("fkProductmetadata", asString(inputMap.get("fkProductmetadata")));
         output.put("source", asString(inputMap.get("source")));
@@ -144,5 +145,29 @@ public class ProductMetaDataTransformer {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private  static Location parseLocationHierarchy(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        Location location = new Location();
+
+        if (value instanceof Map) {
+            Map<?, ?> m = (Map<?, ?>) value;
+            location.setCountry((String) m.get("country"));
+            location.setRegion((String) m.get("region"));
+            location.setState((String) m.get("state"));
+            location.setCity((String) m.get("city"));
+            location.setPincode((String) m.get("pincode"));
+            location.setZone((String) m.get("zone"));
+            location.setCountryCode((String) m.get("countryCode"));
+            location.setRegionCode((String) m.get("regionCode"));
+            location.setStateCode((String) m.get("stateCode"));
+            location.setCityCode((String) m.get("cityCode"));
+            location.setZoneCode((String) m.get("zoneCode"));
+            return location;
+        }
+        return null;
     }
 }

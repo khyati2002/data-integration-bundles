@@ -230,23 +230,17 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         }
     }
 
-    private  List<Productmetadata> getProductMetaDataList(Map<String, Object> rawMap) {
-        Map<String, Object> map=ProductMetaDataTransformer.transform(rawMap);
-        Object value = map.get("productMetaData");
-        Class<Productmetadata> clazz=Productmetadata.class;
+    private List<Map<String, Object>> getProductMetaDataList(Map<String, Object> rawMap) {
+        Object value = rawMap.get("productMetaData");
         if (value == null) return Collections.emptyList();
 
         if (value instanceof List<?>) {
             return ((List<?>) value).stream()
-                    .map(item -> {
-                        if (clazz.isInstance(item)) {
-                            return clazz.cast(item);
-                        } else if (item instanceof Map) {
-                            return objectMapper.convertValue(item, clazz);
-                        }
-                        return null;
-                    })
                     .filter(Objects::nonNull)
+                    .map(item -> {
+                        return ProductMetaDataTransformer.transform((Map<String, Object>) item);
+                    })
+                    .filter(obj -> true)
                     .collect(Collectors.toList());
         }
 
