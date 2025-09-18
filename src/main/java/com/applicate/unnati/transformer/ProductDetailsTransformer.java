@@ -1,6 +1,7 @@
 package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.tables.pojos.Productmetadata;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
@@ -238,7 +239,11 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
             return ((List<?>) value).stream()
                     .filter(Objects::nonNull)
                     .map(item -> {
-                        return ProductMetaDataTransformer.transform((Map<String, Object>) item);
+                        try {
+                            return ProductMetaDataTransformer.transform((Map<String, Object>) item);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
                     })
                     .filter(obj -> true)
                     .collect(Collectors.toList());
@@ -247,6 +252,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         return Collections.emptyList();
     }
 }
+
 
 
 /*
