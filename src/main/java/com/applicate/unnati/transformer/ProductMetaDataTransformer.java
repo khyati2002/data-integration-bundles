@@ -3,7 +3,6 @@ package com.applicate.unnati.transformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.jooq.generated.tables.pojos.Location;
 
@@ -148,22 +147,26 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private static String parseLocationHierarchy(Map<String, Object> map, String key) {
+    private static Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (!(value instanceof Map)) return null;
-        Map<?, ?> m = (Map<?, ?>) value;
-        StringBuilder sb = new StringBuilder();
-        // Order: country > region > state > city > zone > pincode
-        String[] hierarchyKeys = {"country", "region", "state", "city", "zone", "pincode"};
-        for (String k : hierarchyKeys) {
-            Object v = m.get(k);
-            if (v != null && !v.toString().isEmpty()) {
-                if (sb.length() > 0) sb.append(" > ");
-                sb.append(v.toString());
-            }
+        if (value == null) return null;
+        if (value instanceof Map) {
+            Map<?, ?> m = (Map<?, ?>) value;
+            Location location = new Location();
+            if (m.get("country") != null) location.setCountry((String) m.get("country"));
+            if (m.get("region") != null) location.setRegion((String) m.get("region"));
+            if (m.get("state") != null) location.setState((String) m.get("state"));
+            if (m.get("city") != null) location.setCity((String) m.get("city"));
+            if (m.get("pincode") != null) location.setPincode((String) m.get("pincode"));
+            if (m.get("zone") != null) location.setZone((String) m.get("zone"));
+            if (m.get("countryCode") != null) location.setCountryCode((String) m.get("countryCode"));
+            if (m.get("regionCode") != null) location.setRegionCode((String) m.get("regionCode"));
+            if (m.get("stateCode") != null) location.setStateCode((String) m.get("stateCode"));
+            if (m.get("cityCode") != null) location.setCityCode((String) m.get("cityCode"));
+            if (m.get("zoneCode") != null) location.setZoneCode((String) m.get("zoneCode"));
+            return location;
         }
-        return sb.length() > 0 ? sb.toString() : null;
+        return null;
     }
-
 
 }
