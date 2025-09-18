@@ -6,10 +6,8 @@ import com.salescode.dim.jooq.generated.tables.pojos.Productmetadata;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ProductDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
@@ -235,15 +233,21 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
     private <T> List<T> getList(Map<String, Object> map, String key, Class<T> clazz) {
         Object value = map.get(key);
         if (value == null) return Collections.emptyList();
-        try {
-            if (value instanceof List<?>) {
-                return ((List<?>) value).stream()
-                        .filter(clazz::isInstance)
-                        .map(clazz::cast)
-                        .collect(Collectors.toList());
-            }
-        } catch (Exception e) {
+
+        if (value instanceof List<?>) {
+            return ((List<?>) value).stream()
+                    .map(item -> {
+                        if (clazz.isInstance(item)) {
+                            return clazz.cast(item);
+                        } else if (item instanceof Map) {
+                            return objectMapper.convertValue(item, clazz); // ✅ Map → POJO
+                        }
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
+
         return Collections.emptyList();
     }
 }
