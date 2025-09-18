@@ -42,7 +42,7 @@ public class ProductMetaDataTransformer {
         output.put("skuCode", asString(inputMap.get("skuCode")));
         output.put("tax", asString(inputMap.get("tax")));
         output.put("taxAmount", asBigDecimal(inputMap.get("taxAmount")));
-        output.put("locationHierarchy",objectMapper.writeValueAsString(parseLocationHierarchy(inputMap, "locationHierarchy")));
+        output.put("locationHierarchy",parseLocationHierarchy(inputMap, "locationHierarchy"));
         output.put("loginid", asString(inputMap.get("loginid")));
         output.put("fkProductmetadata", asString(inputMap.get("fkProductmetadata")));
         output.put("source", asString(inputMap.get("source")));
@@ -148,26 +148,22 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private static Location parseLocationHierarchy(Map<String, Object> map, String key) {
+    private static String parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return null;
-        if (value instanceof Map) {
-            Map<?, ?> m = (Map<?, ?>) value;
-            Location location = new Location();
-            if (m.get("country") != null) location.setCountry((String) m.get("country"));
-            if (m.get("region") != null) location.setRegion((String) m.get("region"));
-            if (m.get("state") != null) location.setState((String) m.get("state"));
-            if (m.get("city") != null) location.setCity((String) m.get("city"));
-            if (m.get("pincode") != null) location.setPincode((String) m.get("pincode"));
-            if (m.get("zone") != null) location.setZone((String) m.get("zone"));
-            if (m.get("countryCode") != null) location.setCountryCode((String) m.get("countryCode"));
-            if (m.get("regionCode") != null) location.setRegionCode((String) m.get("regionCode"));
-            if (m.get("stateCode") != null) location.setStateCode((String) m.get("stateCode"));
-            if (m.get("cityCode") != null) location.setCityCode((String) m.get("cityCode"));
-            if (m.get("zoneCode") != null) location.setZoneCode((String) m.get("zoneCode"));
-            return location;
+        if (!(value instanceof Map)) return null;
+        Map<?, ?> m = (Map<?, ?>) value;
+        StringBuilder sb = new StringBuilder();
+        // Order: country > region > state > city > zone > pincode
+        String[] hierarchyKeys = {"country", "region", "state", "city", "zone", "pincode"};
+        for (String k : hierarchyKeys) {
+            Object v = m.get(k);
+            if (v != null && !v.toString().isEmpty()) {
+                if (sb.length() > 0) sb.append(" > ");
+                sb.append(v.toString());
+            }
         }
-        return null;
+        return sb.length() > 0 ? sb.toString() : null;
     }
+
 
 }

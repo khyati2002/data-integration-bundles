@@ -258,127 +258,153 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
 /*
  Test data for ProductDetails
 
-public static String rawStreamingData = "{\n" +
-        "  \"requestId\": \"test-req-PRODUCT-001\",\n" +
-        "  \"groupId\": \"2025-09-08\",\n" +
-        "  \"lob\": \"cktestitcloyalty\",\n" +
-        "  \"loginId\": \"integration_user\",\n" +
-        "  \"batchNumber\": 1,\n" +
-        "  \"transformerInfo\": [\n" +
-        "    {\n" +
-        "      \"skipPreprocessing\": false,\n" +
-        "      \"skipPersist\": false,\n" +
-        "      \"entityName\": \"ProductDetails\",\n" +
-        "      \"transformerId\": \"genericProductDetailsTransformer\",\n" +
-        "      \"operationType\": \"insert\"\n" +
-        "    }\n" +
-        "  ],\n" +
-        "  \"features\": [\n" +
-        "    {\n" +
-        "      \"id\": \"PROD12345\",\n" +
-        "      \"activeStatus\": \"ACTIVE\",\n" +
-        "      \"activeStatusReason\": \"Valid product entry\",\n" +
-        "      \"createdBy\": \"system_user\",\n" +
-        "      \"extendedAttributes\": \"{ \\\"productType\\\": \\\"CONSUMER\\\", \\\"isPromotional\\\": false }\",\n" +
-        "      \"lob\": \"FMCG\",\n" +
-        "      \"modifiedBy\": \"admin_user\",\n" +
-        "      \"source\": \"ProductManagementSystem\",\n" +
-        "      \"version\": \"1\",\n" +
-        "      \"hash\": \"product_hash_abc123\",\n" +
-        "      \"skuCode\": \"BSKU001\",\n" +
-        "      \"eb2bCode\": \"EB2B_BSKU001\",\n" +
-        "      \"batchCode\": \"BATCH_BSKU001_2025\",\n" +
-        "      \"productCode\": \"BPRO001\",\n" +
-        "      \"product\": \"Bingo Mad Angles Tomato Flavour\",\n" +
-        "      \"skuDescription\": \"Bingo Mad Angles Tomato Flavour 10gms\",\n" +
-        "      \"size\": \"10G\",\n" +
-        "      \"marketSkuCode\": \"MKT_BSKU001\",\n" +
-        "      \"marketSku\": \"Bingo Mad Angles 10G\",\n" +
-        "      \"category\": \"SNACKS\",\n" +
-        "      \"categoryCode\": \"CAT001\",\n" +
-        "      \"subCategory\": \"CHIPS\",\n" +
-        "      \"subCategoryCode\": \"SUBCAT001\",\n" +
-        "      \"brand\": \"BINGO\",\n" +
-        "      \"subBrand\": \"MAD ANGLES\",\n" +
-        "      \"brandCode\": \"BRAND001\",\n" +
-        "      \"ctg\": \"SNACKS_CTG\",\n" +
-        "      \"design\": \"TRIANGULAR\",\n" +
-        "      \"articleCode\": \"ART001\",\n" +
-        "      \"articleDesc\": \"Triangular Snack\",\n" +
-        "      \"colorCode\": \"RED\",\n" +
-        "      \"color\": \"Tomato Red\",\n" +
-        "      \"pieceSize\": \"10\",\n" +
-        "      \"pieceSizeDesc\": \"10 Grams\",\n" +
-        "      \"unitOfMeasurement\": \"GRAMS\",\n" +
-        "      \"caseToPieceQuantity\": \"48.0\",\n" +
-        "      \"caseToOtherUnitQuantity\": \"24.0\",\n" +
-        "      \"otherUnitToPieceQuantity\": \"2.0\",\n" +
-        "      \"pieceToOtherUnitQuantity\": \"0.5\",\n" +
-        "      \"pieceToVolume\": \"15.0\",\n" +
-        "      \"otherUnitName\": \"PACK\",\n" +
-        "      \"skuName\": \"Bingo Mad Angles Tomato 10G\",\n" +
-        "      \"itemId\": \"ITEM001\",\n" +
-        "      \"itemName\": \"Mad Angles Snack\",\n" +
-        "      \"itemDesc\": \"Crunchy triangular snack\",\n" +
-        "      \"itemType\": \"FOOD\",\n" +
-        "      \"itemClass\": \"SNACK\",\n" +
-        "      \"capacity\": \"10G\",\n" +
-        "      \"uom\": \"GRAMS\",\n" +
-        "      \"purchaseUnit\": \"PIECE\",\n" +
-        "      \"flavour\": \"TOMATO\",\n" +
-        "      \"tariffCode\": \"1905900000\",\n" +
-        "      \"fssaiNumber\": \"12345678901234\",\n" +
-        "      \"mrp\": \"5.0\",\n" +
-        "      \"caseMrp\": \"240.0\",\n" +
-        "      \"otherUnitMrp\": \"10.0\",\n" +
-        "      \"schemeDesc\": \"Buy 2 Get 1 Free\",\n" +
-        "      \"suggestionText\": \"Bingo Mad Angles Tomato Flavour Chips\",\n" +
-        "      \"orderSuggestion\": \"Popular snack item\",\n" +
-        "      \"otherProduct\": \"Bingo Mad Angles Masala\",\n" +
-        "      \"smartBuy\": \"FAST_MOVING\",\n" +
-        "      \"productDescription\": \"Delicious triangular shaped tomato flavoured snack\",\n" +
-        "      \"priority\": \"1\",\n" +
-        "      \"recPriority\": \"1\",\n" +
-        "      \"channel\": \"RETAIL\",\n" +
-        "      \"display\": \"SHELF\",\n" +
-        "      \"fileName\": \"bingo_mad_angles_tomato.jpg\",\n" +
-        "      \"mCode\": \"MC_BINGO_001\",\n" +
-        "      \"fileName_a\": \"bingo_mad_angles_tomato_a.jpg\",\n" +
-        "      \"fileName_b\": \"bingo_mad_angles_tomato_b.jpg\",\n" +
-        "      \"fileName_c\": \"bingo_mad_angles_tomato_c.jpg\",\n" +
-        "      \"fileName_f\": \"bingo_mad_angles_tomato_f.jpg\",\n" +
-        "      \"fileName_l\": \"bingo_mad_angles_tomato_l.jpg\",\n" +
-        "      \"blobKey\": \"blob_key_main_image\",\n" +
-        "      \"groupId\": \"GROUP_SNACKS_001\",\n" +
-        "      \"blobKey_a\": \"blob_key_image_a\",\n" +
-        "      \"blobKey_b\": \"blob_key_image_b\",\n" +
-        "      \"blobKey_c\": \"blob_key_image_c\",\n" +
-        "      \"blobKey_f\": \"blob_key_image_f\",\n" +
-        "      \"blobKey_l\": \"blob_key_image_l\",\n" +
-        "      \"style\": \"TRIANGULAR_CHIPS\",\n" +
-        "      \"eanNumber\": \"8901030871234\",\n" +
-        "      \"lineDiscountGroup\": \"SNACKS_DISCOUNT\",\n" +
-        "      \"skuPieceWeight\": \"10.0\",\n" +
-        "      \"skuPcWeightUom\": \"GRAMS\",\n" +
-        "      \"skuCaseVol\": \"{ \\\"length\\\": 30, \\\"width\\\": 20, \\\"height\\\": 15 }\",\n" +
-        "      \"shelfLifeDays\": \"180\",\n" +
-        "      \"empties\": \"N\",\n" +
-        "      \"emptiesVariant\": \"NONE\",\n" +
-        "      \"rgbItemId\": \"RGB_ITEM_001\",\n" +
-        "      \"crateRequired\": \"N\",\n" +
-        "      \"bbd\": \"BBD_180\",\n" +
-        "      \"dod\": \"DOD_SAME_DAY\",\n" +
-        "      \"flcd\": \"FLCD_2_DAYS\",\n" +
-        "      \"idod\": \"IDOD_1_DAY\",\n" +
-        "      \"physicalCases\": \"20\",\n" +
-        "      \"uncs\": \"48\",\n" +
-        "      \"szcd\": \"SZCD_10G\",\n" +
-        "      \"skuLaunchDate\": \"2025-03-07T00:00:00\",\n" +
-        "      \"skuDeactivationDate\": \"2025-03-07T00:00:00\",\n" +
-        "      \"priceListId\": \"PL_SNACKS_001\",\n" +
-        "      \"distributorSkuCode\": \"DIST_BSKU001\",\n" +
-        "      \"translation\": \"{ \\\"name_hi\\\": \\\"बिंगो मैड एंगल्स टमाटर\\\", \\\"desc_hi\\\": \\\"स्वादिष्ट त्रिकोणीय नमकीन\\\" }\"\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}";
+ public static String rawStreamingData = "{\n" +
+            "  \"requestId\": \"test-req-PRODUCT-001\",\n" +
+            "  \"groupId\": \"2025-09-08\",\n" +
+            "  \"lob\": \"cktestitcloyalty\",\n" +
+            "  \"loginId\": \"integration_user\",\n" +
+            "  \"batchNumber\": 1,\n" +
+            "  \"transformerInfo\": [\n" +
+            "    {\n" +
+            "      \"skipPreprocessing\": false,\n" +
+            "      \"skipPersist\": false,\n" +
+            "      \"entityName\": \"ProductDetails\",\n" +
+            "      \"transformerId\": \"genericProductDetailsTransformer\",\n" +
+            "      \"operationType\": \"insert\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"features\": [\n" +
+            "    {\n" +
+            "      \"id\": \"PROD12345\",\n" +
+            "      \"activeStatus\": \"ACTIVE\",\n" +
+            "      \"activeStatusReason\": \"Valid product entry\",\n" +
+            "      \"createdBy\": \"system_user\",\n" +
+            "      \"extendedAttributes\": \"{ \\\"productType\\\": \\\"CONSUMER\\\", \\\"isPromotional\\\": false }\",\n" +
+            "      \"lob\": \"FMCG\",\n" +
+            "      \"modifiedBy\": \"admin_user\",\n" +
+            "      \"source\": \"ProductManagementSystem\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"hash\": \"product_hash_abc123\",\n" +
+            "      \"skuCode\": \"BSKU001\",\n" +
+            "      \"eb2bCode\": \"EB2B_BSKU001\",\n" +
+            "      \"batchCode\": \"BATCH_BSKU001_2025\",\n" +
+            "      \"productCode\": \"BPRO001\",\n" +
+            "      \"product\": \"Bingo Mad Angles Tomato Flavour\",\n" +
+            "      \"skuDescription\": \"Bingo Mad Angles Tomato Flavour 10gms\",\n" +
+            "      \"size\": \"10G\",\n" +
+            "      \"marketSkuCode\": \"MKT_BSKU001\",\n" +
+            "      \"marketSku\": \"Bingo Mad Angles 10G\",\n" +
+            "      \"category\": \"SNACKS\",\n" +
+            "      \"categoryCode\": \"CAT001\",\n" +
+            "      \"subCategory\": \"CHIPS\",\n" +
+            "      \"subCategoryCode\": \"SUBCAT001\",\n" +
+            "      \"brand\": \"BINGO\",\n" +
+            "      \"subBrand\": \"MAD ANGLES\",\n" +
+            "      \"brandCode\": \"BRAND001\",\n" +
+            "      \"ctg\": \"SNACKS_CTG\",\n" +
+            "      \"design\": \"TRIANGULAR\",\n" +
+            "      \"articleCode\": \"ART001\",\n" +
+            "      \"articleDesc\": \"Triangular Snack\",\n" +
+            "      \"colorCode\": \"RED\",\n" +
+            "      \"color\": \"Tomato Red\",\n" +
+            "      \"pieceSize\": \"10\",\n" +
+            "      \"pieceSizeDesc\": \"10 Grams\",\n" +
+            "      \"unitOfMeasurement\": \"GRAMS\",\n" +
+            "      \"caseToPieceQuantity\": \"48.0\",\n" +
+            "      \"caseToOtherUnitQuantity\": \"24.0\",\n" +
+            "      \"otherUnitToPieceQuantity\": \"2.0\",\n" +
+            "      \"pieceToOtherUnitQuantity\": \"0.5\",\n" +
+            "      \"pieceToVolume\": \"15.0\",\n" +
+            "      \"otherUnitName\": \"PACK\",\n" +
+            "      \"skuName\": \"Bingo Mad Angles Tomato 10G\",\n" +
+            "      \"itemId\": \"ITEM001\",\n" +
+            "      \"itemName\": \"Mad Angles Snack\",\n" +
+            "      \"itemDesc\": \"Crunchy triangular snack\",\n" +
+            "      \"itemType\": \"FOOD\",\n" +
+            "      \"itemClass\": \"SNACK\",\n" +
+            "      \"capacity\": \"10G\",\n" +
+            "      \"uom\": \"GRAMS\",\n" +
+            "      \"purchaseUnit\": \"PIECE\",\n" +
+            "      \"flavour\": \"TOMATO\",\n" +
+            "      \"tariffCode\": \"1905900000\",\n" +
+            "      \"fssaiNumber\": \"12345678901234\",\n" +
+            "      \"mrp\": \"5.0\",\n" +
+            "      \"caseMrp\": \"240.0\",\n" +
+            "      \"otherUnitMrp\": \"10.0\",\n" +
+            "      \"schemeDesc\": \"Buy 2 Get 1 Free\",\n" +
+            "      \"suggestionText\": \"Bingo Mad Angles Tomato Flavour Chips\",\n" +
+            "      \"orderSuggestion\": \"Popular snack item\",\n" +
+            "      \"otherProduct\": \"Bingo Mad Angles Masala\",\n" +
+            "      \"smartBuy\": \"FAST_MOVING\",\n" +
+            "      \"productDescription\": \"Delicious triangular shaped tomato flavoured snack\",\n" +
+            "      \"priority\": \"1\",\n" +
+            "      \"recPriority\": \"1\",\n" +
+            "      \"channel\": \"RETAIL\",\n" +
+            "      \"display\": \"SHELF\",\n" +
+            "      \"fileName\": \"bingo_mad_angles_tomato.jpg\",\n" +
+            "      \"mCode\": \"MC_BINGO_001\",\n" +
+            "      \"fileName_a\": \"bingo_mad_angles_tomato_a.jpg\",\n" +
+            "      \"fileName_b\": \"bingo_mad_angles_tomato_b.jpg\",\n" +
+            "      \"fileName_c\": \"bingo_mad_angles_tomato_c.jpg\",\n" +
+            "      \"fileName_f\": \"bingo_mad_angles_tomato_f.jpg\",\n" +
+            "      \"fileName_l\": \"bingo_mad_angles_tomato_l.jpg\",\n" +
+            "      \"blobKey\": \"blob_key_main_image\",\n" +
+            "      \"groupId\": \"GROUP_SNACKS_001\",\n" +
+            "      \"blobKey_a\": \"blob_key_image_a\",\n" +
+            "      \"blobKey_b\": \"blob_key_image_b\",\n" +
+            "      \"blobKey_c\": \"blob_key_image_c\",\n" +
+            "      \"blobKey_f\": \"blob_key_image_f\",\n" +
+            "      \"blobKey_l\": \"blob_key_image_l\",\n" +
+            "      \"style\": \"TRIANGULAR_CHIPS\",\n" +
+            "      \"eanNumber\": \"8901030871234\",\n" +
+            "      \"lineDiscountGroup\": \"SNACKS_DISCOUNT\",\n" +
+            "      \"skuPieceWeight\": \"10.0\",\n" +
+            "      \"skuPcWeightUom\": \"GRAMS\",\n" +
+            "      \"skuCaseVol\": \"{ \\\"length\\\": 30, \\\"width\\\": 20, \\\"height\\\": 15 }\",\n" +
+            "      \"shelfLifeDays\": \"180\",\n" +
+            "      \"empties\": \"N\",\n" +
+            "      \"emptiesVariant\": \"NONE\",\n" +
+            "      \"rgbItemId\": \"RGB_ITEM_001\",\n" +
+            "      \"crateRequired\": \"N\",\n" +
+            "      \"bbd\": \"BBD_180\",\n" +
+            "      \"dod\": \"DOD_SAME_DAY\",\n" +
+            "      \"flcd\": \"FLCD_2_DAYS\",\n" +
+            "      \"idod\": \"IDOD_1_DAY\",\n" +
+            "      \"physicalCases\": \"20\",\n" +
+            "      \"uncs\": \"48\",\n" +
+            "      \"szcd\": \"SZCD_10G\",\n" +
+            "      \"skuLaunchDate\": \"2025-03-07T00:00:00\",\n" +
+            "      \"skuDeactivationDate\": \"2025-03-07T00:00:00\",\n" +
+            "      \"priceListId\": \"PL_SNACKS_001\",\n" +
+            "      \"distributorSkuCode\": \"DIST_BSKU001\",\n" +
+            "      \"translation\": \"{ \\\"name_hi\\\": \\\"बिंगो मैड एंगल्स टमाटर\\\", \\\"desc_hi\\\": \\\"स्वादिष्ट त्रिकोणीय नमकीन\\\" }\",\n" +
+            "      \"productMetaData\": [\n" +
+            "        {\n" +
+            "          \"activeStatus\": \"ACTIVE\",\n" +
+            "          \"basePrice\": 0,\n" +
+            "          \"skuCode\": \"123456\",\n" +
+            "          \"batchCode\": \"123456\",\n" +
+            "          \"packPtr\": 166.67,\n" +
+            "          \"casePtr\": 2500.05,\n" +
+            "          \"otherUnitPtr\": 0,\n" +
+            "          \"gst\": 0,\n" +
+            "          \"tax\": \"\",\n" +
+            "          \"taxAmount\": 0,\n" +
+            "          \"locationHierarchy\": {\n" +
+            "            \"country\": \"India\"\n" +
+            "          },\n" +
+            "          \"channel\": \"Retailer\",\n" +
+            "          \"mrp\": 200,\n" +
+            "          \"maxQty\": 0,\n" +
+            "          \"minQty\": 0,\n" +
+            "          \"priceList\": \"\",\n" +
+            "          \"subChannel\": \"\",\n" +
+            "          \"supplier\": \"\",\n" +
+            "          \"outletCode\": \"\",\n" +
+            "          \"whCode\": \"\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
 */
