@@ -142,7 +142,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         result.put("priceListId", getString(inputMap, "priceListId"));
         result.put("distributorSkuCode", getString(inputMap, "distributorSkuCode"));
         result.put("translation", getJooqJsonAsString(inputMap, "translation"));
-        result.put("productMetaData", getList(inputMap, "productMetaData", Productmetadata.class));
+        result.put("productMetaData", getProductMetaDataList(inputMap));
 
         return result;
     }
@@ -230,8 +230,10 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
         }
     }
 
-    private <T> List<T> getList(Map<String, Object> map, String key, Class<T> clazz) {
-        Object value = map.get(key);
+    private  List<Productmetadata> getProductMetaDataList(Map<String, Object> rawMap) {
+        Map<String, Object> map=ProductMetaDataTransformer.transform(rawMap);
+        Object value = map.get("productMetaData");
+        Class<Productmetadata> clazz=Productmetadata.class;
         if (value == null) return Collections.emptyList();
 
         if (value instanceof List<?>) {
@@ -240,7 +242,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
                         if (clazz.isInstance(item)) {
                             return clazz.cast(item);
                         } else if (item instanceof Map) {
-                            return objectMapper.convertValue(item, clazz); // ✅ Map → POJO
+                            return objectMapper.convertValue(item, clazz);
                         }
                         return null;
                     })

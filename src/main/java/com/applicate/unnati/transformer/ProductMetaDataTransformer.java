@@ -10,12 +10,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class ProductMetaDataTransformer {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public Map<String, Object> transform(Map<String, Object> inputMap) {
+    public static Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
             return Collections.emptyMap();
         }
@@ -73,11 +72,11 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
     }
 
 
-    private String asString(Object value) {
+    private  static String asString(Object value) {
         return value == null ? null : value.toString();
     }
 
-    private Integer asInteger(Object value) {
+    private  static Integer asInteger(Object value) {
         if (value == null) return null;
         if (value instanceof Integer) return (Integer) value;
         try {
@@ -87,7 +86,7 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
         }
     }
 
-    private Double asDouble(Object value) {
+    private static  Double asDouble(Object value) {
         if (value == null) return null;
         if (value instanceof Double) return (Double) value;
         try {
@@ -107,7 +106,7 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
         }
     }
 
-    private BigDecimal asBigDecimal(Object value) {
+    private  static BigDecimal asBigDecimal(Object value) {
         if (value == null) return null;
         if (value instanceof BigDecimal) return (BigDecimal) value;
         try {
@@ -117,7 +116,7 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
         }
     }
 
-    private Byte asByte(Object value) {
+    private static  Byte asByte(Object value) {
         if (value == null) return null;
         if (value instanceof Byte) return (Byte) value;
         try {
@@ -127,7 +126,7 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
         }
     }
 
-    private ActiveStatus asActiveStatus(Object value) {
+    private  static ActiveStatus asActiveStatus(Object value) {
         if (value == null) return null;
         if (value instanceof ActiveStatus) return (ActiveStatus) value;
         try {
@@ -137,7 +136,7 @@ public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, 
         }
     }
 
-    private JsonNode asJsonNode(Object value) {
+    private  static JsonNode asJsonNode(Object value) {
         if (value == null) return null;
         if (value instanceof JsonNode) return (JsonNode) value;
         try {
