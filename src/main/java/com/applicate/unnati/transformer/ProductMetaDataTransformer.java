@@ -148,27 +148,26 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private  static Location parseLocationHierarchy(Map<String, Object> map, String key) {
+    private static Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
-
-        Location location = new Location();
-
         if (value instanceof Map) {
             Map<?, ?> m = (Map<?, ?>) value;
-            location.setCountry((String) m.get("country"));
-            location.setRegion((String) m.get("region"));
-            location.setState((String) m.get("state"));
-            location.setCity((String) m.get("city"));
-            location.setPincode((String) m.get("pincode"));
-            location.setZone((String) m.get("zone"));
-            location.setCountryCode((String) m.get("countryCode"));
-            location.setRegionCode((String) m.get("regionCode"));
-            location.setStateCode((String) m.get("stateCode"));
-            location.setCityCode((String) m.get("cityCode"));
-            location.setZoneCode((String) m.get("zoneCode"));
+            Location location = new Location();
+            if (m.get("country") != null) location.setCountry((String) m.get("country"));
+            if (m.get("region") != null) location.setRegion((String) m.get("region"));
+            if (m.get("state") != null) location.setState((String) m.get("state"));
+            if (m.get("city") != null) location.setCity((String) m.get("city"));
+            if (m.get("pincode") != null) location.setPincode((String) m.get("pincode"));
+            if (m.get("zone") != null) location.setZone((String) m.get("zone"));
+            if (m.get("countryCode") != null) location.setCountryCode((String) m.get("countryCode"));
+            if (m.get("regionCode") != null) location.setRegionCode((String) m.get("regionCode"));
+            if (m.get("stateCode") != null) location.setStateCode((String) m.get("stateCode"));
+            if (m.get("cityCode") != null) location.setCityCode((String) m.get("cityCode"));
+            if (m.get("zoneCode") != null) location.setZoneCode((String) m.get("zoneCode"));
             return location;
         }
         return null;
     }
+
 }
