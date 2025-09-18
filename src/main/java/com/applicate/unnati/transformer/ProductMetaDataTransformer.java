@@ -1,5 +1,6 @@
 package com.applicate.unnati.transformer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
@@ -15,7 +16,7 @@ public class ProductMetaDataTransformer {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Map<String, Object> transform(Map<String, Object> inputMap) {
+    public static Map<String, Object> transform(Map<String, Object> inputMap) throws JsonProcessingException {
         if (inputMap == null) {
             return Collections.emptyMap();
         }
@@ -41,7 +42,7 @@ public class ProductMetaDataTransformer {
         output.put("skuCode", asString(inputMap.get("skuCode")));
         output.put("tax", asString(inputMap.get("tax")));
         output.put("taxAmount", asBigDecimal(inputMap.get("taxAmount")));
-        output.put("locationHierarchy",parseLocationHierarchy(inputMap, "locationHierarchy"));
+        output.put("locationHierarchy",objectMapper.writeValueAsString(parseLocationHierarchy(inputMap, "locationHierarchy")));
         output.put("loginid", asString(inputMap.get("loginid")));
         output.put("fkProductmetadata", asString(inputMap.get("fkProductmetadata")));
         output.put("source", asString(inputMap.get("source")));
