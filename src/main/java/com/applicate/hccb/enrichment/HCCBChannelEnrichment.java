@@ -83,7 +83,6 @@ public class HCCBChannelEnrichment
             cdm.setSchemeDescription(newDes);
             updateSchemeAndSlabDescription(cdm, pd.getSkuDescription());
             cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductcode(pd.getBatchCode());
-            cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductPrice("1");
         } else {
             logger.error("No product details found for code: {}", inputCode);
         }
