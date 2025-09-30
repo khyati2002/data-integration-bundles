@@ -11,13 +11,15 @@ import com.salescode.dim.jooq.generated.tables.pojos.GenericObject;
 import com.salescode.dim.jooq.generated.tables.pojos.Productdetails;
 import com.salescode.dim.jooq.generated.tables.pojos.SchemeOutletBifurcations;
 import com.salescode.dim.jooq.impl.SchemeDefination;
+
+import java.math.BigDecimal;
+import java.util.List;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.types.IntValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class HCCBChannelEnrichment
         extends AbstractEnrichment<SchemeDefination> {
@@ -52,7 +54,7 @@ public class HCCBChannelEnrichment
                 }
             }
             this.enrichItemSchemeDescription(cdm);
-            this.logger.info("Time taken for channel enrichment : {}", (Object)(System.currentTimeMillis() - currentTime));
+            this.logger.info("Time taken for channel enrichment : {}", (System.currentTimeMillis() - currentTime));
         } catch (Exception ex) {
             throw new RuntimeException("Exception in channel enrichment {}", ex);
         }
@@ -64,13 +66,67 @@ public class HCCBChannelEnrichment
     }
 
     private void enrichItemSchemeDescription(SchemeDefination cdm) {
-        if (cdm.getSchemeType().contains("item") && ObjectUtils.isNotEmpty(cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode())) {
-            Productdetails pd = productDetailsService.findByBatchCode(cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode());
+        if (!isItemSchemeWithProductCode(cdm)) {
+            return;
+        }
+
+        String inputCode = cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode();
+        Productdetails pd = productDetailsService.findByBatchCode(inputCode);
+
+        if (pd == null && inputCode.contains("_")) {
+            pd = findProductByEanCodeWithNearestMrp(inputCode);
+        }
+
+        if (pd != null) {
             String name = pd.getSkuDescription();
             String newDes = cdm.getSchemeDescription() + " (" + name + ")";
             cdm.setSchemeDescription(newDes);
-            this.updateSlabDescription(cdm.getSchemeCalculation().get(0).getSlabInfo(), name);
+            updateSchemeAndSlabDescription(cdm, pd.getSkuDescription());
+            cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductcode(pd.getBatchCode());
+            cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductPrice(pd.getMrp().toString());
+        } else {
+            logger.error("No product details found for code: {}", inputCode);
         }
+    }
+
+    private boolean isItemSchemeWithProductCode(SchemeDefination cdm) {
+        return cdm.getSchemeType().contains("item") && ObjectUtils.isNotEmpty(cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode());
+    }
+
+    private Productdetails findProductByEanCodeWithNearestMrp(String inputCode) {
+        try {
+            String[] parts = inputCode.split("_");
+            String eanCode = parts[0];
+            BigDecimal targetMrpBd = new BigDecimal(parts[1]);
+
+            List<Productdetails> sku = productDetailsService.findByEanCode(eanCode);
+            if (sku == null) {
+                return null;
+            }
+
+            Productdetails closestSku = sku.get(0);
+            BigDecimal minDiff = closestSku.getMrp().subtract(targetMrpBd).abs();
+
+            for (Productdetails s : sku) {
+                BigDecimal diff = s.getMrp().subtract(targetMrpBd).abs();
+                if (diff.compareTo(minDiff) < 0) {
+                    minDiff = diff;
+                    closestSku = s;
+                }
+            }
+
+            return productDetailsService.findByBatchCode(closestSku.getBatchCode());
+
+        } catch (Exception e) {
+            logger.error("Error parsing EANCode_MRP: {}", inputCode, e);
+            return null;
+        }
+    }
+
+    private void updateSchemeAndSlabDescription(SchemeDefination cdm, String skuDescription) {
+        String newDes = cdm.getSchemeDescription() + " (" + skuDescription + ")";
+        cdm.setSchemeDescription(newDes);
+        this.updateSlabDescription(cdm.getSchemeCalculation().get(0).getSlabInfo(), skuDescription);
     }
 
     private void updateSlabDescription(JsonNode slabInfo, String name) {
