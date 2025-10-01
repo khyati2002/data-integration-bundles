@@ -256,24 +256,21 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         String monitoringScope = inputMap.get(MONITORING_SCOPE).toString().trim();
         String calculationMethod = inputMap.get("calculation_method").toString().trim();
 
-        // IPC (2) and EAN (4) work similarly (item-level schemes)
-        if ((monitoringScope.equals("2") || monitoringScope.equals("4")) &&
-                (calculationMethod.equals("1") || calculationMethod.equals("3") ||
+        if ((monitoringScope.equals("2") &&
+                calculationMethod.equals("1") || calculationMethod.equals("3") ||
                         calculationMethod.equals("4") || calculationMethod.equals("5"))) {
             return "itemwise";
-        } else if ((monitoringScope.equals("2") || monitoringScope.equals("4")) &&
-                (calculationMethod.equals("2") || calculationMethod.equals("6"))) {
+        } else if ((monitoringScope.equals("2") &&
+                calculationMethod.equals("2") || calculationMethod.equals("6"))) {
             return "itemwise_fixedprice";
         }
 
-        // SKU (1) schemes
-        else if (monitoringScope.equals("1") &&
+        else if ((monitoringScope.equals("1") || monitoringScope.equals("4")) &&
                 (calculationMethod.equals("5") || calculationMethod.equals("6"))) {
             return "itemwise";
-        } else if (monitoringScope.equals("1")) {
+        } else if ((monitoringScope.equals("1") || monitoringScope.equals("4"))) {
             return "itemwise_group";
         }
-
         // Default fallback
         return "itemwise_group";
     }
