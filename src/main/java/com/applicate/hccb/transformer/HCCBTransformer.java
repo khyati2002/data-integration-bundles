@@ -79,6 +79,7 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeOutletMap.put("soldTo", "all");
         schemeOutletMap.put("outletDivision", "all");
         schemeOutletMap.put("priceListId", "all");
+        schemeOutletMap.put("linkedOutletProductKey","all");
 
         if(NullUtils.isNotNull(inputMap.get("external_id")) && !ObjectUtils.isEmpty(inputMap.get("external_id").toString())) {
             String[] parts = inputMap.get("external_id").toString().split("_");
@@ -119,6 +120,13 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeProductMap.put("category", "all");
         schemeProductMap.put("subCategory", "all");
         schemeProductMap.put("customGroupCode", "all");
+        schemeProductMap.put("qualifier_", "1");
+        schemeProductMap.put("size", "all");
+        schemeProductMap.put("product", "all");
+        schemeProductMap.put("itemType", "all");
+        schemeProductMap.put("articleCode", "all");
+        schemeProductMap.put("skuCode", "all");
+        schemeProductMap.put("mcode", "all");
 
         int monitoringScope = Integer.parseInt(inputMap.get(MONITORING_SCOPE).toString().trim());
         String monitoringValue = inputMap.get("monitoring_value").toString().trim();
