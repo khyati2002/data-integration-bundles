@@ -79,7 +79,6 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeOutletMap.put("soldTo", "all");
         schemeOutletMap.put("outletDivision", "all");
         schemeOutletMap.put("priceListId", "all");
-        schemeOutletMap.put("linkedOutletProductKey","all");
 
         if(NullUtils.isNotNull(inputMap.get("external_id")) && !ObjectUtils.isEmpty(inputMap.get("external_id").toString())) {
             String[] parts = inputMap.get("external_id").toString().split("_");
