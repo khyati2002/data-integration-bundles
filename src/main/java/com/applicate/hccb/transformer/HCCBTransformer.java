@@ -2,6 +2,7 @@ package com.applicate.hccb.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final String CRITERIA = "criteria";
@@ -46,6 +48,7 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeData.put("schemeLocationBifurcationsList", schemeLocationTransformer(inputMap));
         return schemeData;
     }
+
     private Map<String, Object> schemeLocationTransformer(Map<String, Object> inputMap) {
         Map<String, Object> schemeLocationMap = new HashMap<>();
         schemeLocationMap.put(SCHEME_ID, inputMap.get(SCHEME_NO));
@@ -54,10 +57,9 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeLocationMap.put(STATE, ObjectUtils.isEmpty(inputMap.get(STATE)) ? "all" : inputMap.get(STATE));
         schemeLocationMap.put(TOWN, ObjectUtils.isEmpty(inputMap.get(TOWN)) ? "all" : inputMap.get(TOWN));
         schemeLocationMap.put(DISTRICT, ObjectUtils.isEmpty(inputMap.get(DISTRICT)) ? "all" : inputMap.get(DISTRICT));
-
-
         return schemeLocationMap;
     }
+
     private Map<String, Object> schemeOutletTransformer(Map<String, Object> inputMap){
         Map<String, Object> schemeOutletMap = new HashMap<>();
         schemeOutletMap.put(SCHEME_ID, inputMap.get(SCHEME_NO));
@@ -97,7 +99,6 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         }
         return schemeOutletMap;
     }
-
     static {
         MONITORING_SCOPE_TO_FIELD.put(1, ITEM_CLASS);
         MONITORING_SCOPE_TO_FIELD.put(2, BATCH_CODE);
@@ -136,12 +137,10 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
             throw new IllegalArgumentException("Invalid monitoring scope value: " + monitoringScope);
         }
         schemeProductMap.put(field, monitoringValue);
-
         // If monitoring scope is not 4, add eanNumber as "all"
         if (monitoringScope != 4) {
             schemeProductMap.put("eanNumber", "all");
         }
-
         return schemeProductMap;
     }
 
@@ -153,15 +152,39 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeCalculationMap.put("itemEach", getValue(schemeCalculationMap.get(SCHEME_TYPE), inputMap.get(MONITORING_SCOPE).toString().trim()));
         ArrayNode slabArray = getSlabIfAlreadyExist(inputMap);
         schemeCalculationMap.put("slabInfo", slabArray);
-        schemeCalculationMap.put("rangeLevelUnit", "nq");
+        if(inputMap.get(MONITORING_SCOPE).toString().trim().equalsIgnoreCase("4")){
+            if(inputMap.get("monitoring_uom")!=null && !inputMap.get("monitoring_uom").toString().trim().isEmpty() && "cs".equalsIgnoreCase(inputMap.get("monitoring_uom").toString().trim())){
+                schemeCalculationMap.put("rangeLevelUnit", inputMap.get("monitoring_uom").toString().trim());
+            }else{
+                schemeCalculationMap.put("rangeLevelUnit", "nq");
+            }
+        }
+        else{
+            schemeCalculationMap.put("rangeLevelUnit", "nq");
+        }
         schemeCalculationMap.put("schemeDiscountedProductPrice", inputMap.get("discountedprice"));
         schemeCalculationMap.put("schemeDiscountedProductcode", inputMap.get("discounted_item_id"));
-        schemeCalculationMap.put("schemeDiscountedProductcodeuom", inputMap.get("discounted_item_uom"));
+
+        String calculationMethod = inputMap.get("calculation_method").toString().trim();
+        if(calculationMethod.equalsIgnoreCase("4")){
+            if(inputMap.get("discounted_item_uom")!=null && inputMap.get("discounted_item_uom").toString().trim().equalsIgnoreCase("cs")) {
+                schemeCalculationMap.put("schemeDiscountedProductcodeuom", "CS");
+            }else{
+                schemeCalculationMap.put("schemeDiscountedProductcodeuom", "EA");
+            }
+        }else{
+            schemeCalculationMap.put("schemeDiscountedProductcodeuom", inputMap.get("discounted_item_uom"));
+        }
         schemeCalculationMap.put("maxDiscount", "0");
         schemeCalculationMap.put("maxTerm", "0");
         schemeCalculationMap.put("minimumAmount", "0");
         schemeCalculationMap.put("usageLimit", "0");
         if(inputMap.get(MONITORING_SCOPE).toString().trim().equalsIgnoreCase("3")) schemeCalculationMap.put("mustBuyGroupId", inputMap.get(SCHEME_NO));
+        com.fasterxml.jackson.databind.node.ObjectNode extendedAttributes = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
+        if(inputMap.get(MONITORING_SCOPE).toString().trim().equalsIgnoreCase("3")){
+            extendedAttributes.put("mustBuyRepeatSlabSync", "true");
+        }
+        schemeCalculationMap.put("extendedAttributes", extendedAttributes);
         return schemeCalculationMap;
     }
 
@@ -256,19 +279,19 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         String monitoringScope = inputMap.get(MONITORING_SCOPE).toString().trim();
         String calculationMethod = inputMap.get("calculation_method").toString().trim();
 
-        if ((monitoringScope.equals("2") &&
-                calculationMethod.equals("1") || calculationMethod.equals("3") ||
+        if (monitoringScope.equals("2") &&
+                (calculationMethod.equals("1") || calculationMethod.equals("3") ||
                         calculationMethod.equals("4") || calculationMethod.equals("5"))) {
             return "itemwise";
-        } else if ((monitoringScope.equals("2") &&
-                calculationMethod.equals("2") || calculationMethod.equals("6"))) {
+        } else if (monitoringScope.equals("2") &&
+                (calculationMethod.equals("2") || calculationMethod.equals("6"))) {
             return "itemwise_fixedprice";
         }
 
         else if ((monitoringScope.equals("1") || monitoringScope.equals("4")) &&
                 (calculationMethod.equals("5") || calculationMethod.equals("6"))) {
             return "itemwise";
-        } else if ((monitoringScope.equals("1") || monitoringScope.equals("4"))) {
+        } else if (monitoringScope.equals("1") || monitoringScope.equals("4")) {
             return "itemwise_group";
         }
         // Default fallback
@@ -315,12 +338,17 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
     }
 
     private int getPriority(String disbursementMethod, String marketScope, String monitoringScope) {
+
+        if ("3".equals(monitoringScope)) {
+            return 1;
+        }
+
         String key = disbursementMethod + "-" + marketScope + "-" + monitoringScope;
 
         if (PRIORITY_MAP.containsKey(key)) {
             return PRIORITY_MAP.get(key);
         }
-
+        log.error("Unsupported scheme combination: {}" , key);
         throw new IllegalArgumentException("Unsupported scheme combination: " + key);
     }
 }
