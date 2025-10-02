@@ -180,7 +180,7 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeCalculationMap.put("minimumAmount", "0");
         schemeCalculationMap.put("usageLimit", "0");
         if(inputMap.get(MONITORING_SCOPE).toString().trim().equalsIgnoreCase("3")) schemeCalculationMap.put("mustBuyGroupId", inputMap.get(SCHEME_NO));
-        com.fasterxml.jackson.databind.node.ObjectNode extendedAttributes = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
+        ObjectNode extendedAttributes = new ObjectMapper().createObjectNode();
         if(inputMap.get(MONITORING_SCOPE).toString().trim().equalsIgnoreCase("3")){
             extendedAttributes.put("mustBuyRepeatSlabSync", "true");
         }
