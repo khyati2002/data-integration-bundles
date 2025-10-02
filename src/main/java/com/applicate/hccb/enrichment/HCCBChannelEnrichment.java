@@ -7,6 +7,7 @@ import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import com.salescode.dim.jooq.generated.tables.pojos.GenericObject;
 import com.salescode.dim.jooq.generated.tables.pojos.Productdetails;
 import com.salescode.dim.jooq.generated.tables.pojos.SchemeOutletBifurcations;
@@ -14,13 +15,15 @@ import com.salescode.dim.jooq.impl.SchemeDefination;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.flink.types.IntValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class HCCBChannelEnrichment
         extends AbstractEnrichment<SchemeDefination> {
     private static GenericObjectService genericObjectService;
@@ -50,12 +53,16 @@ public class HCCBChannelEnrichment
                         outletBifurcation.setChannel(geobject.getKey3());
                         continue;
                     }
+                    if(ObjectUtils.isEmpty(ge)) {
+                        log.error("Channel not found for schemeID: {}", cdm.getSchemeId());
+                    }
                     outletBifurcation.setChannel(channelId);
                 }
             }
             this.enrichItemSchemeDescription(cdm);
             this.logger.info("Time taken for channel enrichment : {}", (System.currentTimeMillis() - currentTime));
         } catch (Exception ex) {
+            log.error("Error while setting channel {}", ex.getMessage());
             throw new RuntimeException("Exception in channel enrichment {}", ex);
         }
         return new OperationResult.StepResult(OperationResult.Status.OK, "Data enriched successfully");
@@ -85,6 +92,7 @@ public class HCCBChannelEnrichment
             cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductcode(pd.getBatchCode());
         } else {
             logger.error("No product details found for code: {}", inputCode);
+            throw new DataTransformationService.TransformationException("No product details found");
         }
     }
 
@@ -100,6 +108,7 @@ public class HCCBChannelEnrichment
 
             List<Productdetails> sku = productDetailsService.findByEanCode(eanCode);
             if (sku == null) {
+                log.error("Product Details not found for EAN Code {} | {}", eanCode, inputCode);
                 return null;
             }
 
@@ -118,7 +127,7 @@ public class HCCBChannelEnrichment
 
         } catch (Exception e) {
             logger.error("Error parsing EANCode_MRP: {}", inputCode, e);
-            return null;
+            throw new DataTransformationService.TransformationException("Error parsing EANCode_MRP ",e);
         }
     }
 
