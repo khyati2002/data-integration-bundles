@@ -127,6 +127,11 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         schemeProductMap.put("articleCode", "all");
         schemeProductMap.put("skuCode", "all");
         schemeProductMap.put("mcode", "all");
+        schemeProductMap.put("flavour", "all");
+        schemeProductMap.put("version","1");
+        schemeProductMap.put("marketSku", "all");
+        schemeProductMap.put("purchaseUnit", "all");
+        schemeProductMap.put("source", "flink");
 
         int monitoringScope = Integer.parseInt(inputMap.get(MONITORING_SCOPE).toString().trim());
         String monitoringValue = inputMap.get("monitoring_value").toString().trim();
