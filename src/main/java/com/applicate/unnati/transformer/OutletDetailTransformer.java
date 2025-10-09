@@ -74,6 +74,7 @@ public class OutletDetailTransformer extends AbstractTransformer<Map<String, Obj
 		Object rawSupplierMapping = responseEnvelope.get("suppliermapping");
 		try {
 			String mappingStr = (String) rawSupplierMapping;
+			mappingStr = mappingStr.replaceAll("(\"CustID\"\\s*:\\s*\"[^\"]*?)\\\\\"", "$1\"").replaceAll("(\"SIFYID\"\\s*:\\s*\"[^\"]*?)\\\\\"", "$1\"");
 			supplierMapping = OBJECT_MAPPER.readValue(mappingStr, new TypeReference<List<Map<String, Object>>>() {
 			});
 		} catch (Exception e) {
