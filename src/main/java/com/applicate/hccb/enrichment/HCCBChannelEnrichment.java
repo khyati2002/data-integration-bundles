@@ -4,17 +4,19 @@ import com.applicate.services.channelkart.repository.ProductDetailsImpl;
 import com.applicate.services.channelkart.services.GenericObjectService;
 import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.utils.NullUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import com.salescode.dim.jooq.generated.tables.pojos.GenericObject;
 import com.salescode.dim.jooq.generated.tables.pojos.Productdetails;
+import com.salescode.dim.jooq.generated.tables.pojos.SchemeFreeproductinfo;
 import com.salescode.dim.jooq.generated.tables.pojos.SchemeOutletBifurcations;
 import com.salescode.dim.jooq.impl.SchemeDefination;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -62,7 +64,7 @@ public class HCCBChannelEnrichment
             this.enrichItemSchemeDescription(cdm);
             this.logger.info("Time taken for channel enrichment : {}", (System.currentTimeMillis() - currentTime));
         } catch (Exception ex) {
-            log.error("Error while setting channel {}", ex.getMessage());
+            log.error("Error while setting channel {} | {}", cdm.getSchemeId(), ex.getMessage());
             throw new RuntimeException("Exception in channel enrichment {}", ex);
         }
         return new OperationResult.StepResult(OperationResult.Status.OK, "Data enriched successfully");
@@ -78,13 +80,19 @@ public class HCCBChannelEnrichment
         }
 
         String inputCode = cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode();
+        JsonNode slab = cdm.getSchemeCalculation().get(0).getSlabInfo();
+        String discount=slab.get(0).get("schemeBenefit").asText();
         Productdetails pd = productDetailsService.findByBatchCode(inputCode);
+        BigDecimal benefit = new BigDecimal(discount);
+        String schemeId= cdm.getSchemeId();
 
+        List<SchemeFreeproductinfo> fpdInfo = null;
         if (pd == null && inputCode.contains("_")) {
-            pd = findProductByEanCodeWithNearestMrp(inputCode);
+            fpdInfo = findAllFreeProductsByEanCode(inputCode, benefit, schemeId);
+            cdm.getSchemeCalculation().get(0).setSchemeFreeproductinfoList(fpdInfo);
+            cdm.getSchemeCalculation().get(0).setSchemeDiscountedProductcode(null);
         }
-
-        if (pd != null) {
+        else if (pd != null) {
             String name = pd.getSkuDescription();
             String newDes = cdm.getSchemeDescription() + " (" + name + ")";
             cdm.setSchemeDescription(newDes);
@@ -97,37 +105,46 @@ public class HCCBChannelEnrichment
     }
 
     private boolean isItemSchemeWithProductCode(SchemeDefination cdm) {
-        return cdm.getSchemeType().contains("item") && ObjectUtils.isNotEmpty(cdm.getSchemeCalculation().get(0).getSchemeDiscountedProductcode());
+        return cdm.getSchemeType().contains("item");
     }
 
-    private Productdetails findProductByEanCodeWithNearestMrp(String inputCode) {
+    private List<SchemeFreeproductinfo> findAllFreeProductsByEanCode(String inputCode, BigDecimal freeQty, String schemeId) {
         try {
             String[] parts = inputCode.split("_");
             String eanCode = parts[0];
             BigDecimal targetMrpBd = new BigDecimal(parts[1]);
 
-            List<Productdetails> sku = productDetailsService.findByEanCode(eanCode);
-            if (sku == null) {
-                log.error("Product Details not found for EAN Code {} | {}", eanCode, inputCode);
-                return null;
+            List<Productdetails> skuList = productDetailsService.findByEanCode(eanCode);
+            if (skuList == null || skuList.isEmpty()) {
+                log.error("No Product Details found for EAN Code {} | {}", eanCode, inputCode);
+                return Collections.emptyList();
             }
 
-            Productdetails closestSku = sku.get(0);
-            BigDecimal minDiff = closestSku.getMrp().subtract(targetMrpBd).abs();
+            // Fetch all batches under that EAN code
+            List<SchemeFreeproductinfo> freeProducts = new ArrayList<>();
+            for (Productdetails s : skuList) {
+                SchemeFreeproductinfo info = new SchemeFreeproductinfo();
+                info.setBatchCode(s.getBatchCode());
+                info.setFreeProductuom(s.getUom());
+                info.setQty(String.valueOf(freeQty));
+                info.setSchemeId(schemeId);
 
-            for (Productdetails s : sku) {
-                BigDecimal diff = s.getMrp().subtract(targetMrpBd).abs();
-                if (diff.compareTo(minDiff) < 0) {
-                    minDiff = diff;
-                    closestSku = s;
-                }
+                // Extended attributes with MRP as double
+                ObjectMapper mapper = new ObjectMapper();
+
+                Map<String, Object> extendedAttr = new HashMap<>();
+                extendedAttr.put("EAN_MRP", targetMrpBd.doubleValue());
+                JsonNode extendedAttrNode = mapper.valueToTree(extendedAttr);
+                info.setExtendedAttributes(extendedAttrNode);
+
+                freeProducts.add(info);
             }
 
-            return productDetailsService.findByBatchCode(closestSku.getBatchCode());
+            return freeProducts;
 
         } catch (Exception e) {
-            logger.error("Error parsing EANCode_MRP: {}", inputCode, e);
-            throw new DataTransformationService.TransformationException("Error parsing EANCode_MRP ",e);
+            logger.error("Error processing EANCode_MRP: {}", inputCode, e);
+            throw new DataTransformationService.TransformationException("Error parsing EANCode_MRP ", e);
         }
     }
 
