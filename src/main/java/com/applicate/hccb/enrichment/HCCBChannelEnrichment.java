@@ -1,5 +1,6 @@
 package com.applicate.hccb.enrichment;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.repository.ProductDetailsImpl;
 import com.applicate.services.channelkart.services.GenericObjectService;
 import com.applicate.services.channelkart.services.ProductDetailsService;
@@ -128,6 +129,7 @@ public class HCCBChannelEnrichment
                 info.setFreeProductuom(s.getUom());
                 info.setQty(String.valueOf(freeQty));
                 info.setSchemeId(schemeId);
+                info.setActiveStatus(ActiveStatus.ACTIVE);
 
                 // Extended attributes with MRP as double
                 ObjectMapper mapper = new ObjectMapper();
