@@ -1,14 +1,12 @@
 package com.applicate.cokesa.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.models.ProductDetails;
 import com.salescode.dim.etl.OperationResult;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.generated.tables.pojos.Productdetails;
 import org.apache.commons.lang3.ObjectUtils;
 
 
-public class ProductDetailsEnrichmentDefault  extends AbstractEnrichment<ProductDetails> {
+public class ProductDetailsEnrichmentDefault  extends AbstractEnrichment<Productdetails> {
     @Override
     public OperationResult.StepResult apply(Productdetails cdm) {
 

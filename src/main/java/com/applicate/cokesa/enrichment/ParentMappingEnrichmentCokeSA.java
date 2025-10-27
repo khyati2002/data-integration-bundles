@@ -1,21 +1,20 @@
 package com.applicate.cokesa.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.enrichments.Status;
-import com.applicate.services.channelkart.models.EntityParentMapping;
-import com.applicate.services.channelkart.models.User;
 import com.applicate.services.channelkart.services.EntityParentMappingService;
-import com.applicate.services.channelkart.services.SpringContext;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.StringUtils;
+import com.salescode.dim.etl.OperationResult;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.generated.tables.pojos.User;
+import com.salescode.dim.jooq.impl.EntityParentMapping;
 
 
 public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
 
-    private final EntityParentMappingService entityParentMappingService = SpringContext.getBean(EntityParentMappingService.class);
+    private final EntityParentMappingService entityParentMappingService = (EntityParentMappingService) ServiceLocator.lookup(EntityParentMapping.class);
 
     @Override
-    public EnrichmentResult apply(User user) {
+    public OperationResult.StepResult apply(User user) {
 
         try {
             if(StringUtils.isEqual(user.getDesignation().toString(), "[supplier]", true)){
@@ -29,8 +28,8 @@ public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
             }
         }
         catch (Exception e){
-            return new EnrichmentResult(Status.ERROR, e.getMessage() + "Missing information for parent entity mapping");
+            return new OperationResult.StepResult(OperationResult.Status.ERROR, e.getMessage() + "Missing information for parent entity mapping");
         }
-        return new EnrichmentResult(Status.OK, "Supplier entry created in entity parent mapping");
+        return new OperationResult.StepResult(OperationResult.Status.OK, "Supplier entry created in entity parent mapping");
     }
 }

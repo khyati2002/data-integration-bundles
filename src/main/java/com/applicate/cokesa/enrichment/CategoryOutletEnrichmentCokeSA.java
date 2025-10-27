@@ -1,11 +1,9 @@
 package com.applicate.cokesa.enrichment;
 
 import com.applicate.services.channelkart.services.CategoryInfoService;
-import com.applicate.services.channelkart.services.MetaDataService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.SecurityContextUtils;
-import com.salescode.dim.jooq.generated.tables.pojos.Metadata;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
