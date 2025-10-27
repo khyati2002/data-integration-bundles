@@ -1,4 +1,4 @@
-package com.applicate.hccb.transformer;
+package com.applicate.cokesa.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
