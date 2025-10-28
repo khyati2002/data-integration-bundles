@@ -1,18 +1,16 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.models.OutletDetails;
-import com.applicate.services.channelkart.models.Sales;
-import com.applicate.services.channelkart.models.SalesDetails;
-import com.applicate.services.channelkart.models.User;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.salescode.dim.jooq.impl.*;
 import com.applicate.services.channelkart.services.OutletDetailsService;
 import com.applicate.services.channelkart.services.SalesService;
-import com.applicate.services.channelkart.services.SpringContext;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.salescode.dim.jooq.impl.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,20 +21,20 @@ import java.util.stream.StreamSupport;
 /**
  * DMSGrnAPITransformer
  */
-public class DMSGrnAPITransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
+public class DMSGrnAPITransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
     private final Logger logger = LoggerFactory.getLogger(DMSGrnAPITransformer.class);
     private static final String SUPPLIER = "supplier";
     private static final String SALES_DETAILS = "salesDetails";
     private static final String DISCOUNT_INFO = "discountInfo";
-    private final SalesService salesService = SpringContext.getBean(SalesService.class);
-    private final OutletDetailsService outletDetailsService = SpringContext.getBean(OutletDetailsService.class);
-    private final UserService userService = SpringContext.getBean(UserService.class);
+    private final SalesService salesService = (SalesService) ServiceLocator.lookup(Sales.class);
+    private final OutletDetailsService outletDetailsService =(OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
+    private final UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
     private static final String FEATURES = "features";
     private static final String SALESDETAILS = "salesDetails";
     private static final List<String> EXTRA_FIELDS = List.of("grnNumber", "grnRejectionReason", "grnStatus", "orderStatus");
 
     @Override
-    public Object transform(Map<String, Object> dataMap) {
+    public Map<String, Object> transform(Map<String, Object> dataMap) {
         ObjectMapper mapper = new ObjectMapper();
         if (NullUtils.isNotNull(dataMap)) {
             try {

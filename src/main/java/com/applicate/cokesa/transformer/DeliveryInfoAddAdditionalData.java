@@ -1,11 +1,12 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.models.OutletDetails;
-import com.applicate.services.channelkart.models.User;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.salescode.dim.jooq.impl.OutletDetails;
+import com.salescode.dim.jooq.impl.Tax;
+import com.salescode.dim.jooq.impl.User;
 import com.applicate.services.channelkart.services.OutletDetailsService;
-import com.applicate.services.channelkart.services.SpringContext;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.EntityUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,17 +21,15 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * DeliveryInfoAddAdditionalData
  */
-public class DeliveryInfoAddAdditionalData extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
+public class DeliveryInfoAddAdditionalData extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
     private final Logger logger = LoggerFactory.getLogger(DeliveryInfoAddAdditionalData.class);
-    private static final String DELIVERY_DATE = "deliveryDate";
     private static final String FEATURES = "features";
 
-    private final EntityUtils em = SpringContext.getBean(EntityUtils.class);
-    private final OutletDetailsService outletDetailsService = SpringContext.getBean(OutletDetailsService.class);
-    private final UserService userService = SpringContext.getBean(UserService.class);
+    private final OutletDetailsService outletDetailsService =(OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
+    private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
 
     @Override
-    public Object transform(Map<String, Object> dataMap) {
+    public Map<String, Object> transform(Map<String, Object> dataMap) {
         ObjectMapper mapper = new ObjectMapper();
         if (NullUtils.isNotNull(dataMap)) {
             try {

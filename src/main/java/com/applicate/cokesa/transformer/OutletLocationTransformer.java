@@ -1,14 +1,14 @@
 package com.applicate.cokesa.transformer;
 
 
-import com.applicate.services.channelkart.models.Location;
-import com.applicate.services.channelkart.models.User;
+import com.salescode.dim.jooq.impl.Location;
 import com.applicate.services.channelkart.services.LocationService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.SupplierInfoService;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.TimerUtils;
+import com.salescode.dim.jooq.impl.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +24,13 @@ public class OutletLocationTransformer extends AbstractTransformer<Map<String,Ob
 
     private static final String LOCATION = "location";
     public static final String SUPPLIER = "supplier";
-    private UserService userRepository = SpringContext.getBean(UserService.class);
+    private UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
     private Logger log = LoggerFactory.getLogger(this.getClass());
-    private SupplierInfoService supplierInfoService = SpringContext.getBean(SupplierInfoService.class);
+    private SupplierInfoService supplierInfoService = (SupplierInfoService) ServiceLocator.lookup();
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object transform(Map<String, Object> s) {
+    public Map<String, Object> transform(Map<String, Object> s) {
         List<Map<String,Object>> outletList = (List<Map<String, Object>>) s.get("features");
         Set<String> hierarhcies = outletList.stream().filter(outlet->outlet.containsKey(LOCATION)).map(outlet->outlet.get(LOCATION).toString()).collect(Collectors.toSet());
         LocationService service = (LocationService) ServiceLocator.lookup(Location.class);
@@ -56,7 +56,7 @@ public class OutletLocationTransformer extends AbstractTransformer<Map<String,Ob
 
     private List<Map<String, String>> getSupplierMap(Set<String> currentSuppliersSet,Map<String, String> allSuppliersList) {
         if(!allSuppliersList.keySet().containsAll(currentSuppliersSet)) {
-            List<User> suppliersList= userRepository.findByLoginIdIn( new ArrayList<>(currentSuppliersSet));
+            List<User> suppliersList= userService.findByLoginIdIn( new ArrayList<>(currentSuppliersSet));
             allSuppliersList.putAll( suppliersList.stream()
                     .collect(Collectors.toMap(User::getLoginId, User::getName)));
         }

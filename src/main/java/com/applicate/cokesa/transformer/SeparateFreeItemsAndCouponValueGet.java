@@ -1,17 +1,18 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.models.User;
-import com.applicate.services.channelkart.services.SpringContext;
+import com.salescode.dim.jooq.impl.User;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.EntityUtils;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-public class SeparateFreeItemsAndCouponValueGet extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
+public class SeparateFreeItemsAndCouponValueGet extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final String FEATURES = "features";
     private static final String ORDERDETAILS = "orderDetails";
@@ -34,8 +35,8 @@ public class SeparateFreeItemsAndCouponValueGet extends AbstractTransformer<Map<
     private static final int DECIMAL_SCALE = 2;
     private static final String DISCOUNT_INFO = "discount_info";
     private Logger logger = LoggerFactory.getLogger(SeparateFreeItemsAndCouponValueGet.class);
-    private EntityUtils em = SpringContext.getBean(EntityUtils.class);
-    private UserService userService = SpringContext.getBean(UserService.class);
+    private EntityUtils em;
+    private UserService userService = (UserService) ServiceLocator.lookup(User.class);
     private List<String> orderWithInvoice = new ArrayList<>();
 
     @Override

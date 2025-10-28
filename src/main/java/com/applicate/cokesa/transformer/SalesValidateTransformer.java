@@ -1,16 +1,17 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.banking.models.AccountInfo;
-import com.applicate.services.channelkart.models.OutletDetails;
-import com.applicate.services.channelkart.models.User;
+
 import com.applicate.services.channelkart.services.AccountInfoService;
 import com.applicate.services.channelkart.services.OutletDetailsService;
-import com.applicate.services.channelkart.services.SpringContext;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.salescode.dim.jooq.impl.AccountInfo;
+import com.salescode.dim.jooq.impl.OutletDetails;
+import com.salescode.dim.jooq.impl.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,18 +25,17 @@ public class SalesValidateTransformer extends AbstractTransformer<Map<String, Ob
     private final Logger logger = LoggerFactory.getLogger(DMSInvoiceAPITransformer.class);
     private static final String FEATURES = "feature";
     private static final String CASH_DISCOUNT_ID = "cashDiscount";
-    private static final String DISCOUNT_TYPE = "discountType";
     private static final String DISCOUNT_NEW = "finalBenefit";
     public static final String COUPON = "coupon";
     private static final String DISCOUNT = "discount";
-    private UserService userService = SpringContext.getBean(UserService.class);
-    private OutletDetailsService outletDetailsService = SpringContext.getBean(OutletDetailsService.class);
+    private UserService userService =(UserService) ServiceLocator.lookup(User.class);
+    private OutletDetailsService outletDetailsService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
+    private final AccountInfoService accountInfoService = (AccountInfoService) ServiceLocator.lookup(AccountInfo.class);
     public static final String SALESDETAILS = "salesDetails";
 
-    private final AccountInfoService accountInfoService = SpringContext.getBean(AccountInfoService.class);
 
     @Override
-    public Object transform(Map<String, Object> dataMap) {
+    public Map<String, Object> transform(Map<String, Object> dataMap) {
         ObjectMapper mapper = new ObjectMapper();
         if (NullUtils.isNotNull(dataMap)) {
             try {
