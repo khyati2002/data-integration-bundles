@@ -1,8 +1,7 @@
 package com.applicate.cokesa.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.models.SecondaryProduct;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.impl.SecondaryProduct;
 import com.salescode.dim.etl.OperationResult;
 
 public class SecondaryProductEnrichmentCokeSA extends AbstractEnrichment<SecondaryProduct> {

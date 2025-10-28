@@ -1,14 +1,14 @@
 package com.applicate.cokesa.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.enrichments.Status;
-import com.applicate.services.channelkart.models.GenericEntity;
-import com.applicate.services.channelkart.models.ProductMetaData;
-import com.applicate.services.channelkart.models.Tax;
+import com.applicate.services.channelkart.services.CategoryInfoService;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.impl.CategoryInfo;
+import com.salescode.dim.jooq.impl.GenericEntity;
+import com.salescode.dim.jooq.impl.ProductMetaData;
+import com.salescode.dim.jooq.impl.Tax;
 import com.applicate.services.channelkart.repository.TaxRepository;
 import com.applicate.services.channelkart.services.GenericEntityService;
-import com.applicate.services.channelkart.services.SpringContext;
 import com.salescode.dim.etl.OperationResult;
 
 import java.util.List;
@@ -16,8 +16,8 @@ import java.util.Objects;
 
 public class ProductMetadataEnrichmentCokeSA extends AbstractEnrichment<ProductMetaData> {
 
-    private final TaxRepository taxRepository = SpringContext.getBean(TaxRepository.class);
-    private final GenericEntityService genericEntityService = SpringContext.getBean(GenericEntityService.class);
+    private final TaxRepository taxRepository = (TaxRepository) ServiceLocator.lookup(Tax.class);
+    private final GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
     @Override
     public OperationResult.StepResult apply(ProductMetaData productMetaData) {
@@ -40,7 +40,7 @@ public class ProductMetadataEnrichmentCokeSA extends AbstractEnrichment<ProductM
                 return new OperationResult.StepResult(OperationResult.Status.OK, "No EXCISE tax found for SKU, skipping enrichment.");
             }
 
-            Float taxAmount = (float) exciseTax.getTaxRate();
+            Float taxAmount =  exciseTax.getTaxRate().floatValue();
 
             productMetaData.setTaxAmount(taxAmount);
 
