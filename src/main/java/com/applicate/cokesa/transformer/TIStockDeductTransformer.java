@@ -1,17 +1,17 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TIStockDeductTransformer extends AbstractTransformer<ObjectNode, ObjectNode> {
+public class TIStockDeductTransformer extends AbstractTransformer<ObjectNode, JsonNode> {
 
     private static final Logger logger = LoggerFactory.getLogger(TIStockDeductTransformer.class);
     private static final String SUPPLIER = "supplier";
@@ -21,7 +21,6 @@ public class TIStockDeductTransformer extends AbstractTransformer<ObjectNode, Ob
     @Override
     public JsonNode transform(ObjectNode commonData) {
         ObjectNode resultNode = JSONUtils.getObjectMapper().createObjectNode();
-        ArrayNode reqBody = JSONUtils.getObjectMapper().createArrayNode();
         try {
             // Extract basic fields
             String salesId = commonData.path("id").asText(null);

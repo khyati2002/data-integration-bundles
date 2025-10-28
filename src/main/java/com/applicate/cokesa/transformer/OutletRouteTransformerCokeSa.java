@@ -1,11 +1,11 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OutletRouteTransformerCokeSa extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class OutletRouteTransformerCokeSa extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 

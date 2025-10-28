@@ -1,8 +1,8 @@
 package com.applicate.cokesa.transformer;
 
 
-import com.applicate.services.channelkart.exceptions.TransformationException;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.service.DataTransformationService.TransformationException;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UserTransformerCokeSA extends AbstractTransformer<Map<String,Object>,Map<String,Object>> {
+public class UserTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String, Object>>> {
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {

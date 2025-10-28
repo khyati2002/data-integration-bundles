@@ -1,8 +1,8 @@
 package com.applicate.cokesa.transformer;
 
 
-import com.applicate.services.channelkart.exceptions.TransformationException;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.service.DataTransformationService.TransformationException;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.StringUtils;
 
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MdmSupplierTransformerCokeSA extends AbstractTransformer<Map<String,Object>,Map<String,Object>> {
+public class MdmSupplierTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String, Object>>> {
     private static final String DESIGNATION = "designation";
     private static final String MOBILE = "mobile";
     private static final String SUPPLIER = "supplier";

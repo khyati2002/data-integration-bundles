@@ -1,6 +1,6 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TaxMasterGenCokeSa extends AbstractTransformer<Map<String,Object>,Map<String,Object>> {
+public class TaxMasterGenCokeSa extends AbstractTransformer<Map<String,Object>,List<Map<String, Object>>> {
     
 
     @Override

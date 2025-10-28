@@ -1,11 +1,13 @@
 package com.applicate.cokesa.enrichment;
 
 import com.applicate.services.channelkart.services.GenericEntityService;
+import com.applicate.services.channelkart.services.RouteInfoService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.impl.DeliveryPJP;
 import com.salescode.dim.jooq.impl.GenericEntity;
+import com.salescode.dim.jooq.impl.RouteInfo;
 
 import java.util.List;
 

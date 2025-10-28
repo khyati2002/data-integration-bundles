@@ -5,7 +5,7 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.User;
+import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.jooq.impl.EntityParentMapping;
 
 

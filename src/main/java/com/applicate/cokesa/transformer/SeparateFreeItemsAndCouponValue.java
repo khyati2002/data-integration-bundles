@@ -1,6 +1,6 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SeparateFreeItemsAndCouponValue extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
+public class SeparateFreeItemsAndCouponValue extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final String FEATURES = "feature";
     private static final String ORDERDETAILS = "orderDetails";

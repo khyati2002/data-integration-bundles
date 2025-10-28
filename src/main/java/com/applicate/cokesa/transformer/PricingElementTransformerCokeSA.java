@@ -1,19 +1,19 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.models.GenericEntity;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.salescode.dim.jooq.impl.GenericEntity;
 import com.applicate.services.channelkart.services.GenericEntityService;
-import com.applicate.services.channelkart.services.SpringContext;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<String,Object>,Map<String,Object>> {
+public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String, Object>>> {
 
-    private final GenericEntityService genericEntityService = SpringContext.getBean(GenericEntityService.class);
+    private final GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {

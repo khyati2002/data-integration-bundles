@@ -1,6 +1,6 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
 
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JourneyPlanTransformerCokeSa extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class JourneyPlanTransformerCokeSa extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
