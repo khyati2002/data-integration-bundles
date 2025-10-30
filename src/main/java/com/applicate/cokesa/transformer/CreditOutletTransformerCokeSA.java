@@ -22,8 +22,8 @@ public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<Strin
         if(Integer.parseInt(inputMap.get("OM02_CRDDAYCOD").toString())!=1 && Integer.parseInt(inputMap.get("OM02_CRDDAYCOD").toString())!=2) throw new DataTransformationService.TransformationException("Credit day code should be 1 or 2");
         response.put("outletCode", inputMap.get("OM02_OUTNUM").toString().replaceAll("\\.0$", ""));
         response.put("baseCreditLimit", NullUtils.isNotNull(inputMap.get("OM02_CRDLIM"))?inputMap.get("OM02_CRDLIM").toString():null);
-        response.put("creditDays", (NullUtils.isNotNull(inputMap.get("OM02_CRDDAY")) && ((Number)inputMap.get("OM02_CRDDAY")).intValue()>0)?inputMap.get("OM02_CRDDAY").toString():0);
-        response.put("invoiceCount", (NullUtils.isNotNull(inputMap.get("OM02_OPNINVNUM")) && ((Number)inputMap.get("OM02_OPNINVNUM")).intValue()>0)?inputMap.get("OM02_OPNINVNUM").toString():0);
+        response.put("creditDays", (NullUtils.isNotNull(inputMap.get("OM02_CRDDAY")) && Integer.parseInt(inputMap.get("OM02_CRDDAY").toString())>0)?inputMap.get("OM02_CRDDAY").toString():0);
+        response.put("invoiceCount", (NullUtils.isNotNull(inputMap.get("OM02_OPNINVNUM")) && Integer.parseInt(inputMap.get("OM02_OPNINVNUM").toString())>0)?inputMap.get("OM02_OPNINVNUM").toString():0);
         response.put("creditDayCode", NullUtils.isNotNull(inputMap.get("OM02_CRDDAYCOD")) ?inputMap.get("OM02_CRDDAYCOD").toString():null);
         return response;
     }
