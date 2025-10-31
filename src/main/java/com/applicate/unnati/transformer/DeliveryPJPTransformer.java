@@ -6,9 +6,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,14 +13,6 @@ import java.util.Map;
 public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    // Formatters for different date patterns in streaming data
-    private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,           // 2025-10-31T00:00:00
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),        // 2025-10-31
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"), // 2025-10-31 00:00:00
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS") // 2025-10-31T00:00:00.000
-    };
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -47,7 +36,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
 
         // DeliveryPJP specific fields
         result.put("beat", getString(inputMap, "beat"));
-        result.put("dayAndFrequency", getJSONAsJsonNode(inputMap, "dayAndFrequency"));
+        result.put("dayAndFrequency", getJSONAsString(inputMap, "dayAndFrequency"));
         result.put("month", getString(inputMap, "month"));
         result.put("year", getString(inputMap, "year"));
 
@@ -165,27 +154,39 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private JsonNode getJSONAsJsonNode(Map<String, Object> map, String key) {
+    private String getJSONAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
+            // If it's already a jOOQ JSON, extract the string
             if (value instanceof JSON) {
-                // Parse jOOQ JSON to JsonNode
-                return objectMapper.readTree(((JSON) value).data());
+                return ((JSON) value).data();
             }
+
+            // If it's JsonNode, convert to string
             if (value instanceof JsonNode) {
-                return (JsonNode) value;
+                return objectMapper.writeValueAsString(value);
             }
+
+            // If it's a List or Map (from streaming data), convert to JSON string
             if (value instanceof java.util.List || value instanceof java.util.Map) {
-                String jsonString = objectMapper.writeValueAsString(value);
-                return objectMapper.readTree(jsonString);
+                return objectMapper.writeValueAsString(value);
             }
-            return objectMapper.readTree(value.toString());
+
+            // If it's already a string, return as-is
+            if (value instanceof String) {
+                return (String) value;
+            }
+
+            // Fallback: convert to string
+            return objectMapper.writeValueAsString(value);
+
         } catch (Exception e) {
-            System.err.println("Failed to parse JSON for key: " + key);
+            System.err.println("Failed to convert to JSON string for key: " + key);
             return null;
         }
     }
+
 
 }
