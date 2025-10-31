@@ -45,10 +45,6 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("source", getString(inputMap, "source"));
         result.put("hash", getString(inputMap, "hash"));
 
-        // Timestamp fields - NEW (missing in original transformer)
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
-
         // DeliveryPJP specific fields
         result.put("beat", getString(inputMap, "beat"));
         result.put("dayAndFrequency", getJSON(inputMap, "dayAndFrequency"));
@@ -68,7 +64,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("destinationName", getString(inputMap, "destinationName"));
 
         // FIXED: pjpDate should be LocalDateTime, not String
-        result.put("pjpDate", getLocalDateTime(inputMap, "pjpDate"));
+        result.put("pjpDate", getString(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -127,46 +123,6 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * NEW METHOD: Parse LocalDateTime from various string formats
-     * Supports streaming data date formats like "2025-10-31"
-     */
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            // If already LocalDateTime, return it
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-
-            // Try parsing as string with multiple formatters
-            String dateStr = value.toString().trim();
-
-            // Try each formatter until one works
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-                    return LocalDateTime.parse(dateStr, formatter);
-                } catch (DateTimeParseException e) {
-                    // Continue to next formatter
-                }
-            }
-
-            // If all formatters fail, try ISO format with 'Z' timezone (convert to local)
-            if (dateStr.endsWith("Z") || dateStr.contains("+")) {
-                return LocalDateTime.parse(dateStr.substring(0, 19),
-                        DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            }
-
-        } catch (Exception e) {
-            // Log error if needed
-            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value);
-        }
-
-        return null;
     }
 
     private String getDesignationLowerCase(Map<String, Object> map, String key) {
