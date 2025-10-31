@@ -56,7 +56,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
 
-        result.put("pjpDate", getLocalDateTime(inputMap, "pjpDate"));
+        result.put("pjpDate", getLocalDateTimeAsISOString(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -191,54 +191,50 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
+    private String getLocalDateTimeAsISOString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
-            // If already LocalDateTime, return it
+            LocalDateTime dateTime;
+
+            // If already LocalDateTime, format it
             if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
+                dateTime = (LocalDateTime) value;
+            } else {
+                String dateStr = value.toString().trim();
 
-            String dateStr = value.toString().trim();
-
-            // Handle ISO format with timezone (Z or +/-offset): "2025-10-31T00:00:00Z"
-            if (dateStr.endsWith("Z") || dateStr.matches(".*[+-]\\d{2}:?\\d{2}$")) {
-                return ZonedDateTime.parse(dateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME)
-                               .toLocalDateTime();
-            }
-
-            // Handle ISO format with time (no timezone): "2025-10-31T00:00:00"
-            if (dateStr.contains("T")) {
-                // Remove milliseconds if present: "2025-10-31T00:00:00.000"
-                if (dateStr.matches(".*T\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
-                    dateStr = dateStr.substring(0, dateStr.lastIndexOf('.'));
+                // Remove 'Z' if present
+                if (dateStr.endsWith("Z")) {
+                    dateStr = dateStr.substring(0, dateStr.length() - 1);
                 }
-                return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                // Parse based on format
+                if (dateStr.contains("T")) {
+                    // Remove milliseconds if present
+                    if (dateStr.matches(".*T\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
+                        dateStr = dateStr.substring(0, dateStr.lastIndexOf('.'));
+                    }
+                    dateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } else if (dateStr.matches(".*\\d{2}:\\d{2}:\\d{2}.*")) {
+                    dateTime = LocalDateTime.parse(dateStr,
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } else if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    dateTime = LocalDate.parse(dateStr).atStartOfDay();
+                } else {
+                    return null;
+                }
             }
 
-            // Handle date with time: "2025-10-31 00:00:00"
-            if (dateStr.matches(".*\\d{2}:\\d{2}:\\d{2}.*")) {
-                return LocalDateTime.parse(dateStr,
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            }
-
-            // Handle date only: "2025-10-31" -> convert to midnight
-            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
-                               .atStartOfDay();
-            }
-
-            // Fallback: try ISO format
-            return LocalDateTime.parse(dateStr);
+            // Return as ISO string WITHOUT 'Z' (no timezone)
+            return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         } catch (Exception e) {
             System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value);
-            e.printStackTrace();
             return null;
         }
     }
+
 
 
 }
