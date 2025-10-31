@@ -9,9 +9,10 @@ import com.salescode.dim.jooq.impl.OutletDetails;
 
 public class CreditOutletEnrichmentCokeSA extends AbstractEnrichment<CreditOutlets> {
 
-    private final OutletDetailsService outletDetailsService=(OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
     @Override
     public OperationResult.StepResult apply(CreditOutlets creditOutlets) {
+        OutletDetailsService outletDetailsService=(OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
+
         String outletCode= creditOutlets.getOutletCode();
 
         String outletName=outletDetailsService.getOutletNameByOutletCode(outletCode);
