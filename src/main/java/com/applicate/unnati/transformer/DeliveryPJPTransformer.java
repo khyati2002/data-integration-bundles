@@ -6,11 +6,11 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
@@ -193,44 +193,138 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
     private LocalDateTime getLocalDateTimeValue(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
+        try {
+            return parseToLocalDateTime(value);
+        } catch (Exception e) {
+            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value type: "
+                                       + value.getClass().getName() + ", value: " + value + " -> " + e.getMessage());
+            return null;
+        }
+    }
+
+    private LocalDateTime parseToLocalDateTime(Object value) {
+        // 1) Already the right type
+        if (value instanceof LocalDateTime) return (LocalDateTime) value;
+        if (value instanceof LocalDate) return ((LocalDate) value).atStartOfDay();
+        if (value instanceof OffsetDateTime) return ((OffsetDateTime) value).toLocalDateTime();
+        if (value instanceof Instant) return LocalDateTime.ofInstant((Instant) value, ZoneId.systemDefault());
+
+        // 2) jOOQ JSON wrapper
+        if (value instanceof JSON) {
+            String s = ((JSON) value).data();
+            return parseToLocalDateTime(s);
+        }
+
+        // 3) Jackson JsonNode
+        if (value instanceof JsonNode) {
+            JsonNode node = (JsonNode) value;
+            if (node.isTextual()) {
+                return parseToLocalDateTime(node.asText());
+            } else if (node.isArray() && node.size() > 0) {
+                return parseToLocalDateTime(node.get(0));
+            } else if (node.isObject()) {
+                // try to find textual date field
+                if (node.has("date")) return parseToLocalDateTime(node.get("date"));
+                if (node.has("value")) return parseToLocalDateTime(node.get("value"));
+                // fallback to node.toString()
+                return parseToLocalDateTime(node.toString());
+            }
+        }
+
+        // 4) Collections / arrays
+        if (value instanceof List) {
+            List<?> l = (List<?>) value;
+            if (l.isEmpty()) return null;
+            return parseToLocalDateTime(l.get(0));
+        }
+        if (value.getClass().isArray()) {
+            Object[] arr = (Object[]) value;
+            if (arr.length == 0) return null;
+            return parseToLocalDateTime(arr[0]);
+        }
+
+        // 5) Map (possible POJO-like map with year/month/day)
+        if (value instanceof Map) {
+            Map<?, ?> m = (Map<?, ?>) value;
+            // detect year/month/day ints
+            if (m.containsKey("year") && m.containsKey("month") && m.containsKey("day")) {
+                try {
+                    int y = Integer.parseInt(String.valueOf(m.get("year")));
+                    int mo = Integer.parseInt(String.valueOf(m.get("month")));
+                    int d = Integer.parseInt(String.valueOf(m.get("day")));
+                    return LocalDate.of(y, mo, d).atStartOfDay();
+                } catch (Exception ignored) { }
+            }
+            // try to find common string fields
+            if (m.containsKey("date")) return parseToLocalDateTime(m.get("date"));
+            if (m.containsKey("value")) return parseToLocalDateTime(m.get("value"));
+            // fallback to map.toString()
+            return parseToLocalDateTime(m.toString());
+        }
+
+        // 6) Numbers (epoch seconds or millis)
+        if (value instanceof Number) {
+            long n = ((Number) value).longValue();
+            // heuristic: > 10^12 -> millis, else seconds
+            if (Math.abs(n) > 1_000_000_000_000L) {
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(n), ZoneId.systemDefault());
+            } else {
+                return LocalDateTime.ofInstant(Instant.ofEpochSecond(n), ZoneId.systemDefault());
+            }
+        }
+
+        // 7) String handling (most common case)
+        String s = value.toString().trim();
+        if (s.isEmpty()) return null;
+
+        // If string looks like JSON array/object, parse with ObjectMapper to JsonNode
+        if (s.startsWith("[") || s.startsWith("{")) {
+            try {
+                JsonNode node = objectMapper.readTree(s);
+                return parseToLocalDateTime(node);
+            } catch (Exception ignored) { /* fall through to text parsing */ }
+        }
+
+        // Remove surrounding quotes/brackets if someone stringified an array like ["2025-10-31"]
+        if (s.startsWith("[") && s.endsWith("]")) {
+            String inner = s.substring(1, s.length() - 1).trim();
+            // remove surrounding quotes
+            if (inner.startsWith("\"") && inner.endsWith("\"") && inner.length() >= 2) {
+                inner = inner.substring(1, inner.length() - 1);
+            }
+            return parseToLocalDateTime(inner);
+        }
+
+        // Normalize a trailing 'Z'
+        if (s.endsWith("Z")) {
+            try {
+                return OffsetDateTime.parse(s).toLocalDateTime();
+            } catch (Exception ignored) {}
+        }
+
+        // ISO_LOCAL_DATE_TIME or date-only
+        try {
+            // e.g. "2025-10-31T00:00:00"
+            return LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception ignored) {}
 
         try {
-            // If already LocalDateTime, return as-is
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
+            // e.g. "2025-10-31"
+            if (s.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return LocalDate.parse(s).atStartOfDay();
             }
+        } catch (Exception ignored) {}
 
-            String dateStr = value.toString().trim();
-
-            // Handle simple date-only "yyyy-MM-dd"
-            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return LocalDate.parse(dateStr).atStartOfDay();
+        // "yyyy-MM-dd HH:mm:ss"
+        try {
+            if (s.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                return LocalDateTime.parse(s, f);
             }
+        } catch (Exception ignored) {}
 
-            // Handle ISO local datetime with or without seconds/millis: "yyyy-MM-ddTHH:mm" or "yyyy-MM-ddTHH:mm:ss" or with millis
-            try {
-                return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignore) {}
-
-            // Handle offset/Zoned datetimes like "2025-10-31T00:00:00Z" or "2025-10-31T05:30:00+05:30"
-            try {
-                return java.time.OffsetDateTime.parse(dateStr).toLocalDateTime();
-            } catch (Exception ignore) {}
-
-            // Handle "yyyy-MM-dd HH:mm:ss"
-            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
-                return LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            }
-
-            // As a last resort, try parsing date-only with atStartOfDay if any other parse fails
-            if (dateStr.length() >= 10 && dateStr.substring(0, 10).matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return LocalDate.parse(dateStr.substring(0, 10)).atStartOfDay();
-            }
-
-        } catch (Exception e) {
-            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value + " -> " + e.getMessage());
-        }
-        return null;
+        // Give up
+        throw new IllegalArgumentException("Unrecognized date/time format or type: " + value.getClass() + " -> " + s);
     }
 
 
