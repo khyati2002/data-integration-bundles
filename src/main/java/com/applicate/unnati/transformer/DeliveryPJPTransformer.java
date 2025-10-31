@@ -47,7 +47,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
 
         // DeliveryPJP specific fields
         result.put("beat", getString(inputMap, "beat"));
-        result.put("dayAndFrequency", getJSON(inputMap, "dayAndFrequency"));
+        result.put("dayAndFrequency", getJSONAsJsonNode(inputMap, "dayAndFrequency"));
         result.put("month", getString(inputMap, "month"));
         result.put("year", getString(inputMap, "year"));
 
@@ -165,27 +165,27 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private JSON getJSON(Map<String, Object> map, String key) {
+    private JsonNode getJSONAsJsonNode(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                // Parse jOOQ JSON to JsonNode
+                return objectMapper.readTree(((JSON) value).data());
             }
-            // Handle JsonNode from streaming data
             if (value instanceof JsonNode) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return (JsonNode) value;
             }
-            // Handle List/Array from streaming data (like dayAndFrequency)
             if (value instanceof java.util.List || value instanceof java.util.Map) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                String jsonString = objectMapper.writeValueAsString(value);
+                return objectMapper.readTree(jsonString);
             }
-            // Handle string JSON
-            return JSON.valueOf(value.toString());
+            return objectMapper.readTree(value.toString());
         } catch (Exception e) {
             System.err.println("Failed to parse JSON for key: " + key);
             return null;
         }
     }
+
 }
