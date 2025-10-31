@@ -51,9 +51,8 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("approvedBy", getString(inputMap, "approvedBy"));
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
-
-        // FIXED: pjpDate should be LocalDateTime, not String
-        result.put("pjpDate", getString(inputMap, "pjpDate"));
+        
+        result.put("pjpDate", getDateTimeString(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -184,6 +183,31 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
 
         } catch (Exception e) {
             System.err.println("Failed to convert to JSON string for key: " + key);
+            return null;
+        }
+    }
+
+    private String getDateTimeString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            String dateStr = value.toString().trim();
+
+            // If it already has time component (contains 'T' or space with time)
+            if (dateStr.contains("T") || dateStr.matches(".*\\d{2}:\\d{2}.*")) {
+                return dateStr;
+            }
+
+            // If it's just a date (yyyy-MM-dd), append time
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return dateStr + "T00:00:00";  // ISO format for midnight
+            }
+
+            return dateStr;
+
+        } catch (Exception e) {
+            System.err.println("Failed to format date for key: " + key);
             return null;
         }
     }
