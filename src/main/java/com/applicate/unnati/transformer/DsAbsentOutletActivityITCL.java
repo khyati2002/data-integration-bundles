@@ -1,14 +1,14 @@
 package com.applicate.unnati.transformer;
 
-import com.applicate.services.channelkart.transformers.impl.JoltTransformer;
 import com.applicate.services.channelkart.converters.DateToClientTimeZoneStringConverter;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DsAbsentOutletActivityITCL extends JoltTransformer {
+public class DsAbsentOutletActivityITCL extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
 	private static String getString(Map<String, Object> map, String key) {
 		Object value = map.get(key);
@@ -22,8 +22,8 @@ public class DsAbsentOutletActivityITCL extends JoltTransformer {
 	}
 
 	@Override
-	public Object transform(Map<String, Object> input) {
-		Map<String, Object> result = (Map<String, Object>) super.transform(input);
+	public Map<String, Object> transform(Map<String, Object> input) {
+		Map<String, Object> result = (Map<String, Object>);
 
 		if (input.get("UID") != null) {
 			result.put("outletCode", input.get("UID"));
