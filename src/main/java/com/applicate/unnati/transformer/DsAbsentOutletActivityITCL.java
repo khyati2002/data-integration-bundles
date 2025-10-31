@@ -23,7 +23,12 @@ public class DsAbsentOutletActivityITCL extends AbstractTransformer<Map<String, 
 
 	@Override
 	public Map<String, Object> transform(Map<String, Object> input) {
-		Map<String, Object> result = (Map<String, Object>);
+		// Initialize result map
+		Map<String, Object> result = new HashMap<>();
+
+		if (input == null || input.isEmpty()) {
+			return result;
+		}
 
 		if (input.get("UID") != null) {
 			result.put("outletCode", input.get("UID"));
@@ -38,6 +43,7 @@ public class DsAbsentOutletActivityITCL extends AbstractTransformer<Map<String, 
 		result.put("referenceNumber", referenceNumber);
 		result.put("loginId", wd);
 		result.put("activity", "attendance");
+
 		Map<String, Object> extendedAttributes = new HashMap<>();
 		putIfNotNull(extendedAttributes, "SIFYID", input.get("SIFYID"));
 		putIfNotNull(extendedAttributes, "RCSID", input.get("RCSID"));
@@ -45,6 +51,7 @@ public class DsAbsentOutletActivityITCL extends AbstractTransformer<Map<String, 
 		putIfNotNull(extendedAttributes, "DSID", input.get("DSID"));
 		putIfNotNull(extendedAttributes, "DSNAME", input.get("DSNAME"));
 		putIfNotNull(extendedAttributes, "DSType", input.get("DSType"));
+
 		result.put("extendedAttributes", extendedAttributes);
 
 		return result;
