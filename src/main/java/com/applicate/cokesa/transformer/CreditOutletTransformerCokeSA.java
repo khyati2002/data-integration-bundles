@@ -4,10 +4,7 @@ import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<String,Object>, List<Map<String, Object>>> {
     @Override
@@ -27,7 +24,7 @@ public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<Strin
         response.put("invoiceCount", (NullUtils.isNotNull(inputMap.get("OM02_OPNINVNUM")) && Integer.parseInt(inputMap.get("OM02_OPNINVNUM").toString())>0)?inputMap.get("OM02_OPNINVNUM").toString():0);
         response.put("creditDayCode", NullUtils.isNotNull(inputMap.get("OM02_CRDDAYCOD")) ?inputMap.get("OM02_CRDDAYCOD").toString():null);
         response.put("outletName",NullUtils.isNotNull(inputMap.get("OM02_OUTNUM"))?inputMap.get("OM02_OUTNUM").toString():null);
-
+        response.put("id", UUID.randomUUID().toString());
         return response;
     }
 }
