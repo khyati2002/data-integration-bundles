@@ -51,7 +51,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("approvedBy", getString(inputMap, "approvedBy"));
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
-        
+
         result.put("pjpDate", getDateTimeString(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
@@ -201,7 +201,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
 
             // If it's just a date (yyyy-MM-dd), append time
             if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return dateStr + "T00:00:00";  // ISO format for midnight
+                return dateStr + "T00:00:00Z";  
             }
 
             return dateStr;
