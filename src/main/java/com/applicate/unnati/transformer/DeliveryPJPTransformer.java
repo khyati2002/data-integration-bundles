@@ -8,7 +8,6 @@ import org.jooq.JSON;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -56,7 +55,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
 
-        result.put("pjpDate", getLocalDateTimeAsISOString(inputMap, "pjpDate"));
+        result.put("pjpDate", getLocalDateTimeValue(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -191,48 +190,47 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private String getLocalDateTimeAsISOString(Map<String, Object> map, String key) {
+    private LocalDateTime getLocalDateTimeValue(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
-            LocalDateTime dateTime;
-
-            // If already LocalDateTime, format it
+            // If already LocalDateTime, return as-is
             if (value instanceof LocalDateTime) {
-                dateTime = (LocalDateTime) value;
-            } else {
-                String dateStr = value.toString().trim();
-
-                // Remove 'Z' if present
-                if (dateStr.endsWith("Z")) {
-                    dateStr = dateStr.substring(0, dateStr.length() - 1);
-                }
-
-                // Parse based on format
-                if (dateStr.contains("T")) {
-                    // Remove milliseconds if present
-                    if (dateStr.matches(".*T\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
-                        dateStr = dateStr.substring(0, dateStr.lastIndexOf('.'));
-                    }
-                    dateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                } else if (dateStr.matches(".*\\d{2}:\\d{2}:\\d{2}.*")) {
-                    dateTime = LocalDateTime.parse(dateStr,
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                } else if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                    dateTime = LocalDate.parse(dateStr).atStartOfDay();
-                } else {
-                    return null;
-                }
+                return (LocalDateTime) value;
             }
 
-            // Return as ISO string WITHOUT 'Z' (no timezone)
-            return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            String dateStr = value.toString().trim();
+
+            // Handle simple date-only "yyyy-MM-dd"
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return LocalDate.parse(dateStr).atStartOfDay();
+            }
+
+            // Handle ISO local datetime with or without seconds/millis: "yyyy-MM-ddTHH:mm" or "yyyy-MM-ddTHH:mm:ss" or with millis
+            try {
+                return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception ignore) {}
+
+            // Handle offset/Zoned datetimes like "2025-10-31T00:00:00Z" or "2025-10-31T05:30:00+05:30"
+            try {
+                return java.time.OffsetDateTime.parse(dateStr).toLocalDateTime();
+            } catch (Exception ignore) {}
+
+            // Handle "yyyy-MM-dd HH:mm:ss"
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                return LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            // As a last resort, try parsing date-only with atStartOfDay if any other parse fails
+            if (dateStr.length() >= 10 && dateStr.substring(0, 10).matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return LocalDate.parse(dateStr.substring(0, 10)).atStartOfDay();
+            }
 
         } catch (Exception e) {
-            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value);
-            return null;
+            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value + " -> " + e.getMessage());
         }
+        return null;
     }
 
 
