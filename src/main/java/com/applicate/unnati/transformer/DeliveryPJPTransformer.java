@@ -6,6 +6,10 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,7 +56,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
 
-        result.put("pjpDate", getDateTimeString(inputMap, "pjpDate"));
+        result.put("pjpDate", getLocalDateTime(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -187,27 +191,51 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private String getDateTimeString(Map<String, Object> map, String key) {
+    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
+            // If already LocalDateTime, return it
+            if (value instanceof LocalDateTime) {
+                return (LocalDateTime) value;
+            }
+
             String dateStr = value.toString().trim();
 
-            // If it already has time component (contains 'T' or space with time)
-            if (dateStr.contains("T") || dateStr.matches(".*\\d{2}:\\d{2}.*")) {
-                return dateStr;
+            // Handle ISO format with timezone (Z or +/-offset): "2025-10-31T00:00:00Z"
+            if (dateStr.endsWith("Z") || dateStr.matches(".*[+-]\\d{2}:?\\d{2}$")) {
+                return ZonedDateTime.parse(dateStr, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+                               .toLocalDateTime();
             }
 
-            // If it's just a date (yyyy-MM-dd), append time
+            // Handle ISO format with time (no timezone): "2025-10-31T00:00:00"
+            if (dateStr.contains("T")) {
+                // Remove milliseconds if present: "2025-10-31T00:00:00.000"
+                if (dateStr.matches(".*T\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
+                    dateStr = dateStr.substring(0, dateStr.lastIndexOf('.'));
+                }
+                return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            }
+
+            // Handle date with time: "2025-10-31 00:00:00"
+            if (dateStr.matches(".*\\d{2}:\\d{2}:\\d{2}.*")) {
+                return LocalDateTime.parse(dateStr,
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            // Handle date only: "2025-10-31" -> convert to midnight
             if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return dateStr + "T00:00:00Z";  
+                return LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                               .atStartOfDay();
             }
 
-            return dateStr;
+            // Fallback: try ISO format
+            return LocalDateTime.parse(dateStr);
 
         } catch (Exception e) {
-            System.err.println("Failed to format date for key: " + key);
+            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value);
+            e.printStackTrace();
             return null;
         }
     }
