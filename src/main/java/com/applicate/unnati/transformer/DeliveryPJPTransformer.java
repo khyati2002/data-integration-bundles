@@ -6,9 +6,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,14 +13,6 @@ import java.util.Map;
 public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    // Formatters for different date patterns in streaming data
-    private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,           // 2025-10-31T00:00:00
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),        // 2025-10-31
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"), // 2025-10-31 00:00:00
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS") // 2025-10-31T00:00:00.000
-    };
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -45,13 +34,9 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("source", getString(inputMap, "source"));
         result.put("hash", getString(inputMap, "hash"));
 
-        // Timestamp fields - NEW (missing in original transformer)
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
-
         // DeliveryPJP specific fields
         result.put("beat", getString(inputMap, "beat"));
-        result.put("dayAndFrequency", getJSON(inputMap, "dayAndFrequency"));
+        result.put("dayAndFrequency", getJSONAsString(inputMap, "dayAndFrequency"));
         result.put("month", getString(inputMap, "month"));
         result.put("year", getString(inputMap, "year"));
 
@@ -67,8 +52,7 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         result.put("destinationCode", getString(inputMap, "destinationCode"));
         result.put("destinationName", getString(inputMap, "destinationName"));
 
-        // FIXED: pjpDate should be LocalDateTime, not String
-        result.put("pjpDate", getLocalDateTime(inputMap, "pjpDate"));
+        result.put("pjpDate", getDateTimeString(inputMap, "pjpDate"));
 
         result.put("pjpPlan", getString(inputMap, "pjpPlan"));
         result.put("sourceCode", getString(inputMap, "sourceCode"));
@@ -129,46 +113,6 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    /**
-     * NEW METHOD: Parse LocalDateTime from various string formats
-     * Supports streaming data date formats like "2025-10-31"
-     */
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            // If already LocalDateTime, return it
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-
-            // Try parsing as string with multiple formatters
-            String dateStr = value.toString().trim();
-
-            // Try each formatter until one works
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-                    return LocalDateTime.parse(dateStr, formatter);
-                } catch (DateTimeParseException e) {
-                    // Continue to next formatter
-                }
-            }
-
-            // If all formatters fail, try ISO format with 'Z' timezone (convert to local)
-            if (dateStr.endsWith("Z") || dateStr.contains("+")) {
-                return LocalDateTime.parse(dateStr.substring(0, 19),
-                        DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            }
-
-        } catch (Exception e) {
-            // Log error if needed
-            System.err.println("Failed to parse LocalDateTime for key: " + key + ", value: " + value);
-        }
-
-        return null;
-    }
-
     private String getDesignationLowerCase(Map<String, Object> map, String key) {
         String value = getString(map, key);
         return (value != null) ? value.toLowerCase() : null;
@@ -209,27 +153,64 @@ public class DeliveryPJPTransformer extends AbstractTransformer<Map<String, Obje
         }
     }
 
-    private JSON getJSON(Map<String, Object> map, String key) {
+    private String getJSONAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
 
         try {
+            // If it's already a jOOQ JSON, extract the string
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
-            // Handle JsonNode from streaming data
+
+            // If it's JsonNode, convert to string
             if (value instanceof JsonNode) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
-            // Handle List/Array from streaming data (like dayAndFrequency)
+
+            // If it's a List or Map (from streaming data), convert to JSON string
             if (value instanceof java.util.List || value instanceof java.util.Map) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
-            // Handle string JSON
-            return JSON.valueOf(value.toString());
+
+            // If it's already a string, return as-is
+            if (value instanceof String) {
+                return (String) value;
+            }
+
+            // Fallback: convert to string
+            return objectMapper.writeValueAsString(value);
+
         } catch (Exception e) {
-            System.err.println("Failed to parse JSON for key: " + key);
+            System.err.println("Failed to convert to JSON string for key: " + key);
             return null;
         }
     }
+
+    private String getDateTimeString(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) return null;
+
+        try {
+            String dateStr = value.toString().trim();
+
+            // If it already has time component (contains 'T' or space with time)
+            if (dateStr.contains("T") || dateStr.matches(".*\\d{2}:\\d{2}.*")) {
+                return dateStr;
+            }
+
+            // If it's just a date (yyyy-MM-dd), append time
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return dateStr + "T00:00:00Z";  
+            }
+
+            return dateStr;
+
+        } catch (Exception e) {
+            System.err.println("Failed to format date for key: " + key);
+            return null;
+        }
+    }
+
+
 }
