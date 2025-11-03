@@ -7,7 +7,8 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 import java.util.*;
 
-public class PricingTransformerCokeSA extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class PricingTransformerCokeSA
+        extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {

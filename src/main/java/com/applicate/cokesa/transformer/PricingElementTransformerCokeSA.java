@@ -1,11 +1,9 @@
 package com.applicate.cokesa.transformer;
 
-import com.applicate.services.channelkart.services.CategoryInfoService;
 import com.applicate.services.channelkart.services.GenericEntityService;
 import com.applicate.services.channelkart.services.ServiceLocator;
-import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.salescode.dim.jooq.impl.CategoryInfo;
 import com.salescode.dim.jooq.impl.GenericEntity;
 
 import java.util.ArrayList;
@@ -13,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<String,Object>,Map<String,Object>> {
+public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String, Object>>> {
 
     GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
@@ -23,7 +21,7 @@ public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<Str
         List<GenericEntity> taxes = genericEntityService.readModelsByName("TaxDefined");
         taxes.stream()
                 .filter(tax -> {
-                    JsonNode payload = tax.getPayload();
+                    org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode payload = tax.getPayload();
                     return payload.has("taxProgram") && "EXCISE".equalsIgnoreCase(payload.get("taxProgram").asText());
                 })
                 .forEach(tax -> responseList.add(createResponse(inputMap, tax)));
