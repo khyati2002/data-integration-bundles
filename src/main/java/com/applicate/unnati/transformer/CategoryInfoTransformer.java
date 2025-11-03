@@ -36,6 +36,8 @@ public class CategoryInfoTransformer extends AbstractTransformer<Map<String, Obj
             output.put("activeStatus", ACTIVE);
             output.put("activeStatusReason", ACTIVE);
 
+            output.put("changed",1);
+
             // Optional fields - can be set if data is available
             // output.put("newDescription", getString(responseEnvelope, "newDescription"));
             // output.put("oldDescription", getString(responseEnvelope, "oldDescription"));
