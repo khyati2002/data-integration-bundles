@@ -24,7 +24,7 @@ public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<Strin
         response.put("creditDays", (NullUtils.isNotNull(inputMap.get("OM02_CRDDAY")) && Integer.parseInt(inputMap.get("OM02_CRDDAY").toString())>0)?inputMap.get("OM02_CRDDAY").toString():0);
         response.put("invoiceCount", (NullUtils.isNotNull(inputMap.get("OM02_OPNINVNUM")) && Integer.parseInt(inputMap.get("OM02_OPNINVNUM").toString())>0)?inputMap.get("OM02_OPNINVNUM").toString():0);
         response.put("creditDayCode", NullUtils.isNotNull(inputMap.get("OM02_CRDDAYCOD")) ?inputMap.get("OM02_CRDDAYCOD").toString():null);
-        response.put("availableCredit", NullUtils.isNotNull(inputMap.get("AR12_OPNBAL")) ?new BigDecimal(inputMap.get("AR12_OPNBAL").toString()):BigDecimal.ZERO);
+        response.put("availableCredit", NullUtils.isNotNull(inputMap.get("AR12_OPNBAL")) ?inputMap.get("AR12_OPNBAL").toString():0);
         response.put("id", UUID.randomUUID().toString());
         return response;
     }
