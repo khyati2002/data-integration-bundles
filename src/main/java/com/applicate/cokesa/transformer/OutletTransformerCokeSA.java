@@ -122,15 +122,46 @@ public class OutletTransformerCokeSA extends AbstractTransformer<Map<String,Obje
         return hierarchy;
     }
 
-    private Map<String, Object> setClientLocationHierarchy(Map<String, Object> inputMap){
-        Map<String, Object> location = new HashMap<>();
-        if(NullUtils.isNotNull(inputMap.get("OM01_ADRLIN3"))) {
+    private String setClientLocationHierarchy(Map<String, Object> inputMap) {
+        String area = null;
+        String city = null;
+
+        if (NullUtils.isNotNull(inputMap.get("OM01_ADRLIN3"))) {
             List<String> districtCitySplit = splitDistrictCity(inputMap.get("OM01_ADRLIN3").toString());
-            location.put("city", NullUtils.isNotNull(districtCitySplit.get(1)) ? districtCitySplit.get(1) : null);
-            location.put("area", NullUtils.isNull(districtCitySplit.get(0)) ? districtCitySplit.get(0) : null);
+
+            if (!districtCitySplit.isEmpty() && NullUtils.isNotNull(districtCitySplit.get(0))) {
+                area = districtCitySplit.get(0);
+            }
+
+            if (districtCitySplit.size() > 1 && NullUtils.isNotNull(districtCitySplit.get(1))) {
+                city = districtCitySplit.get(1);
+            }
         }
-        location.put("country", NullUtils.isNull(inputMap.get("OM01_COUCOD")) || inputMap.get("OM01_COUCOD").toString().isEmpty() ? "KSA" : inputMap.get("OM01_COUCOD").toString());
-        return location;
+
+        String country = (NullUtils.isNull(inputMap.get("OM01_COUCOD"))
+                || inputMap.get("OM01_COUCOD").toString().isEmpty())
+                ? "KSA"
+                : inputMap.get("OM01_COUCOD").toString();
+
+        // Build a plain location string like "Area > City > Country"
+        StringBuilder location = new StringBuilder();
+
+        if (area != null && !area.isEmpty()) {
+            location.append(area.trim());
+        }
+
+        if (city != null && !city.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(city.trim());
+        }
+
+        if (country != null && !country.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(country.trim());
+        }
+
+        // Return fallback if everything was null
+        return location.length() > 0 ? location.toString() : "KSA";
     }
 
     private List<String> splitDistrictCity(String districtCity){
