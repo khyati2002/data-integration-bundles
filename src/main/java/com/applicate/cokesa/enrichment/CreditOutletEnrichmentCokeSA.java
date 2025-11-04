@@ -22,6 +22,7 @@ public class CreditOutletEnrichmentCokeSA extends AbstractEnrichment<CreditOutle
             return new OperationResult.StepResult(OperationResult.Status.ERROR, "found no outletName for this outletCode");
         }
         creditOutlets.setOutletName(outletName);
+        creditOutlets.setActiveStatus(ActiveStatus.ACTIVE);
         return new OperationResult.StepResult(OperationResult.Status.OK,"OutletName set Successfully to creditOutlets");
     }
 }
