@@ -3,7 +3,6 @@ package com.applicate.validation;
 import java.util.List;
 import java.util.Optional;
 
-//import com.applicate.services.channelkart.models.User;
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
@@ -18,11 +17,11 @@ public class VistaarDuplicateMobileNumberValidator extends AbstractValidationRul
 
 	@SuppressWarnings("all")
 	public OperationResult.StepResult apply(User cdm) {
-		UserService userService = (UserService) ServiceLocator.lookup(UserService.class);
-		
+		UserService userService = (UserService) ServiceLocator.lookup(User.class);
+
 		StringBuilder ruleResult = new StringBuilder();
-		
-		if (cdm.getDesignation()!=null) {
+
+		if (cdm.getDesignation() != null) {
 			if (cdm.getMobile() != null) {
 				if (!cdm.getMobile().isEmpty() && !checkMobileNumberPattern(cdm.getMobile())) {
 					ruleResult.append("Mobile number field allowed only 10 digit valid number or blank.");

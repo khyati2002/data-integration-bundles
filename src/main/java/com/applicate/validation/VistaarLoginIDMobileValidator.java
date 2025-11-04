@@ -1,6 +1,5 @@
 package com.applicate.validation;
 
-//import com.applicate.services.channelkart.models.User;
 import com.applicate.services.channelkart.validations.repository.RegexValidation;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.jooq.impl.User;
