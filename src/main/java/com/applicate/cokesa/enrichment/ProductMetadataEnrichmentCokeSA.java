@@ -40,9 +40,8 @@ public class ProductMetadataEnrichmentCokeSA extends AbstractEnrichment<ProductM
                 return new StepResult(Status.OK, "No EXCISE tax found for SKU, skipping enrichment.");
             }
 
-            Float taxAmount = (float) exciseTax.getTaxRate();
 
-            productMetaData.setTaxAmount(BigDecimal.valueOf(taxAmount));
+            productMetaData.setTaxAmount(BigDecimal.valueOf(exciseTax.getTaxRate()));
 
             double vatPercentage = fetchVatPercentageFromGenericEntity();
             productMetaData.setTax(String.valueOf(vatPercentage));
