@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.OperationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.salescode.dim.etl.validation.AbstractValidationRule;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;

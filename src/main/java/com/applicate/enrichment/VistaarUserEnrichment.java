@@ -4,8 +4,8 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 
-import com.applicate.services.channelkart.models.HierarchyMetaData;
-import com.applicate.services.channelkart.models.Location;
+import com.salescode.dim.jooq.impl.HierarchyMetadata;
+import com.salescode.dim.jooq.impl.Location;
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.jooq.impl.SupplierMetaData;
 // import com.applicate.services.channelkart.models.User;
@@ -63,7 +63,7 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
         Location location = user.getLocationHierarchy();
         User immediateParent = null;
         if(user.getImmediateParent() != null && user.getImmediateParent().size() > 0) {
-            HierarchyMetaData hmimmeParent = user.getImmediateParent().get(0);
+            HierarchyMetadata hmimmeParent = user.getImmediateParent().get(0);
             if(hmimmeParent != null && hmimmeParent.getImmediateParent() != null){
                 immediateParent = userService.findByLoginId(hmimmeParent.getImmediateParent());
             }
