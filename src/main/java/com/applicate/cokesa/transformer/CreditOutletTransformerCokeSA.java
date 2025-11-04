@@ -31,7 +31,7 @@ public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<Strin
                     :   0);
         }
         response.put("id", UUID.randomUUID().toString());
-        response.put("active_status", ActiveStatus.ACTIVE);
+        response.put("activeStatus", ActiveStatus.ACTIVE);
         return response;
     }
 }
