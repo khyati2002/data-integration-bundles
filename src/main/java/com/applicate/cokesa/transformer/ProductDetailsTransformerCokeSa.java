@@ -42,6 +42,7 @@ public class ProductDetailsTransformerCokeSa extends AbstractTransformer<Map<Str
             response.put("subCategory", getMandatory(inputMap, AM01_ARTGRP03) + "-"+AM01_ARTGRP03);
             response.put("size", getMandatory(inputMap, "AM01_ARTGRP05") + "-AM01_ARTGRP05");
             response.put("pieceSize", getMandatory(inputMap, "AM01_ARTGRP05") + "-AM01_ARTGRP05");
+            response.put("skuCaseWeight",inputMap.get("AM01_ARTWGT"));
             response.put("extendedAttributes", createExtended(inputMap));
         }catch (NullPointerException e){
             throw new TransformationException("Some fields were found null while transforming the ProductDetails");
@@ -61,7 +62,6 @@ public class ProductDetailsTransformerCokeSa extends AbstractTransformer<Map<Str
         extended.put("taxCodeC",inputMap.get("AM01_ARTTAXCOD3"));
         extended.put("taxCodeD",inputMap.get("AM01_ARTTAXCOD4"));
         extended.put("taxCodeE",inputMap.get("AM01_ARTTAXCOD5"));
-        extended.put("caseWeight",inputMap.get("AM01_ARTWGT"));
         Object fieldValue = inputMap.get("AM01_ARTNAM2");
         String dsValue = null;
 
