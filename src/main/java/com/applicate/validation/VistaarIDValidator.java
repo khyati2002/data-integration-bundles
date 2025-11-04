@@ -2,8 +2,8 @@ package com.applicate.validation;
 
 //import com.applicate.services.channelkart.models.User;
 //import com.applicate.services.channelkart.models.UserParent;
+import com.salescode.dim.jooq.generated.tables.pojos.UserParent;
 import com.salescode.dim.jooq.impl.User;
-import com.salescode.dim.jooq.impl.UserParent;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserParentService;

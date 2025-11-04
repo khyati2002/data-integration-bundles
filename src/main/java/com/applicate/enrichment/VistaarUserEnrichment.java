@@ -5,9 +5,9 @@ import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 
 import com.salescode.dim.jooq.impl.HierarchyMetadata;
+import com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata;
 import com.salescode.dim.jooq.impl.Location;
 import com.salescode.dim.jooq.impl.User;
-import com.salescode.dim.jooq.impl.SupplierMetaData;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
@@ -95,16 +95,16 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
     private String enrichSupplierMetadata(User user) {
         boolean isSupplierEnriched= false;
         if(user.getDesignation() != null && user.getDesignation().contains("wd")) {
-            List<SupplierMetaData> supplierMetaDataList = user.getSupplierMetaData();
+            List<SupplierMetadata> supplierMetaDataList = user.getSupplierMetaData();
             if(supplierMetaDataList == null || supplierMetaDataList.isEmpty()) {
-                SupplierMetaData supplierMetaData = new SupplierMetaData();
+                SupplierMetadata supplierMetaData = new SupplierMetadata();
                 if(supplierMetaDataList == null) {
                     supplierMetaDataList = new ArrayList<>();
                     user.setSupplierMetaData(supplierMetaDataList);
                 }
                 supplierMetaDataList.add(supplierMetaData);
             }
-            for(SupplierMetaData supplierMetaData : supplierMetaDataList) {
+            for(SupplierMetadata supplierMetaData : supplierMetaDataList) {
                 if(supplierMetaData.getType() == null || supplierMetaData.getType().isBlank()) {
                     supplierMetaData.setType("amount");
                     isSupplierEnriched = true;

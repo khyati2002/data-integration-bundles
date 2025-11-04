@@ -1,7 +1,6 @@
 package com.applicate.validation;
 
-import com.applicate.services.channelkart.models.HierarchyMetaData;
-//import com.applicate.services.channelkart.models.User;
+import com.salescode.dim.jooq.impl.HierarchyMetadata;
 import com.salescode.dim.jooq.impl.User;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
@@ -137,7 +136,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                 if(user.getImmediateParent().size() > 1 && (!user.getDesignation().contains("psr") ? !user.getDesignation().contains("stockist"):false)) {
                     ruleResult.append("immediate parent can not be more than one.");
                 }
-                for (HierarchyMetaData immParent : user.getImmediateParent()) {
+                for (HierarchyMetadata immParent : user.getImmediateParent()) {
                     String parentId = immParent.getImmediateParent();
                     if (parentId == null) {
                         ruleResult.append("immediate parent can not be null.");
