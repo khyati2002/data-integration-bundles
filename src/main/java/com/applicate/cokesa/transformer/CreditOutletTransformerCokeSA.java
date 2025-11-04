@@ -1,5 +1,6 @@
 package com.applicate.cokesa.transformer;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
@@ -30,7 +31,7 @@ public class CreditOutletTransformerCokeSA extends AbstractTransformer<Map<Strin
                     :   0);
         }
         response.put("id", UUID.randomUUID().toString());
-
+        response.put("active_status", ActiveStatus.ACTIVE);
         return response;
     }
 }
