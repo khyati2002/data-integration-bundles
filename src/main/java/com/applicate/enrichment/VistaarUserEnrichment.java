@@ -6,7 +6,7 @@ import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata;
 import com.salescode.dim.jooq.impl.HierarchyMetadata;
 
@@ -60,19 +60,28 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 	}
 
 	private String enrichLocationInformation(User user) {
+		ObjectMapper mapper = new ObjectMapper();
 		String enrichmentMsg = "location enrichment skipped";
-		Location location = user.getLocationHierarchy();
-		User immediateParent = null;
-		if (user.getImmediateParent() != null && user.getImmediateParent().size() > 0) {
-			HierarchyMetadata hmimmeParent = user.getImmediateParent().get(0);
-			if (hmimmeParent != null && hmimmeParent.getImmediateParent() != null) {
-				immediateParent = userService.findByLoginId(hmimmeParent.getImmediateParent());
+		Location location = null;
+		try {
+			if (user.getLocationHierarchy() != null) {
+				location = mapper.readValue(user.getLocationHierarchy(), Location.class);
 			}
+		} catch (Exception e) {
+			throw new EnrichmentFailException("Failed to parse locationHierarchy JSON: " + e.getMessage());
 		}
+
 		if (location == null) {
 			location = new Location();
-			user.setLocationHierarchy(location);
 		}
+		User immediateParent = null;
+		if (user.getImmediateParent() != null && !user.getImmediateParent().isEmpty()) {
+			HierarchyMetadata hmd = user.getImmediateParent().get(0);
+			if (hmd != null && hmd.getParent() != null) {
+				immediateParent = userService.findByLoginId(hmd.getParent());
+			}
+		}
+
 		if (StringUtils.isNotBlank(location.getCountry())) {
 			location.setCountry(location.getCountry().trim().toUpperCase());
 		} else {
@@ -81,16 +90,28 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 		}
 
 		if (immediateParent != null && immediateParent.getLocationHierarchy() != null) {
-			if (StringUtils.isNullOrBlank(location.getBranch())) {
-				location.setBranch(immediateParent.getLocationHierarchy().getBranch());
-			}
-			if (StringUtils.isNullOrBlank(location.getState())) {
-				location.setState(immediateParent.getLocationHierarchy().getState());
-			}
-			if (StringUtils.isNullOrBlank(location.getCity())) {
-				location.setCity(immediateParent.getLocationHierarchy().getCity());
+			try {
+				Location parentLoc = mapper.readValue(immediateParent.getLocationHierarchy(), Location.class);
+				if (StringUtils.isNullOrBlank(location.getBranch())) {
+					location.setBranch(parentLoc.getBranch());
+				}
+				if (StringUtils.isNullOrBlank(location.getState())) {
+					location.setState(parentLoc.getState());
+				}
+				if (StringUtils.isNullOrBlank(location.getCity())) {
+					location.setCity(parentLoc.getCity());
+				}
+			} catch (Exception e) {
+				throw new EnrichmentFailException("Failed to parse parent locationHierarchy JSON: " + e.getMessage());
 			}
 		}
+
+		try {
+			user.setLocationHierarchy(mapper.writeValueAsString(location));
+		} catch (Exception e) {
+			throw new EnrichmentFailException("Failed to serialize Location back to JSON: " + e.getMessage());
+		}
+
 		return enrichmentMsg;
 	}
 
@@ -125,12 +146,11 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 		if (isSupplierEnriched) {
 			return "Supplier Metadata enriched for WD";
 		}
-		return "Supplier Metadata entichment skipped";
+		return "Supplier Metadata enrichment skipped";
 	}
 
 	private String enrichActiveStatus(User user) {
-		if (user.getDesignation() != null) {
-			if (user.getActiveStatus() == null) {
+		if (user.getDesignation() != null && user.getActiveStatus() == null) {
 				if (user.getDesignation().contains("wd") || user.getDesignation().contains("branch") || user.getDesignation().contains("district")) {
 					user.setActiveStatus(ActiveStatus.ACTIVE);
 					user.setActiveStatusReason(ActiveStatus.ACTIVE.getStatus());
@@ -156,7 +176,7 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 					user.setActiveStatusReason("Unknown designation");
 				}
 			}
-		}
+
 		return "active status not enriched";
 	}
 
