@@ -4,7 +4,6 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 
-import com.applicate.services.channelkart.exceptions.EnrichmentFailException;
 import com.applicate.services.channelkart.models.HierarchyMetaData;
 import com.applicate.services.channelkart.models.Location;
 import com.salescode.dim.jooq.impl.User;

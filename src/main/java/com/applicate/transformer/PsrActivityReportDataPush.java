@@ -1,10 +1,11 @@
 package com.applicate.transformer;
 
-import com.applicate.services.channelkart.models.User;
+//import com.applicate.services.channelkart.models.User;
+import com.salescode.dim.jooq.impl.User;
 import com.applicate.services.channelkart.querys.QueryResultDTO;
-import com.applicate.services.channelkart.services.SpringContext;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.text.ParseException;
@@ -46,7 +47,7 @@ public class PsrActivityReportDataPush extends AbstractTransformer<List<QueryRes
     @Override
     public Object transform(List<QueryResultDTO<Object>> queryResultDTOList) {
 
-        UserService userService = SpringContext.getBean(UserService.class);
+        UserService userService = (UserService) ServiceLocator.lookup(UserService.class);
         List<Object> respData = queryResultDTOList.get(0).getData();
 
         Map<String, Object> initialRecord = (Map<String, Object>) respData.get(0);

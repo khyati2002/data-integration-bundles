@@ -2,7 +2,7 @@ package com.applicate.transformer;
 
 import com.applicate.services.channelkart.exceptions.CustomRuntimeException;
 import com.applicate.services.channelkart.querys.QueryResultDTO;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
