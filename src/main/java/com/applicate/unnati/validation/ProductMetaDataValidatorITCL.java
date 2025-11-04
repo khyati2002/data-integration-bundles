@@ -1,6 +1,5 @@
 package com.applicate.unnati.validation;
 
-import com.applicate.services.channelkart.services.MetaDataService;
 import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.services.UserService;
@@ -8,8 +7,7 @@ import com.applicate.services.channelkart.utils.StringUtils;
 import com.applicate.services.channelkart.validations.repository.RegexValidation;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
-import com.salescode.dim.jooq.generated.tables.pojos.Metadata;
-import com.salescode.dim.jooq.impl.OutletDetails;
+
 import com.salescode.dim.jooq.impl.ProductDetails;
 import com.salescode.dim.jooq.impl.ProductMetaData;
 import com.salescode.dim.jooq.impl.User;
@@ -25,11 +23,9 @@ public class ProductMetaDataValidatorITCL extends AbstractValidationRule<Product
 
 	String decimalRegex = "^([0-9]*\\.)+?[0-9]+$";
 	String integerRegex = "(^[0-9]*$)";
-
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
-
 	ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 	UserService userService = (UserService) ServiceLocator.lookup(User.class);
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public OperationResult.StepResult apply(ProductMetaData cdm) {
@@ -100,17 +96,17 @@ public class ProductMetaDataValidatorITCL extends AbstractValidationRule<Product
 			errors.add("caseToPieceQuantity should not be null or empty");
 		}
 
-		if (cdm.getSupplier() == null) {
+		if (cdm.getLoginid() == null) {
 			errors.add("supplier should not be null or empty");
 		} else {
-			User user = userService.findByLoginId(cdm.getSupplier());
+			User user = userService.findByLoginId(cdm.getLoginid());
 			if (user == null) {
 				errors.add("supplier not present in database.");
 			}
 		}
 
 		if (errors.size() > 0) {
-			String errorstr = StringUtils.format("Validation error occured for Product Metadata. Kindly go through provided errors and make sure those conditions should fulfill while retrying. {}", org.apache.commons.lang.StringUtils.join(errors, ", "));
+			String errorstr = StringUtils.format("Validation error occured for Product Metadata. Kindly go through provided errors and make sure those conditions should fulfill while retrying. {}", org.apache.commons.lang3.StringUtils.join(errors, ", "));
 			logger.error(errorstr);
 			return new OperationResult.StepResult(OperationResult.Status.ERROR, errorstr);
 		}
