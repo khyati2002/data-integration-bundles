@@ -8,11 +8,9 @@ import com.salescode.dim.jooq.impl.HierarchyMetadata;
 import com.salescode.dim.jooq.impl.Location;
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.jooq.impl.SupplierMetaData;
-// import com.applicate.services.channelkart.models.User;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
-import com.applicate.services.channelkart.models.SupplierMetaData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
