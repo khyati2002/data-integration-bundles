@@ -39,7 +39,8 @@ public class VistaarDuplicateMobileNumberValidator extends AbstractValidationRul
 						}
 						if (!mobileNumberChanged) {
 							for (User obj : users) {
-								if (!obj.getLoginId().equals(cdm.getLoginId()) && obj.isActive()) {
+								if (!obj.getLoginId().equals(cdm.getLoginId()) && obj.getActiveStatus() != null
+										&& obj.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
 									ruleResult.append(
 											"Entered mobile number is already registered with another user. Please try with a different number.");
 									return new OperationResult.StepResult(OperationResult.Status.ERROR, ruleResult.toString());
