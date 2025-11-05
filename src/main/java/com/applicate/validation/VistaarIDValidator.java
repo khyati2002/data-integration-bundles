@@ -1,8 +1,5 @@
 package com.applicate.validation;
 
-//import com.applicate.services.channelkart.models.User;
-//import com.applicate.services.channelkart.models.UserParent;
-
 import com.salescode.dim.jooq.generated.tables.pojos.UserParent;
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
@@ -20,6 +17,9 @@ import java.util.stream.Collectors;
 
 public class VistaarIDValidator extends AbstractValidationRule<User> {
 
+	public static final String SUPPLIER = "supplier";
+	public static final String DS_TYPE = "DSType";
+	public static final String PSRCRMID = "PSRCRMID";
 	final UserService userService = (UserService) ServiceLocator.lookup(User.class);
 	final UserParentService userParentService = (UserParentService) ServiceLocator.lookup(UserParent.class);
 	String regex = "^[a-zA-Z]*$";
@@ -35,10 +35,10 @@ public class VistaarIDValidator extends AbstractValidationRule<User> {
 			}
 
 			List<String> wddestList = new ArrayList<>();
-			if (user.getExtendedAttributes() == null || !user.getExtendedAttributes().hasNonNull("supplier") || objectMapper.convertValue(user.getExtendedAttributes().get("supplier"), List.class).isEmpty()) {
+			if (user.getExtendedAttributes() == null || !user.getExtendedAttributes().hasNonNull(SUPPLIER) || objectMapper.convertValue(user.getExtendedAttributes().get(SUPPLIER), List.class).isEmpty()) {
 				errors.add("supplier is missing for stockist");
 			} else {
-				wddestList = objectMapper.convertValue(user.getExtendedAttributes().get("supplier"), List.class);
+				wddestList = objectMapper.convertValue(user.getExtendedAttributes().get(SUPPLIER), List.class);
 				for (String wddest : wddestList) {
 					User wduser = userService.findByLoginId(wddest);
 					if (wduser == null) {
@@ -48,8 +48,8 @@ public class VistaarIDValidator extends AbstractValidationRule<User> {
 			}
 
 			String psrcrmid = "NA";
-			if (user.getExtendedAttributes() != null && user.getExtendedAttributes().hasNonNull("PSRCRMID") && StringUtils.isNotBlank(user.getExtendedAttributes().get("PSRCRMID").asText())) {
-				psrcrmid = user.getExtendedAttributes().get("PSRCRMID").asText();
+			if (user.getExtendedAttributes() != null && user.getExtendedAttributes().hasNonNull(PSRCRMID) && StringUtils.isNotBlank(user.getExtendedAttributes().get(PSRCRMID).asText())) {
+				psrcrmid = user.getExtendedAttributes().get(PSRCRMID).asText();
 			}
 			if (!psrcrmid.equalsIgnoreCase("NA")) {
 				User psrDB = userService.findByLoginId(psrcrmid);
@@ -73,24 +73,24 @@ public class VistaarIDValidator extends AbstractValidationRule<User> {
 				errors.add("PSRCRMID as loginid is missing");
 			} else {
 				psrcrmid = user.getLoginId();
-				if (user.getUserAccountId() == null || !user.getUserAccountId().equalsIgnoreCase(psrcrmid)) {
+				if (user.getUseraccountid() == null || !user.getUseraccountid().equalsIgnoreCase(psrcrmid)) {
 					errors.add("useraccountid must be equal to psrcrmid");
 				}
 			}
 			if (user.getExtendedAttributes() == null || StringUtils.isNullOrBlank(user.getExtendedAttributes().get("Branch").asText())) {
 				errors.add("Branch is missing for the PSRCRMID");
 			}
-			if (user.getExtendedAttributes() == null || StringUtils.isNullOrBlank(user.getExtendedAttributes().get("DSType").asText())) {
+			if (user.getExtendedAttributes() == null || StringUtils.isNullOrBlank(user.getExtendedAttributes().get(DS_TYPE).asText())) {
 				errors.add("DSType is missing for the PSRCRMID");
 			}
 
-			if (user.getExtendedAttributes() != null && !StringUtils.isNullOrBlank(user.getExtendedAttributes().get("DSType").asText()) && !user.getExtendedAttributes().get("DSType").asText().equals("PSR")) {
+			if (user.getExtendedAttributes() != null && !StringUtils.isNullOrBlank(user.getExtendedAttributes().get(DS_TYPE).asText()) && !user.getExtendedAttributes().get(DS_TYPE).asText().equals("PSR")) {
 				errors.add("DSType should be PSR");
 			}
 		}
 
 		if (user.getDesignation() != null && user.getDesignation().contains("wd")) {
-			String userAccountId = user.getUserAccountId();
+			String userAccountId = user.getUseraccountid();
 			if (userAccountId == null || !userAccountId.equalsIgnoreCase(user.getLoginId())) {
 				errors.add("userAccountID must match loginID or userName in wd");
 			}
