@@ -9,6 +9,7 @@ import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata;
 import com.salescode.dim.jooq.impl.HierarchyMetadata;
+import com.salescode.dim.jooq.impl.SupplierMetaData;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class VistaarStockistLoginIDEnrichment extends AbstractEnrichment<User> {
     private static final String STOCKIST = "stockist";
 
     private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    private final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.SupplierMetaData.class);
+    private final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
 
     @Override
     public OperationResult.StepResult apply(User user) {
