@@ -240,7 +240,9 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
             return ((List<?>) value).stream()
                     .filter(Objects::nonNull)
                     .map(item -> {
-                        return productMetadataTransformer.transform((Map<String, Object>) item);
+                        Map<String, Object> productMetadataMap = new LinkedHashMap<>((Map<String, Object>) item);
+                        productMetadataMap.remove("productDetails");
+                        return productMetadataTransformer.transform(productMetadataMap);
                     })
                     .filter(obj -> true)
                     .collect(Collectors.toList());
