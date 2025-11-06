@@ -18,6 +18,8 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private final SalesHistoryTransformer salesHistoryTransformer = new SalesHistoryTransformer();
+    private final SalesDetailsTransformer salesDetailsTransformer = new SalesDetailsTransformer();
+
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -92,6 +94,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("nw", getDouble(inputMap, "nw"));
         result.put("invSerNo", getString(inputMap, "invSerNo"));
         result.put("salesHistory",getSalesHistoryList(inputMap));
+        result.put("salesDetails",getSalesDetailsList(inputMap));
 
         return result;
     }
@@ -228,6 +231,24 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
 
         return Collections.emptyList();
     }
+
+    private List<Map<String, Object>> getSalesDetailsList(Map<String, Object> rawMap) {
+        Object value = rawMap.get("salesDetails");
+        if (value == null) return Collections.emptyList();
+
+        if (value instanceof List<?>) {
+            return ((List<?>) value).stream()
+                    .filter(Objects::nonNull)
+                    .map(item -> {
+                        return salesDetailsTransformer.transform((Map<String, Object>) item);
+                    })
+                    .filter(obj -> true)
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
 }
 
     // Test data for Sales - matching the existing streaming format from KGBPL
