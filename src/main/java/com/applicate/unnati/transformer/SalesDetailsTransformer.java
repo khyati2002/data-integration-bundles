@@ -1,16 +1,19 @@
 package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jooq.JSON;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ProductDetailsTransformer productTransformer = new ProductDetailsTransformer();
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -84,7 +87,8 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("amount", getDouble(inputMap, "amount"));
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("productCode", getString(inputMap, "productCode"));
-
+        result.put("productDetails", getProductDetailsList(inputMap));
+        
         return result;
     }
 
@@ -210,7 +214,26 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
+    private List<Map<String, Object>> getProductDetailsList(Map<String, Object> rawMap) {
+        Object value = rawMap.get("productDetails");
+        if (value == null) return Collections.emptyList();
+
+        if (value instanceof List<?>) {
+            return ((List<?>) value).stream()
+                           .filter(Objects::nonNull)
+                           .map(item -> {
+                               return productTransformer.transform((Map<String, Object>) item);
+                           })
+                           .filter(obj -> true)
+                           .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
 }
+
+
 
 
 /*
