@@ -83,6 +83,7 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("nw", getDouble(inputMap, "nw"));
         result.put("amount", getDouble(inputMap, "amount"));
         result.put("rowid", getInteger(inputMap, "rowid"));
+        result.put("productCode", getString(inputMap, "productCode"));
 
         return result;
     }
