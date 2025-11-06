@@ -88,7 +88,7 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("productCode", getString(inputMap, "productCode"));
         result.put("productDetails", getProductDetailsList(inputMap));
-        
+
         return result;
     }
 
@@ -222,14 +222,16 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
             return ((List<?>) value).stream()
                            .filter(Objects::nonNull)
                            .map(item -> {
-                               return productTransformer.transform((Map<String, Object>) item);
+                               Map<String, Object> productMap = new LinkedHashMap<>((Map<String, Object>) item);
+                               productMap.remove("productDetails");
+                               return productTransformer.transform(productMap);
                            })
-                           .filter(obj -> true)
                            .collect(Collectors.toList());
         }
 
         return Collections.emptyList();
     }
+
 
 }
 
