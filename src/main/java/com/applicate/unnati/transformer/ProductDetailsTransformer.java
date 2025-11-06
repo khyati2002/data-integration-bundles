@@ -238,16 +238,13 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
 
         if (value instanceof List<?>) {
             return ((List<?>) value).stream()
-                    .filter(Objects::nonNull)
-                    .map(item -> {
-                        Map<String, Object> productMetadataMap = new LinkedHashMap<>((Map<String, Object>) item);
-                        productMetadataMap.remove("productDetails");
-                        return productMetadataTransformer.transform(productMetadataMap);
-                    })
-                    .filter(obj -> true)
-                    .collect(Collectors.toList());
+                           .filter(Objects::nonNull)
+                           .map(item -> {
+                               return productMetadataTransformer.transform((Map<String, Object>) item);
+                           })
+                           .filter(obj -> true)
+                           .collect(Collectors.toList());
         }
-
         return Collections.emptyList();
     }
 }
