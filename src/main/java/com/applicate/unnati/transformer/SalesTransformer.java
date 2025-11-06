@@ -40,15 +40,13 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("activeStatusReason", getString(inputMap, "activeStatusReason"));
         result.put("changed", getBoolean(inputMap, "changed"));
         result.put("createdBy", getString(inputMap, "createdBy"));
-        result.put("creationTime", getLocalDateTime(inputMap, "creationTime"));
         result.put("extendedAttributes", getJsonNode(inputMap, "extendedAttributes"));
         result.put("hash", getString(inputMap, "hash"));
-        result.put("lastModifiedTime", getLocalDateTime(inputMap, "lastModifiedTime"));
         result.put("lob", getString(inputMap, "lob"));
         result.put("modifiedBy", getString(inputMap, "modifiedBy"));
         result.put("source", getString(inputMap, "source"));
         result.put("version", getInteger(inputMap, "version"));
-        result.put("systemTime", getLocalDateTime(inputMap, "systemTime"));
+        result.put("systemTime", getString(inputMap, "systemTime"));
         result.put("gpsLatitude", getString(inputMap, "gpsLatitude"));
         result.put("gpsLongitude", getString(inputMap, "gpsLongitude"));
         result.put("billAmount", getDouble(inputMap, "billAmount"));
@@ -60,8 +58,8 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("netAmount", getDouble(inputMap, "netAmount"));
         result.put("normalizedVolume", getDouble(inputMap, "normalizedVolume"));
         result.put("orderNumber", getString(inputMap, "orderNumber"));
-        result.put("orderedDate", getLocalDateTime(inputMap, "orderedDate"));
-        result.put("payByDate", getLocalDateTime(inputMap, "payByDate"));
+        result.put("orderedDate", getString(inputMap, "orderedDate"));
+        result.put("payByDate", getString(inputMap, "payByDate"));
         result.put("programNumber", getString(inputMap, "programNumber"));
         result.put("remarks", getString(inputMap, "remarks"));
         result.put("size", getString(inputMap, "size"));
@@ -92,7 +90,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("initialNormalizedQuantity", getDouble(inputMap, "initialNormalizedQuantity"));
 
         // Handle Date to LocalDateTime conversion for deliveryDate
-        result.put("deliveryDate", getLocalDateTimeFromDate(inputMap, "deliveryDate"));
+        result.put("deliveryDate", getString(inputMap, "deliveryDate"));
 
         // Handle discountInfo - JsonNode to JSON
         result.put("discountInfo", getJooqJsonAsString(inputMap, "discountInfo"));
