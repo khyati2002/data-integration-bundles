@@ -95,7 +95,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("deliveryDate", getLocalDateTimeFromDate(inputMap, "deliveryDate"));
 
         // Handle discountInfo - JsonNode to JSON
-        result.put("discountInfo", getJSON(inputMap, "discountInfo"));
+        result.put("discountInfo", getJooqJsonAsString(inputMap, "discountInfo"));
 
         // Beat fields
         result.put("beat", getString(inputMap, "beat"));
@@ -267,21 +267,24 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         }
     }
 
-    private JSON getJSON(Map<String, Object> map, String key) {
+    private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return null;
-
+        if (value == null) return "{}";
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
-            // Convert JsonNode or Map to JSON string
             if (value instanceof JsonNode) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
-            return JSON.valueOf(objectMapper.writeValueAsString(value));
+            if (value instanceof Map || value instanceof Iterable) {
+                return objectMapper.writeValueAsString(value);
+            }
+            String str = value.toString().trim();
+            objectMapper.readTree(str);
+            return str;
         } catch (Exception e) {
-            return null;
+            return "{}";
         }
     }
 
