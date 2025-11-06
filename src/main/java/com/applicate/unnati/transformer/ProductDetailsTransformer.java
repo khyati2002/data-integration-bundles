@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class ProductDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    ProductMetaDataTransformer productMetadataTransformer=new ProductMetaDataTransformer();
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -239,11 +240,7 @@ public class ProductDetailsTransformer extends AbstractTransformer<Map<String, O
             return ((List<?>) value).stream()
                     .filter(Objects::nonNull)
                     .map(item -> {
-                        try {
-                            return ProductMetaDataTransformer.transform((Map<String, Object>) item);
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
+                        return productMetadataTransformer.transform((Map<String, Object>) item);
                     })
                     .filter(obj -> true)
                     .collect(Collectors.toList());

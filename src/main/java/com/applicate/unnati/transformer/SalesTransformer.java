@@ -1,6 +1,7 @@
 package com.applicate.unnati.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,15 +10,13 @@ import org.jooq.JSON;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SalesTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
+    private SalesHistoryTransformer salesHistoryTransformer;
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -91,6 +90,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("routeId", getString(inputMap, "routeId"));
         result.put("nw", getDouble(inputMap, "nw"));
         result.put("invSerNo", getString(inputMap, "invSerNo"));
+        result.put("salesHistory",getSalesHistoryList(inputMap));
 
         return result;
     }
@@ -210,6 +210,25 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         }
     }
 
+
+    private List<Map<String, Object>> getSalesHistoryList(Map<String, Object> rawMap) {
+        Object value = rawMap.get("salesHistory");
+        if (value == null) return Collections.emptyList();
+
+        if (value instanceof List<?>) {
+            return ((List<?>) value).stream()
+                    .filter(Objects::nonNull)
+                    .map(item -> {
+                        return salesHistoryTransformer.transform((Map<String, Object>) item);
+                    })
+                    .filter(obj -> true)
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+}
+
     // Test data for Sales - matching the existing streaming format from KGBPL
 //    public static String rawStreamingData = "{\n" +
 //                                                    "  \"requestId\": \"test-req-SALES-001\",\n" +
@@ -292,4 +311,3 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
 //                                                    "  \"preserveOnFailure\": true,\n" +
 //                                                    "  \"ignoreS3Log\": false\n" +
 //                                                    "}";
-}

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.tables.pojos.Location;
 
 import java.math.BigDecimal;
@@ -11,11 +12,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ProductMetaDataTransformer {
+public class ProductMetaDataTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Map<String, Object> transform(Map<String, Object> inputMap) throws JsonProcessingException {
+    @Override
+    public  Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
             return Collections.emptyMap();
         }
@@ -73,7 +75,7 @@ public class ProductMetaDataTransformer {
     }
 
 
-    private  static String asString(Object value) {
+    private  String asString(Object value) {
         return value == null ? null : value.toString();
     }
 
@@ -87,7 +89,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private static  Double asDouble(Object value) {
+    private   Double asDouble(Object value) {
         if (value == null) return null;
         if (value instanceof Double) return (Double) value;
         try {
@@ -107,7 +109,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private  static BigDecimal asBigDecimal(Object value) {
+    private  BigDecimal asBigDecimal(Object value) {
         if (value == null) return null;
         if (value instanceof BigDecimal) return (BigDecimal) value;
         try {
@@ -117,7 +119,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private static  Byte asByte(Object value) {
+    private   Byte asByte(Object value) {
         if (value == null) return null;
         if (value instanceof Byte) return (Byte) value;
         try {
@@ -127,7 +129,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private  static ActiveStatus asActiveStatus(Object value) {
+    private   ActiveStatus asActiveStatus(Object value) {
         if (value == null) return null;
         if (value instanceof ActiveStatus) return (ActiveStatus) value;
         try {
@@ -137,7 +139,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private  static JsonNode asJsonNode(Object value) {
+    private  JsonNode asJsonNode(Object value) {
         if (value == null) return null;
         if (value instanceof JsonNode) return (JsonNode) value;
         try {
@@ -147,7 +149,7 @@ public class ProductMetaDataTransformer {
         }
     }
 
-    private static Location parseLocationHierarchy(Map<String, Object> map, String key) {
+    private  Location parseLocationHierarchy(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (value == null) return null;
         if (value instanceof Map) {
