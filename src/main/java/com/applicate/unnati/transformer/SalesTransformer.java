@@ -3,6 +3,7 @@ package com.applicate.unnati.transformer;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.impl.Sales;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.JSON;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class SalesTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>>  {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private SalesHistoryTransformer salesHistoryTransformer;
+    private final SalesHistoryTransformer salesHistoryTransformer = new SalesHistoryTransformer();
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
