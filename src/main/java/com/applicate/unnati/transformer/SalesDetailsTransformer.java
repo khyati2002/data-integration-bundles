@@ -6,13 +6,12 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jooq.JSON;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    
+
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
         if (inputMap == null) {
@@ -78,8 +77,8 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("initialOtherUnitQuantity", getDouble(inputMap, "initialOtherUnitQuantity"));
         result.put("initialNormalizedQuantity", getDouble(inputMap, "initialNormalizedQuantity"));
 
-        result.put("productInfo", getJooqJson(inputMap, "productInfo"));
-        result.put("discountInfo", getJooqJson(inputMap, "discountInfo"));
+        result.put("productInfo", getJooqJsonAsString(inputMap, "productInfo"));
+        result.put("discountInfo", getJooqJsonAsString(inputMap, "discountInfo"));
 
         result.put("nw", getDouble(inputMap, "nw"));
         result.put("amount", getDouble(inputMap, "amount"));
@@ -106,6 +105,7 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
             return null;
         }
     }
+
 
     private Double getDouble(Map<String, Object> map, String key) {
         Object value = map.get(key);
@@ -165,25 +165,24 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
     }
 
 
-    private JSON getJooqJson(Map<String, Object> map, String key) {
+    private String getJooqJsonAsString(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return JSON.valueOf("{}");
-
+        if (value == null) return "{}";
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
             if (value instanceof JsonNode) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
             if (value instanceof Map || value instanceof Iterable) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+                return objectMapper.writeValueAsString(value);
             }
             String str = value.toString().trim();
-            objectMapper.readTree(str); // Validate JSON
-            return JSON.valueOf(str);
+            objectMapper.readTree(str);
+            return str;
         } catch (Exception e) {
-            return JSON.valueOf("{}");
+            return "{}";
         }
     }
 
