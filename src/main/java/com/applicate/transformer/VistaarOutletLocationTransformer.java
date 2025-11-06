@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import com.applicate.services.channelkart.services.*;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.applicate.services.channelkart.utils.TimerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +41,7 @@ public class VistaarOutletLocationTransformer extends AbstractTransformer<Map<St
 				.collect(Collectors.toSet());
 
 		// fetch locations in batch
-		List<Location> locations = TimerUtils.withTime("Time taken to findByLocationHierarchy",
-				() -> locationService.findByLocationHierarchy(hierarchies));
+		List<Location> locations = locationService.findByLocationHierarchy(hierarchies));
 
 		Map<String, Location> collect = locations == null
 				? Collections.emptyMap()
@@ -60,8 +58,7 @@ public class VistaarOutletLocationTransformer extends AbstractTransformer<Map<St
 			outlet.put(LOCATION, loc);
 
 			// attach SupplierInfo - timed
-			outlet.put("SupplierInfo", TimerUtils.withTime("Time taken to getSupplierInfo",
-					() -> getSupplierInfo(outlet, suppliersCache)));
+			outlet.put("SupplierInfo", getSupplierInfo(outlet, suppliersCache));
 		});
 
 		s.put("features", outletList);
