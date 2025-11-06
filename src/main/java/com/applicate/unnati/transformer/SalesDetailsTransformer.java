@@ -186,27 +186,29 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
-    private JSON getJooqJsonFromArray(Map<String, Object> map, String key) {
+    private String getJooqJsonFromArray(Map<String, Object> map, String key) {
         Object value = map.get(key);
-        if (value == null) return JSON.valueOf("[]");
+        if (value == null) return "[]";
 
         try {
             if (value instanceof JSON) {
-                return (JSON) value;
+                return ((JSON) value).data();
             }
-            if (value instanceof ArrayNode) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
-            }
-            if (value instanceof Iterable) {
-                return JSON.valueOf(objectMapper.writeValueAsString(value));
+            if (value instanceof ArrayNode || value instanceof Iterable) {
+                return objectMapper.writeValueAsString(value);
             }
             String str = value.toString().trim();
-            objectMapper.readTree(str); // Validate JSON
-            return JSON.valueOf(str);
+            if (str.startsWith("\"[") && str.endsWith("]\"")) {
+                str = str.substring(1, str.length() - 1).replace("\\\"", "\"");
+            }
+
+            objectMapper.readTree(str);
+            return str;
         } catch (Exception e) {
-            return JSON.valueOf("[]");
+            return "[]";
         }
     }
+
 }
 
 
