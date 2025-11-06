@@ -18,16 +18,6 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Multiple date time formatters to handle various input formats
-    private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
-            DateTimeFormatter.ISO_DATE_TIME
-    };
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -68,11 +58,8 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("hierarchy", getString(inputMap, "hierarchy"));
         result.put("type", getString(inputMap, "type"));
 
-        // Sales specific fields
-        // Map loginId from model to loginid in POJO
         result.put("loginid", getString(inputMap, "loginId"));
 
-        // Map outletCode from model to outletcode in POJO
         result.put("outletcode", getString(inputMap, "outletCode"));
 
         // Handle orderType - convert enum to String if needed
@@ -83,27 +70,22 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         result.put("statusReason", getString(inputMap, "statusReason"));
         result.put("saleCondition", getString(inputMap, "saleCondition"));
 
-        // Handle float to Double conversion for quantity fields
         result.put("totalQuantity", getDouble(inputMap, "totalQuantity"));
         result.put("totalInitialQuantity", getDouble(inputMap, "totalInitialQuantity"));
         result.put("normalizedQuantity", getDouble(inputMap, "normalizedQuantity"));
         result.put("initialNormalizedQuantity", getDouble(inputMap, "initialNormalizedQuantity"));
 
-        // Handle Date to LocalDateTime conversion for deliveryDate
         result.put("deliveryDate", getString(inputMap, "deliveryDate"));
 
-        // Handle discountInfo - JsonNode to JSON
         result.put("discountInfo", getJooqJsonAsString(inputMap, "discountInfo"));
 
-        // Beat fields
+
         result.put("beat", getString(inputMap, "beat"));
         result.put("beatName", getString(inputMap, "beatName"));
 
-        // Boolean fields
         result.put("inBeat", getBoolean(inputMap, "inBeat"));
         result.put("inRange", getBoolean(inputMap, "inRange"));
 
-        // Additional fields in POJO
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("amount", getDouble(inputMap, "amount"));
         result.put("routeId", getString(inputMap, "routeId"));
@@ -174,64 +156,6 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
             }
             return value.toString();
         } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private LocalDateTime getLocalDateTimeFromDate(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-
-            if (value instanceof Date) {
-                Date date = (Date) value;
-                return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
-            }
-
-            String dateStr = value.toString();
-            return getLocalDateTimeValue(dateStr);
-
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private LocalDateTime getLocalDateTime(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        if (value == null) return null;
-
-        try {
-            if (value instanceof LocalDateTime) {
-                return (LocalDateTime) value;
-            }
-
-            String dateTimeStr = value.toString();
-            return getLocalDateTimeValue(dateTimeStr);
-
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private LocalDateTime getLocalDateTimeValue(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
-            return null;
-        }
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                return LocalDateTime.parse(dateTimeStr, formatter);
-            } catch (DateTimeParseException e) {
-
-            }
-        }
-        try {
-            long epochMilli = Long.parseLong(dateTimeStr);
-            return LocalDateTime.ofEpochSecond(epochMilli / 1000, 0, java.time.ZoneOffset.UTC);
-        } catch (NumberFormatException e) {
             return null;
         }
     }
