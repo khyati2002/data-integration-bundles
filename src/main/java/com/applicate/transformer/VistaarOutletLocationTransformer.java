@@ -41,7 +41,7 @@ public class VistaarOutletLocationTransformer extends AbstractTransformer<Map<St
 				.collect(Collectors.toSet());
 
 		// fetch locations in batch
-		List<Location> locations = locationService.findByLocationHierarchy(hierarchies));
+		List<Location> locations = locationService.findByLocationHierarchy(hierarchies);
 
 		Map<String, Location> collect = locations == null
 				? Collections.emptyMap()
