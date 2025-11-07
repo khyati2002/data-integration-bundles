@@ -18,7 +18,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
     public static final String DISTRICT = "district";
     public static final String BRANCH = "branch";
     public static final String USER_HAS_INVALID_IMMEDIATE_PARENT = "User has invalid immediate parent";
-    final UserService userService = (UserService) ServiceLocator.lookup(User.class);
+    final UserService userService = (UserService) ServiceLocator.lookup(UserService.class);
     static final String capitalCaseRegex = "(^[A-Z\\s]*$)";
     String regex = "(^[0-9]{10}$)";
     static final String capitalCaseBranchRegex = "^[A-Z]+[A-Z0-9!@#$&\\-.+]*$";
