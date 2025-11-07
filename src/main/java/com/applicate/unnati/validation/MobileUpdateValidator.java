@@ -2,7 +2,8 @@ package com.applicate.unnati.validation;
 
 
 import com.applicate.services.channelkart.models.diff.Change;
-import com.applicate.services.channelkart.services.MetaDataService;
+import com.applicate.services.channelkart.services.ApprovalInfoService;
+import com.salescode.dim.jooq.impl.ApprovalInfo;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
