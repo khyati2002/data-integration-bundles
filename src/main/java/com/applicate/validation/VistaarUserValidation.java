@@ -175,7 +175,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                 break;
             }
             if(dbParent.getDesignation()==null){
-                userService.setDesignation(Collections.singletonList(dbParent));
+                userService.addDesignationFromDb(dbParent);
             }
 
             validateParentLocation(user, dbParent, ruleResult, isDistrict, isBranch);
