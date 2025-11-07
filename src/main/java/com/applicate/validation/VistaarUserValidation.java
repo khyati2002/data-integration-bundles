@@ -18,19 +18,12 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
     public static final String DISTRICT = "district";
     public static final String BRANCH = "branch";
     public static final String USER_HAS_INVALID_IMMEDIATE_PARENT = "User has invalid immediate parent";
-    //final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    private transient UserService userService;
-    static final String capitalCaseRegex = "(^[A-Z\\s]*$)";
     String regex = "(^[0-9]{10}$)";
-    static final String capitalCaseBranchRegex = "^[A-Z]+[A-Z0-9!@#$&\\-.+]*$";
+    static final String CAPITAL_CASE_BRANCH_REGEX = "^[A-Z]+[A-Z0-9!@#$&\\-.+]*$";
 
     @Override
     public OperationResult.StepResult apply(User user) {
-
-        if (this.userService == null) {
-            this.userService = (UserService) ServiceLocator.lookup(User.class);
-        }
-        //UserService userService = (UserService) ServiceLocator.lookup(User.class);
+        UserService userService = (UserService) ServiceLocator.lookup(User.class);
 
         RegexValidation regexValidation = new RegexValidation();
         StringBuilder ruleResult = new StringBuilder();
@@ -66,7 +59,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                     ruleResult.append("category type district cannot have branch");
                 }
                 if (user.getLocation().getDistrict() != null) {
-                    if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(capitalCaseBranchRegex, user.getLocation().getDistrict())) {
+                    if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(USER_HAS_INVALID_IMMEDIATE_PARENT, user.getLocation().getDistrict())) {
                         ruleResult.append(
                                 "Value given for district should contain only alphabets with capital case.Current given value is not compatible");
                     }
@@ -111,7 +104,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                 ruleResult.append("location value cannot be null or empty");
             }
             if (user.getLocation().getDistrict() != null) {
-                if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(capitalCaseBranchRegex, user.getLocation().getDistrict())) {
+                if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, user.getLocation().getDistrict())) {
                     ruleResult.append(
                             "Value given for district should contain only alphabets with capital case.Current given value is not compatible");
                 }
@@ -120,7 +113,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
             }
 
             if (user.getLocation().getBranch() != null) {
-                if (!StringUtils.isNotBlank(user.getLocation().getBranch()) || !regexValidation.match(capitalCaseBranchRegex, user.getLocation().getBranch())) {
+                if (!StringUtils.isNotBlank(user.getLocation().getBranch()) || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, user.getLocation().getBranch())) {
                     ruleResult.append(
                             "Value given for branch should contain only alphabets with capital case.Current given value is not compatible");
                 }
@@ -131,7 +124,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
             if (user.getImmediateParent() == null || user.getImmediateParent().isEmpty()) {
                 ruleResult.append("immediate parent can not be null.");
             } else {
-                if (user.getImmediateParent().size() > 1 && (!user.getDesignation().contains("psr") ? !user.getDesignation().contains("stockist") : false)) {
+                if (user.getImmediateParent().size() > 1 && (!user.getDesignation().contains("psr") && !user.getDesignation().contains("stockist"))) {
                     ruleResult.append("immediate parent can not be more than one.");
                 }
                 for (HierarchyMetadata immParent : user.getImmediateParent()) {
@@ -197,14 +190,14 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
             return false;
         }
         return user.getDesignation().stream()
-                .anyMatch(d -> designationToMatch.equalsIgnoreCase(d));
+                .anyMatch(designationToMatch::equalsIgnoreCase);
     }
 
 
 
     private List<String> isValidParent(User user, User dbParent) {
         List<String> errors = new ArrayList<>();
-        user.getDesignation().stream().forEach((designation) -> {
+        user.getDesignation().stream().forEach(designation -> {
             switch (designation) {
                 case BRANCH:
                     if (!isUserDistrict(dbParent)) {
@@ -223,7 +216,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                     break;
                 case "stockist":
                     if (!isUserDesignation(dbParent, "psr") && !isUserDesignation(dbParent, "wd")) {
-                        errors.add(StringUtils.format(("User has invalid immediate parent ")));
+                        errors.add(StringUtils.format((USER_HAS_INVALID_IMMEDIATE_PARENT)));
                     }
                     break;
             }
