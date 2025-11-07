@@ -24,15 +24,23 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
     @Override
     public OperationResult.StepResult apply(User user) {
         UserService userService = (UserService) ServiceLocator.lookup(User.class);
-
         RegexValidation regexValidation = new RegexValidation();
         StringBuilder ruleResult = new StringBuilder();
 
+        validateDesignations(user, ruleResult, userService);
+        validateCategory(user, ruleResult);
+        validateLocationAndParent(user, ruleResult, userService, regexValidation);
+
+        if (ruleResult.length() > 0) {
+            return new OperationResult.StepResult(OperationResult.Status.ERROR, ruleResult.toString());
+        }
+        return OperationResult.StepResult.OK;
+    }
+
+    private void validateDesignations(User user, StringBuilder ruleResult, UserService userService) {
         if (user.getDesignation() == null || user.getDesignation().isEmpty()) {
             ruleResult.append("No designations detected");
-        }
-
-        if (!isOnlyDesignation(user)) {
+        } else if (!isOnlyDesignation(user)) {
             ruleResult.append("Multiple designations detected for user");
         }
 
@@ -40,136 +48,160 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
             ruleResult.append("User should not have a designation as retailer");
         }
 
-        User userinDB = userService.findByLoginId(user.getLoginId());
-        if (userinDB != null && !user.getDesignation().equals(userinDB.getDesignation())) {
+        User userInDB = userService.findByLoginId(user.getLoginId());
+        if (userInDB != null && !user.getDesignation().equals(userInDB.getDesignation())) {
             ruleResult.append("User designation mismatch with info present in DB user");
         }
+
         if (!isUserDesignation(user, "wd") && user.getSupplierMetaData() != null && !user.getSupplierMetaData().isEmpty()) {
             ruleResult.append("Only wd can be a supplier");
         }
+    }
 
+    private void validateCategory(User user, StringBuilder ruleResult) {
         JsonNode extendedAttributes = user.getExtendedAttributes();
-        if (extendedAttributes != null && extendedAttributes.hasNonNull("Category")) {
-            String category = extendedAttributes.get("Category").asText();
-            if (category != null && !category.isBlank() && !(category.equalsIgnoreCase("wd") || category.equalsIgnoreCase(BRANCH) || category.equalsIgnoreCase(DISTRICT))) {
-                ruleResult.append("Category field should have either wd branch or district");
-            }
-            if (category.equalsIgnoreCase(DISTRICT)) {
-                if (user.getLocation().getBranch() != null) {
-                    ruleResult.append("category type district cannot have branch");
-                }
-                if (user.getLocation().getDistrict() != null) {
-                    if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(USER_HAS_INVALID_IMMEDIATE_PARENT, user.getLocation().getDistrict())) {
-                        ruleResult.append(
-                                "Value given for district should contain only alphabets with capital case.Current given value is not compatible");
-                    }
-                } else {
-                    ruleResult.append("District can not be null");
-                }
-                String wd = extendedAttributes.get("WDCode").asText();
-                if (wd != null && !wd.isBlank()) {
-                    ruleResult.append("WDCode value should be null or empty");
-                }
-                if (user.getMobile() == null || user.getMobile().isBlank())
-                    ruleResult.append("Mobile number cannot be null or empty");
-                String mobile = extendedAttributes.get("MobileNumber2").asText();
-                if (mobile != null && !mobile.isEmpty() && !checkMobileNumberPattern(mobile))
-                    ruleResult.append("Mobile number 2 field allowed only 10 digit valid number or blank.");
-
-            } else if (category.equalsIgnoreCase(BRANCH)) {
-                if (user.getLocation().getBranch() == null || user.getLocation().getBranch().isEmpty()) {
-                    ruleResult.append("branch cannot be empty");
-                }
-                if (user.getLocation().getDistrict() == null || user.getLocation().getDistrict().isEmpty()) {
-                    ruleResult.append("district cannot be empty");
-                }
-                String wd = extendedAttributes.get("WDCode").asText();
-                if (wd != null && !wd.isBlank()) {
-                    ruleResult.append("WDCode value should be null or empty");
-                }
-                if (user.getMobile() == null || user.getMobile().isBlank())
-                    ruleResult.append("Mobile number cannot be null or empty");
-                String mobile = extendedAttributes.get("MobileNumber2").asText();
-                if (mobile != null && !mobile.isEmpty() && !checkMobileNumberPattern(mobile))
-                    ruleResult.append("Mobile number 2 field allowed only 10 digit valid number or blank.");
-
-            }
+        if (extendedAttributes == null || !extendedAttributes.hasNonNull("Category")) {
+            return;
         }
 
+        String category = extendedAttributes.get("Category").asText();
+        if (category == null || category.isBlank()) {
+            return;
+        }
 
-        boolean isuserDistrict = isUserDistrict(user);
-        boolean isuserBranch = isUserBranch(user);
-        if (!isuserDistrict) {
-            if (user.getLocationHierarchy() == null) {
-                ruleResult.append("location value cannot be null or empty");
-            }
-            if (user.getLocation().getDistrict() != null) {
-                if (!StringUtils.isNotBlank(user.getLocation().getDistrict()) || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, user.getLocation().getDistrict())) {
-                    ruleResult.append(
-                            "Value given for district should contain only alphabets with capital case.Current given value is not compatible");
-                }
-            } else {
-                ruleResult.append("District can not be null");
-            }
+        if (!(category.equalsIgnoreCase("wd") || category.equalsIgnoreCase(BRANCH) || category.equalsIgnoreCase(DISTRICT))) {
+            ruleResult.append("Category field should have either wd branch or district");
+            return;
+        }
 
-            if (user.getLocation().getBranch() != null) {
-                if (!StringUtils.isNotBlank(user.getLocation().getBranch()) || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, user.getLocation().getBranch())) {
-                    ruleResult.append(
-                            "Value given for branch should contain only alphabets with capital case.Current given value is not compatible");
-                }
-            } else {
-                ruleResult.append("Branch can not be null");
-            }
+        if (category.equalsIgnoreCase(DISTRICT)) {
+            validateDistrictCategory(user, extendedAttributes, ruleResult);
+        } else if (category.equalsIgnoreCase(BRANCH)) {
+            validateBranchCategory(user, extendedAttributes, ruleResult);
+        }
+    }
 
-            if (user.getImmediateParent() == null || user.getImmediateParent().isEmpty()) {
+    private void validateDistrictCategory(User user, JsonNode extendedAttributes, StringBuilder ruleResult) {
+        RegexValidation regexValidation = new RegexValidation();
+        if (user.getLocation().getBranch() != null) {
+            ruleResult.append("category type district cannot have branch");
+        }
+        if (user.getLocation().getDistrict() == null) {
+            ruleResult.append("District can not be null");
+        } else if (!StringUtils.isNotBlank(user.getLocation().getDistrict())
+                || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, user.getLocation().getDistrict())) {
+            ruleResult.append("Value given for district should contain only alphabets with capital case.Current given value is not compatible");
+        }
+
+        validateCommonFields(user, extendedAttributes, ruleResult);
+    }
+
+    private void validateBranchCategory(User user, JsonNode extendedAttributes, StringBuilder ruleResult) {
+        if (isNullOrEmpty(user.getLocation().getBranch())) {
+            ruleResult.append("branch cannot be empty");
+        }
+        if (isNullOrEmpty(user.getLocation().getDistrict())) {
+            ruleResult.append("district cannot be empty");
+        }
+        validateCommonFields(user, extendedAttributes, ruleResult);
+    }
+
+    private void validateCommonFields(User user, JsonNode extendedAttributes, StringBuilder ruleResult) {
+        String wd = extendedAttributes.get("WDCode").asText();
+        if (wd != null && !wd.isBlank()) {
+            ruleResult.append("WDCode value should be null or empty");
+        }
+
+        if (user.getMobile() == null || user.getMobile().isBlank()) {
+            ruleResult.append("Mobile number cannot be null or empty");
+        }
+
+        String mobile = extendedAttributes.get("MobileNumber2").asText();
+        if (mobile != null && !mobile.isEmpty() && !checkMobileNumberPattern(mobile)) {
+            ruleResult.append("Mobile number 2 field allowed only 10 digit valid number or blank.");
+        }
+    }
+
+    private void validateLocationAndParent(User user, StringBuilder ruleResult, UserService userService, RegexValidation regexValidation) {
+        boolean isDistrict = isUserDistrict(user);
+        boolean isBranch = isUserBranch(user);
+
+        if (isDistrict) {
+            return;
+        }
+
+        validateLocation(user, ruleResult, regexValidation);
+        validateImmediateParent(user, ruleResult, userService, isDistrict, isBranch);
+    }
+
+    private void validateLocation(User user, StringBuilder ruleResult, RegexValidation regexValidation) {
+        if (user.getLocationHierarchy() == null) {
+            ruleResult.append("location value cannot be null or empty");
+        }
+        validateLocationField(user.getLocation().getDistrict(), "District", ruleResult, regexValidation);
+        validateLocationField(user.getLocation().getBranch(), "Branch", ruleResult, regexValidation);
+    }
+
+    private void validateLocationField(String fieldValue, String fieldName, StringBuilder ruleResult, RegexValidation regexValidation) {
+        if (fieldValue == null) {
+            ruleResult.append(fieldName).append(" can not be null");
+        } else if (!StringUtils.isNotBlank(fieldValue) || !regexValidation.match(CAPITAL_CASE_BRANCH_REGEX, fieldValue)) {
+            ruleResult.append("Value given for ").append(fieldName.toLowerCase())
+                    .append(" should contain only alphabets with capital case.Current given value is not compatible");
+        }
+    }
+
+    private void validateImmediateParent(User user, StringBuilder ruleResult, UserService userService, boolean isDistrict, boolean isBranch) {
+        if (user.getImmediateParent() == null || user.getImmediateParent().isEmpty()) {
+            ruleResult.append("immediate parent can not be null.");
+            return;
+        }
+
+        if (user.getImmediateParent().size() > 1
+                && (!user.getDesignation().contains("psr") && !user.getDesignation().contains("stockist"))) {
+            ruleResult.append("immediate parent can not be more than one.");
+        }
+
+        for (HierarchyMetadata immParent : user.getImmediateParent()) {
+            String parentId = immParent.getImmediateParent();
+            if (parentId == null) {
                 ruleResult.append("immediate parent can not be null.");
-            } else {
-                if (user.getImmediateParent().size() > 1 && (!user.getDesignation().contains("psr") && !user.getDesignation().contains("stockist"))) {
-                    ruleResult.append("immediate parent can not be more than one.");
-                }
-                for (HierarchyMetadata immParent : user.getImmediateParent()) {
-                    String parentId = immParent.getImmediateParent();
-                    if (parentId == null) {
-                        ruleResult.append("immediate parent can not be null.");
-                        break;
-                    }
-                    User dbparent = userService.findByLoginId(parentId);
-                    if (dbparent == null) {
-                        ruleResult.append("Given immediate parent is not present in database.Please verify the input data.");
-                        break;
-                    }
-
-                    if (!isuserDistrict && dbparent.getLocation() != null) {
-                        String district = dbparent.getLocation().getDistrict();
-                        String branch = dbparent.getLocation().getBranch();
-
-                        if (district != null && !district.equalsIgnoreCase(user.getLocation().getDistrict())) {
-                            ruleResult.append("District value of loginId is not matching the parent district");
-                        }
-                        if (!isuserBranch && branch != null && !branch.equalsIgnoreCase(user.getLocation().getBranch())) {
-                            ruleResult.append("Branch value of loginId is not matching the parent branch");
-                        }
-                    }
-
-                    List<String> errors = isValidParent(user, dbparent);
-                    if (!errors.isEmpty()) {
-                        ruleResult.append(String.join(",", errors));
-                    }
-                }
+                break;
             }
 
+            User dbParent = userService.findByLoginId(parentId);
+            if (dbParent == null) {
+                ruleResult.append("Given immediate parent is not present in database.Please verify the input data.");
+                break;
+            }
+
+            validateParentLocation(user, dbParent, ruleResult, isDistrict, isBranch);
+            List<String> errors = isValidParent(user, dbParent);
+            if (!errors.isEmpty()) {
+                ruleResult.append(String.join(",", errors));
+            }
+        }
+    }
+
+    private void validateParentLocation(User user, User dbParent, StringBuilder ruleResult,
+                                        boolean isDistrict, boolean isBranch) {
+        if (dbParent.getLocation() == null) {
+            return;
         }
 
-        if (ruleResult.length() > 0) {
-            return new OperationResult.StepResult(OperationResult.Status.ERROR, ruleResult.toString());
-        } else {
-            return OperationResult.StepResult.OK;
+        String district = dbParent.getLocation().getDistrict();
+        String branch = dbParent.getLocation().getBranch();
+
+        if (district != null && !district.equalsIgnoreCase(user.getLocation().getDistrict())) {
+            ruleResult.append("District value of loginId is not matching the parent district");
+        }
+        if (!isBranch && branch != null && !branch.equalsIgnoreCase(user.getLocation().getBranch())) {
+            ruleResult.append("Branch value of loginId is not matching the parent branch");
         }
     }
 
     private boolean checkMobileNumberPattern(String mobile) {
-        RegexValidation regexValidation = new RegexValidation();
-        return regexValidation.match(regex, mobile);
+        return new RegexValidation().match(regex, mobile);
     }
 
     private boolean isOnlyDesignation(User user) {
@@ -184,7 +216,6 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
         return user.getDesignation().contains(BRANCH);
     }
 
-
     private boolean isUserDesignation(User user, String designationToMatch) {
         if (user.getDesignation() == null || designationToMatch == null) {
             return false;
@@ -193,11 +224,13 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                 .anyMatch(designationToMatch::equalsIgnoreCase);
     }
 
-
+    private boolean isNullOrEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
 
     private List<String> isValidParent(User user, User dbParent) {
         List<String> errors = new ArrayList<>();
-        user.getDesignation().stream().forEach(designation -> {
+        for (String designation : user.getDesignation()) {
             switch (designation) {
                 case BRANCH:
                     if (!isUserDistrict(dbParent)) {
@@ -216,13 +249,13 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                     break;
                 case "stockist":
                     if (!isUserDesignation(dbParent, "psr") && !isUserDesignation(dbParent, "wd")) {
-                        errors.add(StringUtils.format((USER_HAS_INVALID_IMMEDIATE_PARENT)));
+                        errors.add(StringUtils.format(USER_HAS_INVALID_IMMEDIATE_PARENT));
                     }
                     break;
+                default:
+                    break;
             }
-        });
+        }
         return errors;
     }
-    
 }
-
