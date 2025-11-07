@@ -23,11 +23,21 @@ public class VistaarStockistLoginIDEnrichment extends AbstractEnrichment<User> {
     private static final Logger logger = LoggerFactory.getLogger(VistaarStockistLoginIDEnrichment.class);
     private static final String STOCKIST = "stockist";
 
-    private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    private final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
+    //private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
+    //private final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
+    private transient UserService userService;
+    private transient SupplierMetaDataService supplierMetaDataService;
 
     @Override
     public OperationResult.StepResult apply(User user) {
+
+        if (this.userService == null) {
+            this.userService = (UserService) ServiceLocator.lookup(User.class);
+        }
+        if (this.supplierMetaDataService == null) {
+            this.supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
+        }
+
         String enrichmentMessage = "Data enrichment skipped";
         boolean isImmediateParentUpdated = false;
 

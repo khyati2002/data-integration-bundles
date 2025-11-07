@@ -20,10 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VistaarUserEnrichment extends AbstractEnrichment<User> {
-	UserService userService = (UserService) ServiceLocator.lookup(User.class);
+	//UserService userService = (UserService) ServiceLocator.lookup(User.class);
+	private transient UserService userService;
 
 	@Override
 	public OperationResult.StepResult apply(User user) {
+
+		if (this.userService == null) {
+			this.userService = (UserService) ServiceLocator.lookup(User.class);
+		}
+
 		List<String> enrichmentResult = new ArrayList<>();
 		enrichmentResult.add(enrichLocationInformation(user));
 		enrichmentResult.add(enrichSupplierMetadata(user));

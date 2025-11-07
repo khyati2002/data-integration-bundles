@@ -20,13 +20,23 @@ public class VistaarIDValidator extends AbstractValidationRule<User> {
 	public static final String SUPPLIER = "supplier";
 	public static final String DS_TYPE = "DSType";
 	public static final String PSRCRMID = "PSRCRMID";
-	final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-	final UserParentService userParentService = (UserParentService) ServiceLocator.lookup(UserParent.class);
+	//final UserService userService = (UserService) ServiceLocator.lookup(User.class);
+	//final UserParentService userParentService = (UserParentService) ServiceLocator.lookup(UserParent.class);
+	private transient UserService userService;
+	private transient UserParentService userParentService;
 	String regex = "^[a-zA-Z]*$";
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	public OperationResult.StepResult apply(User user) {
+
+		if (this.userService == null) {
+			this.userService = (UserService) ServiceLocator.lookup(User.class);
+		}
+		if (this.userParentService == null) {
+			this.userParentService = (UserParentService) ServiceLocator.lookup(UserParent.class);
+		}
+
 		List<String> errors = new ArrayList<>();
 		if (user.getDesignation() != null && user.getDesignation().contains("stockist")) {
 

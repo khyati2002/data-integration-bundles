@@ -14,14 +14,19 @@ import java.util.Map;
 
 public class VistaarWDBranchPrvLocEnrichment extends AbstractEnrichment<User> {
 
-    private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
+    //private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
     private final QueryService queryService = new QueryService();
+    private transient UserService userService;
     private static final String BRANCH = "branch";
     private static final String DISTRICT = "district";
     private static final String QUERY = "select loginid from ck_user ";
 
     @Override
     public OperationResult.StepResult apply(User user) {
+
+        if (this.userService == null) {
+            this.userService = (UserService) ServiceLocator.lookup(User.class);
+        }
 
         if(user.getDesignation() != null && (user.getDesignation().contains(DISTRICT) || user.getDesignation().contains(BRANCH))) {
             String prvLoc = "";
