@@ -93,7 +93,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
     private void populateSalesNode(Map<String, Object> salesNode) {
         String outletCode = salesNode.get("outletCode").toString();
         if (outletCode != null && !outletCode.isEmpty()) {
-            salesNode.put("hasGstin", isGstNoPresent(outletCode));
+            salesNode.put("hasGstin",true );
         }
     }
 
@@ -177,12 +177,4 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         });
     }
 
-    private boolean isGstNoPresent(String outletCode) {
-        AccountInfo accountInfo = accountInfoService.findByLoginId(outletCode);
-        if (accountInfo == null) {
-            return false;
-        }
-        String gstin = accountInfoService.decryptAccount(accountInfo).getGstin();
-        return gstin != null && !gstin.isEmpty() && !gstin.isBlank();
-    }
 }
