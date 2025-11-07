@@ -30,6 +30,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
         if (this.userService == null) {
             this.userService = (UserService) ServiceLocator.lookup(User.class);
         }
+        //UserService userService = (UserService) ServiceLocator.lookup(User.class);
 
         RegexValidation regexValidation = new RegexValidation();
         StringBuilder ruleResult = new StringBuilder();
