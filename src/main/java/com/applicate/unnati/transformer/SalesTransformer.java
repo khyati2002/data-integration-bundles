@@ -2,15 +2,19 @@ package com.applicate.unnati.transformer;
 
 
 import com.applicate.services.channelkart.utils.NullUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.impl.OutletDetails;
+import com.salescode.dim.jooq.impl.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class SalesTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
@@ -70,6 +74,15 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
         } else {
             throw new NullPointerException("Either specification/input json found null");
         }
+
+        Object discountInfo = dataMap.get("discountInfo");
+        if (discountInfo instanceof List) {
+            try {
+                dataMap.put("discountInfo", new ObjectMapper().writeValueAsString(discountInfo));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return dataMap;
     }
 
@@ -80,7 +93,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
     private void populateSalesNode(Map<String, Object> salesNode) {
         String outletCode = salesNode.get("outletCode").toString();
         if (outletCode != null && !outletCode.isEmpty()) {
-            salesNode.put("hasGstin", false);
+            salesNode.put("hasGstin", isGstNoPresent(outletCode));
         }
     }
 
@@ -97,7 +110,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
                 String discountType = discountInfo.getOrDefault("discountType", "").toString();
                 String programLevel = discountInfo.getOrDefault("programLevel", "").toString();
                 String discountId = discountInfo.getOrDefault("id", "").toString();
-                BigDecimal discount = BigDecimal.valueOf(Double.parseDouble(discountInfo.getOrDefault(DISCOUNT, 0).toString()));
+                BigDecimal discount = BigDecimal.valueOf(Double.valueOf(discountInfo.getOrDefault(DISCOUNT, 0).toString()));
 
                 if (discountType.equalsIgnoreCase("Summary") || discountPromoType.equalsIgnoreCase("Summary")) {
                     totalDiscountValue = discount;
@@ -106,7 +119,7 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
                     couponValue = couponValue.add(discount);
                 } else if (discountId.equalsIgnoreCase(CASH_DISCOUNT_ID)) {
                     additionalDistributorDiscount = BigDecimal.valueOf(
-                            Double.parseDouble(discountInfo.getOrDefault(DISCOUNT, 0).toString()));
+                            Double.valueOf(discountInfo.getOrDefault(DISCOUNT, 0).toString()));
                 }
             }
         }
@@ -162,5 +175,14 @@ public class SalesTransformer extends AbstractTransformer<Map<String, Object>, M
             salesDetail.put("couponValue", couponValue);
             salesDetail.put("discountValue", discountValue);
         });
+    }
+
+    private boolean isGstNoPresent(String outletCode) {
+        AccountInfo accountInfo = accountInfoService.findByLoginId(outletCode);
+        if (accountInfo == null) {
+            return false;
+        }
+        String gstin = accountInfoService.decryptAccount(accountInfo).getGstin();
+        return gstin != null && !gstin.isEmpty() && !gstin.isBlank();
     }
 }
