@@ -174,6 +174,9 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
                 ruleResult.append("Given immediate parent is not present in database.Please verify the input data.");
                 break;
             }
+            if(dbParent.getDesignation()==null){
+                userService.setDesignation(Collections.singletonList(dbParent));
+            }
 
             validateParentLocation(user, dbParent, ruleResult, isDistrict, isBranch);
             List<String> errors = isValidParent(user, dbParent);
