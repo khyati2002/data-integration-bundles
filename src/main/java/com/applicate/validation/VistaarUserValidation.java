@@ -9,7 +9,7 @@ import com.applicate.services.channelkart.validations.repository.RegexValidation
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
-
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
