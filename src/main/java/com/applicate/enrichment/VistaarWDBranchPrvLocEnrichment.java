@@ -15,8 +15,9 @@ import java.util.Map;
 public class VistaarWDBranchPrvLocEnrichment extends AbstractEnrichment<User> {
 
     //private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    private final QueryService queryService = new QueryService();
+    //private final QueryService queryService = new QueryService();
     private transient UserService userService;
+    private transient QueryService queryService;
     private static final String BRANCH = "branch";
     private static final String DISTRICT = "district";
     private static final String QUERY = "select loginid from ck_user ";
@@ -26,6 +27,9 @@ public class VistaarWDBranchPrvLocEnrichment extends AbstractEnrichment<User> {
 
         if (this.userService == null) {
             this.userService = (UserService) ServiceLocator.lookup(User.class);
+        }
+        if (this.queryService == null) {
+            this.queryService = new QueryService();
         }
 
         if(user.getDesignation() != null && (user.getDesignation().contains(DISTRICT) || user.getDesignation().contains(BRANCH))) {
