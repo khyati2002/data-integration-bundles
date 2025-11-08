@@ -97,7 +97,18 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 
 		if (immediateParent != null && immediateParent.getLocationHierarchy() != null) {
 			try {
-				Location parentLoc = mapper.readValue(immediateParent.getLocationHierarchy(), Location.class);
+				String parentLocHierarchy = immediateParent.getLocationHierarchy();
+				Location parentLoc;
+
+				if (parentLocHierarchy.trim().startsWith("{") || parentLocHierarchy.trim().startsWith("[")) {
+					parentLoc = mapper.readValue(parentLocHierarchy, Location.class);
+				} else {
+					parentLoc = new Location();
+					String[] parts = parentLocHierarchy.split(">");
+					if (parts.length > 0) parentLoc.setBranch(parts[0]);
+					if (parts.length > 1) parentLoc.setDistrict(parts[1]);
+					if (parts.length > 2) parentLoc.setCountry(parts[2]);
+				}
 				if (StringUtils.isNullOrBlank(location.getBranch())) {
 					location.setBranch(parentLoc.getBranch());
 				}
@@ -107,6 +118,7 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 				if (StringUtils.isNullOrBlank(location.getCity())) {
 					location.setCity(parentLoc.getCity());
 				}
+				enrichmentMsg = "location enriched from parent";
 			} catch (Exception e) {
 				throw new EnrichmentFailException("Failed to parse parent locationHierarchy JSON: " + e.getMessage());
 			}
