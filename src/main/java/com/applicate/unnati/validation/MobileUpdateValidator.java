@@ -25,7 +25,7 @@ public class MobileUpdateValidator extends AbstractValidationRule<User> {
 		if (!StringUtils.isNullOrBlank(cdm.getChanges())) {
 			for (Change<Serializable> change : cdm.getChanges()) {
 				if (change.getName().equalsIgnoreCase("mobile") && !(change.getCurrent().equals(change.getPrevious()))) {
-					if (isOutletStatusPending(cdm.getLoginId())) {
+					if (isOutletStatusPending(cdm.getLoginid())) {
 						return new OperationResult.StepResult(OperationResult.Status.ERROR, "The outlet is in Pending Status Mobile Number cannot be updated");
 					} else {
 						return OperationResult.StepResult.OK;
