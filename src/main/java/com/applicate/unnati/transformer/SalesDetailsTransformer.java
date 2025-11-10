@@ -87,7 +87,7 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("amount", getDouble(inputMap, "amount"));
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("productCode", getString(inputMap, "productCode"));
-        result.put("productDetails", getProductDetails(inputMap));
+        result.put("productDetails",getProductDetailsList(inputMap));
 
         return result;
     }
@@ -214,16 +214,18 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getProductDetails(Map<String, Object> rawMap) {
+    private List<Map<String, Object>> getProductDetailsList(Map<String, Object> rawMap) {
         Object value = rawMap.get("productDetails");
-        if (!(value instanceof Map)) return null;
-
-        Map<String, Object> productMap = new LinkedHashMap<>((Map<String, Object>) value);
-        productMap.remove("productDetails"); // defensive
-        return productDetailsTransformer.transform(productMap);
+        if (value == null) return Collections.emptyList();
+        if (value instanceof List<?>) {
+            return ((List<?>) value).stream()
+                           .filter(Objects::nonNull)
+                           .map(item -> {
+                               return productDetailsTransformer.transform((Map<String, Object>) item);
+                           })
+                           .filter(obj -> true)
+                           .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
-
-
-
 }
