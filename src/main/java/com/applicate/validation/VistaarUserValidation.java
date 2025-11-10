@@ -32,7 +32,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
 		validateCategory(user, ruleResult);
 		validateLocationAndParent(user, ruleResult, userService, regexValidation);
 
-		if (!ruleResult.isEmpty()) {
+		if (ruleResult.length() != 0) {
 			return new OperationResult.StepResult(OperationResult.Status.ERROR, ruleResult.toString());
 		}
 		return OperationResult.StepResult.OK;
@@ -165,6 +165,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
 
 		for (HierarchyMetadata immParent : user.getImmediateParent()) {
 			String parentId = immParent.getImmediateParent();
+			User dbParent = userService.findByLoginId(parentId);
 			if (!validateParent(parentId, ruleResult)) {
 				break;
 			}
@@ -181,6 +182,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
 	}
 
 	private boolean validateParent(String parentId, StringBuilder ruleResult) {
+		UserService userService = (UserService) ServiceLocator.lookup(User.class);
 		if (parentId == null) {
 			ruleResult.append("Immediate parent cannot be null.");
 			return false;
