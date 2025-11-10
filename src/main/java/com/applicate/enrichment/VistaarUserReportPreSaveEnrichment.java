@@ -2,7 +2,6 @@ package com.applicate.enrichment;
 
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-//import com.applicate.services.channelkart.models.User;
 import com.salescode.dim.etl.OperationResult;
 
 public class VistaarUserReportPreSaveEnrichment extends AbstractEnrichment<User> {

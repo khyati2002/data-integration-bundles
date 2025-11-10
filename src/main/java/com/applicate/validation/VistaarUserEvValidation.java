@@ -14,7 +14,7 @@ public class VistaarUserEvValidation extends AbstractValidationRule<User> {
 		if (user.getUseraccountid() == null && (user.getName() == null || user.getName().isEmpty()))
 			ruleResult.append("The user is not present in the database");
 
-		if (ruleResult.length() > 0) {
+		if (!ruleResult.isEmpty()) {
 			return new OperationResult.StepResult(OperationResult.Status.ERROR, ruleResult.toString());
 		} else {
 			return OperationResult.StepResult.OK;

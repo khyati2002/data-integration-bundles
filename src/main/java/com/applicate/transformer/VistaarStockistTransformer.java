@@ -43,15 +43,12 @@ public class VistaarStockistTransformer extends AbstractTransformer<Map<String, 
 		outlet.put("beatName", input.get(BEAT_ID));
 		outlet.put("beat", input.get(BEAT));
 
-		// Set immediateParent
 		List<Map<String, Object>> outletImmediateParentObj = getOutletImmediateParentObj(input);
 		outlet.put(IMMEDIATE_PARENT, outletImmediateParentObj);
 
-		// Set userName
 		Map<String, Object> userName = getUserObj(input);
 		outlet.put("userName", userName);
 
-		// Set extendedAttributes
 		Map<String, Object> extAttr = new LinkedHashMap<>();
 		extAttr.put("source_key", "integration");
 		extAttr.put(AUS, input.get(AUS));
@@ -64,13 +61,10 @@ public class VistaarStockistTransformer extends AbstractTransformer<Map<String, 
 		extAttr.put(SUPPLIER_MAPPING, input.get(SUPPLIER_MAPPING));
 		outlet.put("extendedAttributes", extAttr);
 
-		// location: default country "India", branch and district from input
 		Map<String, Object> location = getLocationHierarchyObj(input);
 		outlet.put("location", location);
 
-		// outletCode from UID and contactno from input
 		outlet.put("outletCode", input.get(UID));
-//		outlet.put("contactno", input.get("contactno"));
 		return outlet;
 	}
 

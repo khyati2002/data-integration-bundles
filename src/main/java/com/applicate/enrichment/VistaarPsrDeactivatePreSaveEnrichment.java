@@ -1,7 +1,6 @@
 package com.applicate.enrichment;
 
 import com.salescode.dim.jooq.impl.User;
-//import com.applicate.services.channelkart.models.User;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
