@@ -1,10 +1,9 @@
 package com.applicate.lbpl.transformer;
 
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.GenericEntity;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Collections;
@@ -20,16 +19,23 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
 
-        String pricingCode = String.valueOf(inputMap.get("pricingcode"));
+        // Extract the first feature object
+        List<Map<String, Object>> features = (List<Map<String, Object>>) inputMap.get("features");
+
+        if (features == null || features.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<String, Object> feature = features.get(0);
+
+        String pricingCode = String.valueOf(feature.get("pricingcode"));
         String name = "PricingPlan";
         String id = pricingCode + "-" + name;
 
-        JsonNode priceplandetails = JSONUtils.convert(
-                inputMap.get("priceplandetails"),
-                new TypeReference<List<Map<String, String>>>() {}
-        );
+        JsonNode pricePlanDetails = JSONUtils.getObjectMapper()
+                .valueToTree(feature.get("priceplandetails"));
 
-        JsonNode pricePlanDetail = priceplandetails.get(PRICEPLANDETAIL);
+        JsonNode pricePlanDetail = pricePlanDetails.get(PRICEPLANDETAIL);
 
         GenericEntity pricePlanObject = new GenericEntity();
         pricePlanObject.setName(name);
@@ -37,11 +43,10 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
         pricePlanObject.setKey1(pricingCode);
 
         ObjectNode payloadObject = JSONUtils.getObjectMapper().createObjectNode();
-        payloadObject.set("val", buildPricingPayload(pricePlanDetail, priceplandetails));
+        payloadObject.set("val", buildPricingPayload(pricePlanDetail, pricePlanDetails));
 
         pricePlanObject.setPayload(payloadObject);
 
-        // ✅ Explicit manual conversion to Map<String, Object>
         Map<String, Object> entityMap = new HashMap<>();
         entityMap.put("id", pricePlanObject.getId());
         entityMap.put("name", pricePlanObject.getName());
@@ -89,6 +94,4 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
         payload.set(obj.path(ITEMCODE).asText(), skuNode);
         return payload;
     }
-
-
 }
