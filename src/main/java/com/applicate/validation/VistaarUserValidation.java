@@ -10,7 +10,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,7 +169,7 @@ public class VistaarUserValidation extends AbstractValidationRule<User> {
 				break;
 			}
 			if (dbParent.getDesignation() == null) {
-				userService.addDesignationFromDb(dbParent);
+				UserService.addDesignationFromDb(dbParent);
 			}
 
 			validateParentLocation(user, dbParent, ruleResult, isBranch);
