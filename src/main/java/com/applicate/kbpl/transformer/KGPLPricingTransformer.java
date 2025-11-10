@@ -3,6 +3,7 @@ package com.applicate.kbpl.transformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.StringUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
@@ -43,7 +44,10 @@ public class KGPLPricingTransformer extends AbstractTransformer<Map<String, Obje
             throw new DataTransformationService.TransformationException("priceplandetails can not be empty");
         });
 
-        return (List<Map<String, Object>>) pricePlanObject;
+        Map<String, Object> entityMap = JSONUtils.getObjectMapper()
+                .convertValue(pricePlanObject, new TypeReference<Map<String, Object>>() {});
+        return List.of(entityMap);
+
     }
 
     private static Optional<String> ifEmpty(Object object) {
