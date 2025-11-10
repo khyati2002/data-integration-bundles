@@ -23,76 +23,111 @@ public class VistaarStockistLoginIDEnrichment extends AbstractEnrichment<User> {
     private static final Logger logger = LoggerFactory.getLogger(VistaarStockistLoginIDEnrichment.class);
     private static final String STOCKIST = "stockist";
 
-    //private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    //private final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
-    private transient UserService userService;
-    private transient SupplierMetaDataService supplierMetaDataService;
-
     @Override
     public OperationResult.StepResult apply(User user) {
+        final UserService userService = (UserService) ServiceLocator.lookup(User.class);
+        final SupplierMetaDataService supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
 
-        if (this.userService == null) {
-            this.userService = (UserService) ServiceLocator.lookup(User.class);
-        }
-        if (this.supplierMetaDataService == null) {
-            this.supplierMetaDataService = (SupplierMetaDataService) ServiceLocator.lookup(SupplierMetaData.class);
+        List<String> enrichmentMessages = new ArrayList<>();
+        boolean wdEnriched = false;
+
+        // 1. Enrich WD User if applicable
+        if (user.getDesignation().contains("wd")) {
+            enrichWdUser(user, supplierMetaDataService);
+            wdEnriched = true;
         }
 
-        String enrichmentMessage = "Data enrichment skipped";
+        // 2. Enrich Stockist User if applicable
+        if (isUserStockist(user)) {
+            OperationResult.StepResult stockistResult = enrichStockistParent(user, userService);
+
+            if (stockistResult.getStatus() != OperationResult.Status.OK) {
+                return stockistResult;
+            }
+            if (StringUtils.isNotBlank(stockistResult.getMessage())) {
+                enrichmentMessages.add(stockistResult.getMessage());
+            }
+        }
+
+        if (wdEnriched) {
+            enrichmentMessages.add(0, "WD metadata enriched");
+        }
+
+        String finalMessage = String.join(", ", enrichmentMessages);
+        if (finalMessage.isEmpty()) {
+            finalMessage = "Data enrichment skipped";
+        }
+
+        return new OperationResult.StepResult(OperationResult.Status.OK, finalMessage);
+    }
+
+    /**
+     * Enriches a "WD" user with default SupplierMetadata.
+     */
+    private void enrichWdUser(User user, SupplierMetaDataService supplierMetaDataService) {
+        ObjectNode extendedAttributes = (ObjectNode) user.getExtendedAttributes();
+        extendedAttributes.put("WDType", "WD");
+        extendedAttributes.put("WDCode", user.getLoginid());
+        extendedAttributes.put("orderFunction", "Y");
+        extendedAttributes.put("minOrderValidation", "Y");
+
+        SupplierMetadata supplierMetaData = new SupplierMetadata();
+        supplierMetaData.setActiveStatus(ActiveStatus.ACTIVE);
+        supplierMetaData.setActiveStatusReason(ActiveStatus.ACTIVE.getStatus());
+        supplierMetaData.setId(user.getLoginid());
+        supplierMetaData.setMax(1000000);
+        supplierMetaData.setMin(0);
+        supplierMetaData.setType("amount");
+        supplierMetaData.setExtendedAttributes(extendedAttributes);
+
+        com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata supplierInDB = supplierMetaDataService.findById(user.getLoginid());
+        if (supplierInDB != null) {
+            supplierMetaData.setVersion(supplierInDB.getVersion());
+        }
+
+        List<SupplierMetadata> supplierMeta = new ArrayList<>();
+        supplierMeta.add(supplierMetaData);
+        user.setSupplierMetaData(supplierMeta);
+    }
+
+    /**
+     * Enriches a "Stockist" user by verifying and updating their immediate parent's ID.
+     * Returns an ERROR StepResult on failure, or an OK StepResult with a message if updates occurred.
+     */
+    private OperationResult.StepResult enrichStockistParent(User user, UserService userService) {
         boolean isImmediateParentUpdated = false;
+        List<HierarchyMetadata> userHierarchyMetadata = user.getImmediateParent();
 
-        if(user.getDesignation().contains("wd")) {
-        	ObjectNode extendedAttributes = (ObjectNode) user.getExtendedAttributes();
-            extendedAttributes.put("WDType", "WD");
-            extendedAttributes.put("WDCode", user.getLoginid());
-            extendedAttributes.put("orderFunction", "Y");
-            extendedAttributes.put("minOrderValidation", "Y");
-            SupplierMetadata supplierMetaData = new SupplierMetadata();
-            supplierMetaData.setActiveStatus(ActiveStatus.ACTIVE);
-            supplierMetaData.setActiveStatusReason(ActiveStatus.ACTIVE.getStatus());
-            supplierMetaData.setId(user.getLoginid());
-            supplierMetaData.setMax(1000000);
-            supplierMetaData.setMin(0);
-            supplierMetaData.setType("amount");
-            supplierMetaData.setExtendedAttributes(extendedAttributes);
-            com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata supplierInDB = supplierMetaDataService.findById(user.getLoginid());
-            if(supplierInDB!=null){
-                supplierMetaData.setVersion(supplierInDB.getVersion());
-            }
-
-            List<SupplierMetadata> supplierMeta = new ArrayList<>();
-            supplierMeta.add(supplierMetaData);
-            user.setSupplierMetaData(supplierMeta);
+        if (userHierarchyMetadata == null) {
+            return new OperationResult.StepResult(OperationResult.Status.OK, "");
         }
-        if(isUserStockist(user)) {
-            List<HierarchyMetadata> userHierarchyMetadata = user.getImmediateParent();
-            try {
-                if(userHierarchyMetadata != null) {
-                    for (HierarchyMetadata hierarchyMetaData : userHierarchyMetadata) {
-                        String immediateParent = hierarchyMetaData.getImmediateParent();
-                        User psrorStockistByIdfromDB = userService.findByLoginId(immediateParent);
-                        if (psrorStockistByIdfromDB == null) {
-                            psrorStockistByIdfromDB = userService.findById(immediateParent);
-                        }
-                        if (psrorStockistByIdfromDB != null) {
-                            if (!psrorStockistByIdfromDB.getLoginid().equals(immediateParent)) {
-                                isImmediateParentUpdated = true;
-                                hierarchyMetaData.setImmediateParent(psrorStockistByIdfromDB.getLoginid());
-                            }
-                        } else {
-                            return new OperationResult.StepResult(OperationResult.Status.ERROR, StringUtils.format("User's immediate parent not found {} {}", user, immediateParent));
-                        }
-                    }
+
+        try {
+            for (HierarchyMetadata hierarchyMetaData : userHierarchyMetadata) {
+                String immediateParentId = hierarchyMetaData.getImmediateParent();
+
+                // Find the parent by login ID first, then by primary ID
+                User parentUser = userService.findByLoginId(immediateParentId);
+                if (parentUser == null) {
+                    parentUser = userService.findById(immediateParentId);
                 }
-            } catch (Exception e) {
-                logger.error("VistaarStockistLoginIDEnrichment Exception", e);
-                return new OperationResult.StepResult(OperationResult.Status.ERROR, e.getLocalizedMessage());
+
+                if (parentUser == null) {
+                    return new OperationResult.StepResult(OperationResult.Status.ERROR, StringUtils.format("User's immediate parent not found {} {}", user, immediateParentId));
+                }
+
+                if (!parentUser.getLoginid().equals(immediateParentId)) {
+                    isImmediateParentUpdated = true;
+                    hierarchyMetaData.setImmediateParent(parentUser.getLoginid());
+                }
             }
-            if(isImmediateParentUpdated) {
-               enrichmentMessage+=" immediate parent updated to loginid";
-            }
+        } catch (Exception e) {
+            logger.error("VistaarStockistLoginIDEnrichment Exception", e);
+            return new OperationResult.StepResult(OperationResult.Status.ERROR, e.getLocalizedMessage());
         }
-        return new OperationResult.StepResult(OperationResult.Status.OK, enrichmentMessage);
+
+        String message = isImmediateParentUpdated ? "immediate parent updated to loginid" : "";
+        return new OperationResult.StepResult(OperationResult.Status.OK, message);
     }
 
     public boolean isUserStockist(User user) {
