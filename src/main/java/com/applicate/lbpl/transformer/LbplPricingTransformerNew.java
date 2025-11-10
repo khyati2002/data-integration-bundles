@@ -1,10 +1,9 @@
 package com.applicate.lbpl.transformer;
 
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.GenericEntity;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Collections;
@@ -24,12 +23,11 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
         String name = "PricingPlan";
         String id = pricingCode + "-" + name;
 
-        JsonNode priceplandetails = JSONUtils.convert(
-                inputMap.get("priceplandetails"),
-                new TypeReference<List<Map<String, String>>>() {}
-        );
+        // Get priceplandetails directly from inputMap
+        JsonNode pricePlanDetails = JSONUtils.getObjectMapper()
+                .valueToTree(inputMap.get("priceplandetails"));
 
-        JsonNode pricePlanDetail = priceplandetails.get(PRICEPLANDETAIL);
+        JsonNode pricePlanDetail = pricePlanDetails.get(PRICEPLANDETAIL);
 
         GenericEntity pricePlanObject = new GenericEntity();
         pricePlanObject.setName(name);
@@ -37,11 +35,10 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
         pricePlanObject.setKey1(pricingCode);
 
         ObjectNode payloadObject = JSONUtils.getObjectMapper().createObjectNode();
-        payloadObject.set("val", buildPricingPayload(pricePlanDetail, priceplandetails));
+        payloadObject.set("val", buildPricingPayload(pricePlanDetail, pricePlanDetails));
 
         pricePlanObject.setPayload(payloadObject);
 
-        // ✅ Explicit manual conversion to Map<String, Object>
         Map<String, Object> entityMap = new HashMap<>();
         entityMap.put("id", pricePlanObject.getId());
         entityMap.put("name", pricePlanObject.getName());
@@ -55,7 +52,7 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
 
         ObjectNode payload = JSONUtils.getObjectMapper().createObjectNode();
 
-        if (pricePlanDetail.isArray()) {
+        if (pricePlanDetail != null && pricePlanDetail.isArray()) {
 
             pricePlanDetail.forEach(obj -> {
                 ObjectNode skuNode = JSONUtils.getObjectMapper().createObjectNode();
@@ -75,20 +72,21 @@ public class LbplPricingTransformerNew extends AbstractTransformer<Map<String, O
         }
 
         // Single object case
-        JsonNode obj = priceplandetails.get(PRICEPLANDETAIL);
-        ObjectNode skuNode = JSONUtils.getObjectMapper().createObjectNode();
+        if (pricePlanDetail != null) {
+            JsonNode obj = priceplandetails.get(PRICEPLANDETAIL);
+            ObjectNode skuNode = JSONUtils.getObjectMapper().createObjectNode();
 
-        skuNode.put("mrp", obj.path("mrp").asText());
-        skuNode.put("uom", obj.path("baseuom").asText());
-        skuNode.put("p", obj.path("salesprice").asText());
-        skuNode.put("bpc", obj.path("conversion1").asText());
-        skuNode.put("IsActive", obj.path("activeindicator").asText());
-        skuNode.put(ITEMCODE, obj.path(ITEMCODE).asText());
-        skuNode.put("c", obj.path("salespriceinbaseuom").asText());
+            skuNode.put("mrp", obj.path("mrp").asText());
+            skuNode.put("uom", obj.path("baseuom").asText());
+            skuNode.put("p", obj.path("salesprice").asText());
+            skuNode.put("bpc", obj.path("conversion1").asText());
+            skuNode.put("IsActive", obj.path("activeindicator").asText());
+            skuNode.put(ITEMCODE, obj.path(ITEMCODE).asText());
+            skuNode.put("c", obj.path("salespriceinbaseuom").asText());
 
-        payload.set(obj.path(ITEMCODE).asText(), skuNode);
+            payload.set(obj.path(ITEMCODE).asText(), skuNode);
+        }
+
         return payload;
     }
-
-
 }
