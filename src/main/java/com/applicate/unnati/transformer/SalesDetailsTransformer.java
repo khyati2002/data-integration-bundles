@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final ProductDetailsTransformer productDetailsTransformer = new ProductDetailsTransformer();
+    private final ProductDetailsTransformer productTransformer = new ProductDetailsTransformer();
 
     @Override
     public Map<String, Object> transform(Map<String, Object> inputMap) {
@@ -87,7 +87,7 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
         result.put("amount", getDouble(inputMap, "amount"));
         result.put("rowid", getInteger(inputMap, "rowid"));
         result.put("productCode", getString(inputMap, "productCode"));
-        result.put("productDetails",getProductDetailsList(inputMap));
+        result.put("productDetails", getProductDetailsList(inputMap));
 
         return result;
     }
@@ -217,15 +217,181 @@ public class SalesDetailsTransformer extends AbstractTransformer<Map<String, Obj
     private List<Map<String, Object>> getProductDetailsList(Map<String, Object> rawMap) {
         Object value = rawMap.get("productDetails");
         if (value == null) return Collections.emptyList();
+
         if (value instanceof List<?>) {
             return ((List<?>) value).stream()
                            .filter(Objects::nonNull)
                            .map(item -> {
-                               return productDetailsTransformer.transform((Map<String, Object>) item);
+                               Map<String, Object> productMap = new LinkedHashMap<>((Map<String, Object>) item);
+                               productMap.remove("productDetails");
+                               return productTransformer.transform(productMap);
                            })
-                           .filter(obj -> true)
                            .collect(Collectors.toList());
         }
+
         return Collections.emptyList();
     }
+
+
+}
+
+
+
+
+/*
+ * Mock streaming raw data for SalesDetails testing
+ */
+class SalesDetailsMockData {
+
+    public static String rawStreamingData = "{\n" +
+                                                    "  \"requestId\": \"test-req-SALES-001\",\n" +
+                                                    "  \"groupId\": \"SALE2025-001\",\n" +
+                                                    "  \"lob\": \"ckcoeuat\",\n" +
+                                                    "  \"loginId\": \"integration_user\",\n" +
+                                                    "  \"batchNumber\": 1,\n" +
+                                                    "  \"transformerInfo\": [\n" +
+                                                    "    {\n" +
+                                                    "      \"skipPreprocessing\": false,\n" +
+                                                    "      \"skipPersist\": false,\n" +
+                                                    "      \"entityName\": \"SalesDetails\",\n" +
+                                                    "      \"transformerId\": \"genericSalesDetailsTransformer\",\n" +
+                                                    "      \"operationType\": \"insert\"\n" +
+                                                    "    }\n" +
+                                                    "  ],\n" +
+                                                    "  \"features\": [\n" +
+                                                    "    {\n" +
+                                                    "      \"id\": \"SALE-DTL-12345\",\n" +
+                                                    "      \"activeStatus\": \"ACTIVE\",\n" +
+                                                    "      \"activeStatusReason\": \"Valid sales transaction\",\n" +
+                                                    "      \"changed\": false,\n" +
+                                                    "      \"createdBy\": \"sales_user\",\n" +
+                                                    "      \"creationTime\": \"2025-11-06T10:30:00\",\n" +
+                                                    "      \"extendedAttributes\": \"{ \\\"promotionApplied\\\": true, \\\"discountType\\\": \\\"SEASONAL\\\" }\",\n" +
+                                                    "      \"hash\": \"sales_hash_xyz789\",\n" +
+                                                    "      \"lastModifiedTime\": \"2025-11-06T10:30:00\",\n" +
+                                                    "      \"lob\": \"ckcoeuat\",\n" +
+                                                    "      \"modifiedBy\": \"sales_user\",\n" +
+                                                    "      \"source\": \"SalesManagementSystem\",\n" +
+                                                    "      \"version\": 1,\n" +
+                                                    "      \"systemTime\": \"2025-11-06T10:30:00\",\n" +
+                                                    "      \"gpsLatitude\": \"28.4595\",\n" +
+                                                    "      \"gpsLongitude\": \"77.0266\",\n" +
+                                                    "      \"billAmount\": 1375.0,\n" +
+                                                    "      \"userHierarchy\": \"{ \\\"salesPerson\\\": \\\"SP001\\\", \\\"territory\\\": \\\"NORTH\\\" }\",\n" +
+                                                    "      \"initialAmount\": 1500.0,\n" +
+                                                    "      \"locationHierarchy\": \"{ \\\"country\\\": \\\"India\\\", \\\"state\\\": \\\"Haryana\\\", \\\"city\\\": \\\"Gurugram\\\" }\",\n" +
+                                                    "      \"mrp\": 25.0,\n" +
+                                                    "      \"name\": \"Cavin Care Rose Water 180ml\",\n" +
+                                                    "      \"netAmount\": 1325.0,\n" +
+                                                    "      \"normalizedVolume\": 55.0,\n" +
+                                                    "      \"orderNumber\": \"ORD-2025-11-001\",\n" +
+                                                    "      \"orderedDate\": \"2025-11-06T09:00:00\",\n" +
+                                                    "      \"payByDate\": \"2025-11-20T23:59:59\",\n" +
+                                                    "      \"programNumber\": \"PROG-2025-Q4\",\n" +
+                                                    "      \"remarks\": \"Bulk order for retail chain\",\n" +
+                                                    "      \"size\": \"180ML\",\n" +
+                                                    "      \"status\": \"COMPLETED\",\n" +
+                                                    "      \"supplierid\": \"SUPP-CC-001\",\n" +
+                                                    "      \"hierarchy\": \"{ \\\"level1\\\": \\\"FMCG\\\", \\\"level2\\\": \\\"PersonalCare\\\" }\",\n" +
+                                                    "      \"type\": \"PRIMARY_SALES\",\n" +
+                                                    "      \"batchCode\": \"M01G002044_22.3800\",\n" +
+                                                    "      \"batchIds\": \"[\\\"BATCH-001\\\", \\\"BATCH-002\\\"]\",\n" +
+                                                    "      \"batchId\": \"M01G002044\",\n" +
+                                                    "      \"skuCode\": \"CNFM180ROSE01TR\",\n" +
+                                                    "      \"invoiceNumber\": \"INV-2025-11-001\",\n" +
+                                                    "      \"price\": 25.0,\n" +
+                                                    "      \"casePrice\": 600.0,\n" +
+                                                    "      \"otherUnitPrice\": 300.0,\n" +
+                                                    "      \"pieceQuantity\": 55.0,\n" +
+                                                    "      \"caseQuantity\": 2.0,\n" +
+                                                    "      \"otherUnitQuantity\": 5.0,\n" +
+                                                    "      \"normalizedQuantity\": 55.0,\n" +
+                                                    "      \"quantityUnit\": \"PC\",\n" +
+                                                    "      \"initialQuantity\": 55.0,\n" +
+                                                    "      \"initialPieceQuantity\": 55.0,\n" +
+                                                    "      \"initialCaseQuantity\": 2.0,\n" +
+                                                    "      \"initialOtherUnitQuantity\": 5.0,\n" +
+                                                    "      \"initialNormalizedQuantity\": 55.0,\n" +
+                                                    "      \"productInfo\": \"{ \\\"productCode\\\": \\\"CNFM180ROSE01TR\\\", \\\"hsnCode\\\": \\\"22029930\\\", \\\"manfDt\\\": \\\"2024-12-27\\\", \\\"expiryDt\\\": \\\"2025-06-25\\\" }\",\n" +
+                                                    "      \"discountInfo\": \"{ \\\"tradeDiscPer\\\": 1.0, \\\"tradeDiscAmount\\\": 0.0, \\\"addDiscAmt\\\": 0.0, \\\"totalDiscount\\\": 50.0 }\",\n" +
+                                                    "      \"nw\": 9900.0,\n" +
+                                                    "      \"amount\": 1375.0,\n" +
+                                                    "      \"rowid\": 21\n" +
+                                                    "    }\n" +
+                                                    "  ]\n" +
+                                                    "}";
+
+    // Alternative format based on the provided mock body structure
+    public static String rawStreamingDataCavincare = "{\n" +
+                                                             "  \"requestId\": \"85d6615b-b3a4-41e5-97ad-d34f1a580daf\",\n" +
+                                                             "  \"groupId\": \"PURCHINV199\",\n" +
+                                                             "  \"fileId\": null,\n" +
+                                                             "  \"lob\": \"ckcoeuat\",\n" +
+                                                             "  \"submittedBy\": null,\n" +
+                                                             "  \"transformerInfo\": [\n" +
+                                                             "    {\n" +
+                                                             "      \"entityName\": \"SalesDetails\",\n" +
+                                                             "      \"transformerId\": \"Cavincare_Sales_Details_transformer\",\n" +
+                                                             "      \"operationType\": \"insert\",\n" +
+                                                             "      \"skipPreprocessing\": \"true\"\n" +
+                                                             "    }\n" +
+                                                             "  ],\n" +
+                                                             "  \"topicName\": null,\n" +
+                                                             "  \"preserveOnFailure\": true,\n" +
+                                                             "  \"features\": [\n" +
+                                                             "    {\n" +
+                                                             "      \"id\": \"SALE-DTL-67890\",\n" +
+                                                             "      \"activeStatus\": \"ACTIVE\",\n" +
+                                                             "      \"SlNo\": 21,\n" +
+                                                             "      \"skuCode\": \"CNFM180ROSE01TR\",\n" +
+                                                             "      \"batchCode\": \"M01G002044_22.3800\",\n" +
+                                                             "      \"ManfDt\": \"2024-12-27\",\n" +
+                                                             "      \"ExpiryDt\": \"2025-06-25\",\n" +
+                                                             "      \"HsnCode\": \"22029930\",\n" +
+                                                             "      \"pieceQuantity\": 55.0,\n" +
+                                                             "      \"OfferQty\": 0,\n" +
+                                                             "      \"quantityUnit\": \"PC\",\n" +
+                                                             "      \"price\": 25.0,\n" +
+                                                             "      \"PurchPrice\": 25.0,\n" +
+                                                             "      \"mrp\": 25.0,\n" +
+                                                             "      \"DiscAmtLl\": 0,\n" +
+                                                             "      \"LlGrossAmt\": 1375.0,\n" +
+                                                             "      \"netAmount\": 1375.0,\n" +
+                                                             "      \"LlTaxAmt\": 1.0,\n" +
+                                                             "      \"LlTradeDiscPer\": 1.0,\n" +
+                                                             "      \"LlTradeDiscAmount\": 0,\n" +
+                                                             "      \"TaxPerc1\": 1.0,\n" +
+                                                             "      \"TaxPerc2\": 1.0,\n" +
+                                                             "      \"TaxPerc3\": 1.0,\n" +
+                                                             "      \"TaxPerc4\": 1.0,\n" +
+                                                             "      \"TaxPerc5\": 1.0,\n" +
+                                                             "      \"TaxAmt1\": 1.0,\n" +
+                                                             "      \"TaxAmt2\": 1.0,\n" +
+                                                             "      \"TaxAmt3\": 0,\n" +
+                                                             "      \"TaxAmt4\": 0,\n" +
+                                                             "      \"TaxAmt5\": 0,\n" +
+                                                             "      \"CstPerc1\": 0,\n" +
+                                                             "      \"CstPerc2\": 0,\n" +
+                                                             "      \"CstPerc3\": 0,\n" +
+                                                             "      \"CstAmt1\": 0,\n" +
+                                                             "      \"CstAmt2\": 0,\n" +
+                                                             "      \"CstAmt3\": 0,\n" +
+                                                             "      \"LlAddDiscAmt\": 0,\n" +
+                                                             "      \"discountInfo\": \"{ \\\"tradeDiscPer\\\": 1.0, \\\"tradeDiscAmount\\\": 0, \\\"addDiscAmt\\\": 0 }\",\n" +
+                                                             "      \"productInfo\": \"{ \\\"hsnCode\\\": \\\"22029930\\\", \\\"manfDt\\\": \\\"2024-12-27\\\", \\\"expiryDt\\\": \\\"2025-06-25\\\" }\",\n" +
+                                                             "      \"lob\": \"ckcoeuat\",\n" +
+                                                             "      \"createdBy\": \"integration_user\",\n" +
+                                                             "      \"source\": \"CavincareInvoiceSystem\",\n" +
+                                                             "      \"rowid\": 21,\n" +
+                                                             "      \"normalizedQuantity\": 55.0,\n" +
+                                                             "      \"initialQuantity\": 55.0,\n" +
+                                                             "      \"initialPieceQuantity\": 55.0\n" +
+                                                             "    }\n" +
+                                                             "  ],\n" +
+                                                             "  \"loginId\": \"integration_user\",\n" +
+                                                             "  \"offset\": null,\n" +
+                                                             "  \"retryCount\": null,\n" +
+                                                             "  \"ignoreS3Log\": false,\n" +
+                                                             "  \"headersMap\": null\n" +
+                                                             "}";
 }
