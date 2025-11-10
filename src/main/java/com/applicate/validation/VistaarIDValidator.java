@@ -107,7 +107,8 @@ public class VistaarIDValidator extends AbstractValidationRule<User> {
 
 		List<String> parentMismatch = wddestList.stream()
 				.filter(wdDest -> !userParentList.contains(wdDest))
-				.toList();
+				.collect(Collectors.toList());
+
 		if (!parentMismatch.isEmpty()) {
 			errors.add("wd " + wddestList + " is not present as psr " + psrcrmid + " parent");
 		}
