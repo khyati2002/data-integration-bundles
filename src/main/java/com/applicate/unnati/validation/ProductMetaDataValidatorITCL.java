@@ -23,12 +23,13 @@ public class ProductMetaDataValidatorITCL extends AbstractValidationRule<Product
 
 	String decimalRegex = "^([0-9]*\\.)+?[0-9]+$";
 	String integerRegex = "(^[0-9]*$)";
-	ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
-	UserService userService = (UserService) ServiceLocator.lookup(User.class);
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public OperationResult.StepResult apply(ProductMetaData cdm) {
+		ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
+		UserService userService = (UserService) ServiceLocator.lookup(User.class);
+
 		List<String> errors = new ArrayList<>();
 
 		if (cdm.getSkuCode() == null || cdm.getSkuCode().isEmpty()) {
