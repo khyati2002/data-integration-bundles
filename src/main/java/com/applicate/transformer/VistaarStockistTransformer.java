@@ -1,6 +1,8 @@
 package com.applicate.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,10 +64,13 @@ public class VistaarStockistTransformer extends AbstractTransformer<Map<String, 
 		extAttr.put(SUPPLIER_MAPPING, input.get(SUPPLIER_MAPPING));
 		outlet.put("extendedAttributes", extAttr);
 
+		// location: default country "India", branch and district from input
 		Map<String, Object> location = getLocationHierarchyObj(input);
 		outlet.put("location", location);
 
+		// outletCode from UID and contactno from input
 		outlet.put("outletCode", input.get(UID));
+//		outlet.put("contactno", input.get("contactno"));
 		return outlet;
 	}
 
@@ -80,6 +85,7 @@ public class VistaarStockistTransformer extends AbstractTransformer<Map<String, 
 		// Set designation
 		userName.put("designation", Collections.singletonList(STOCKIST));
 
+		// Set extendedAttributes
 		Map<String, Object> userExtAttr = new LinkedHashMap<>();
 		userExtAttr.put("source_key", "integration");
 		userExtAttr.put(AUS, input.get(AUS));
@@ -92,9 +98,11 @@ public class VistaarStockistTransformer extends AbstractTransformer<Map<String, 
 		userExtAttr.put(PSRCRMID, input.get(PSRCRMID));
 		userName.put("extendedAttributes", userExtAttr);
 
+		// Set immediateParent
 		List<Map<String, Object>> immediateParentObj = getUserImmediateParentObj(input);
 		userName.put(IMMEDIATE_PARENT, immediateParentObj);
 
+		// Set locationHierarchy
 		Map<String, Object> locationHierarchy = getLocationHierarchyObj(input);
 		userName.put("locationHierarchy", locationHierarchy);
 
