@@ -97,7 +97,7 @@ public class ProductMetaDataValidatorITCL extends AbstractValidationRule<Product
 			errors.add("caseToPieceQuantity should not be null or empty");
 		}
 
-		if (cdm.getLoginId() == null) {
+		if (cdm.getLoginid() == null) {
 			errors.add("supplier should not be null or empty");
 		} else {
 			User user = userService.findByLoginId(cdm.getLoginid());
