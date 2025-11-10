@@ -33,11 +33,198 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 		enrichmentResult.add(enrichSupplierMetadata(user));
 		enrichmentResult.add(enrichAUSStockistUser(user));
 		enrichmentResult.add(enrichActiveStatus(user));
+
 		return new OperationResult.StepResult(OperationResult.Status.OK, String.join(",", enrichmentResult));
+	}
+
+	private String enrichLocationInformation(User user) {
+		ObjectMapper mapper = new ObjectMapper();
+		Location location = parseLocationHierarchy(user.getLocationHierarchy(), mapper);
+		String enrichmentMsg = enrichCountry(location);
+
+		User immediateParent = getImmediateParentUser(user);
+		if (immediateParent != null) {
+			enrichmentMsg = tryEnrichFromParent(location, immediateParent, mapper, enrichmentMsg);
+		}
+
+		serializeLocation(user, location, mapper);
+		return enrichmentMsg;
+	}
+
+	private String tryEnrichFromParent(Location location, User parent, ObjectMapper mapper, String msg) {
+		if (parent.getLocationHierarchy() == null) return msg;
+		try {
+			Location parentLoc = parseParentLocation(parent.getLocationHierarchy(), mapper);
+			return fillMissingLocationFields(location, parentLoc) ? "location enriched from parent" : msg;
+		} catch (Exception e) {
+			throw new EnrichmentFailException("Failed to parse parent locationHierarchy JSON: " + e.getMessage());
+		}
+	}
+
+	private String enrichSupplierMetadata(User user) {
+		if (!isWDUser(user)) return "Supplier Metadata enrichment skipped";
+
+		List<SupplierMetadata> metadataList = ensureSupplierMetadataList(user);
+		boolean enriched = enrichSupplierMetadataFields(metadataList);
+		return enriched ? "Supplier Metadata enriched for WD" : "Supplier Metadata enrichment skipped";
+	}
+
+	private boolean isWDUser(User user) {
+		return user.getDesignation() != null && user.getDesignation().contains("wd");
+	}
+
+	private List<SupplierMetadata> ensureSupplierMetadataList(User user) {
+		List<SupplierMetadata> list = user.getSupplierMetaData();
+		if (list == null || list.isEmpty()) {
+			list = new ArrayList<>();
+			list.add(new SupplierMetadata());
+			user.setSupplierMetaData(list);
+		}
+		return list;
+	}
+
+	private boolean enrichSupplierMetadataFields(List<SupplierMetadata> list) {
+		boolean enriched = false;
+		for (SupplierMetadata meta : list) {
+			if (setIfBlank(meta::getType, meta::setType, "amount")) enriched = true;
+			if (setIfNull(meta::getMin, meta::setMin, 0)) enriched = true;
+			if (setIfNull(meta::getMax, meta::setMax, 1_000_000)) enriched = true;
+		}
+		return enriched;
+	}
+
+	private boolean setIfBlank(Supplier<String> getter, Consumer<String> setter, String value) {
+		if (StringUtils.isNullOrBlank(getter.get())) {
+			setter.accept(value);
+			return true;
+		}
+		return false;
+	}
+
+	private <T> boolean setIfNull(Supplier<T> getter, Consumer<T> setter, T value) {
+		if (getter.get() == null) {
+			setter.accept(value);
+			return true;
+		}
+		return false;
+	}
+
+	private String enrichActiveStatus(User user) {
+		if (user.getDesignation() == null || user.getActiveStatus() != null)
+			return ACTIVE_STATUS_NOT_ENRICHED;
+
+		if (isOrgLevelUser(user)) return activateUser(user);
+		if (isSalesUser(user)) return handleSalesUserActiveStatus(user);
+
+		deactivateUnknownDesignation(user);
+		return ACTIVE_STATUS_NOT_ENRICHED;
+	}
+
+	private boolean isOrgLevelUser(User user) {
+		String d = user.getDesignation();
+		return d.contains("wd") || d.contains("branch") || d.contains("district");
+	}
+
+	private boolean isSalesUser(User user) {
+		String d = user.getDesignation();
+		return d.contains("psr") || d.contains("stockist");
+	}
+
+	private String activateUser(User user) {
+		user.setActiveStatus(ActiveStatus.ACTIVE);
+		user.setActiveStatusReason(ActiveStatus.ACTIVE.getStatus());
+		return "active status enriched";
+	}
+
+	private String handleSalesUserActiveStatus(User user) {
+		JsonNode attrs = user.getExtendedAttributes();
+		if (attrs == null || !attrs.hasNonNull("AUS")) return ACTIVE_STATUS_NOT_ENRICHED;
+
+		String aus = attrs.get("AUS").asText();
+		switch (aus.toUpperCase()) {
+			case "Y":
+				user.setActiveStatus(ActiveStatus.ACTIVE);
+				user.setActiveStatusReason("active status activated as per AUS field");
+				return "active status enriched as per AUS field";
+			case "N":
+				user.setActiveStatus(ActiveStatus.INACTIVE);
+				user.setActiveStatusReason("active status inactive as per AUS field");
+				return "active status enriched as per AUS field";
+			default:
+				throw new EnrichmentFailException("AUS field should be Y or N for PSR and stockist");
+		}
+	}
+
+	private void deactivateUnknownDesignation(User user) {
+		user.setActiveStatus(ActiveStatus.INACTIVE);
+		user.setActiveStatusReason("Unknown designation");
+	}
+
+	private Location parseLocationHierarchy(String locationHierarchy, ObjectMapper mapper) {
+		if (locationHierarchy == null) return new Location();
+		try {
+			return mapper.readValue(locationHierarchy, Location.class);
+		} catch (Exception e) {
+			throw new EnrichmentFailException("Failed to parse locationHierarchy JSON: " + e.getMessage());
+		}
+	}
+
+	private User getImmediateParentUser(User user) {
+		if (user.getImmediateParent() == null || user.getImmediateParent().isEmpty()) return null;
+		HierarchyMetadata hmd = user.getImmediateParent().get(0);
+		return (hmd != null && hmd.getParent() != null) ? userService.findByLoginId(hmd.getParent()) : null;
+	}
+
+	private String enrichCountry(Location location) {
+		if (StringUtils.isNotBlank(location.getCountry())) {
+			location.setCountry(location.getCountry().trim().toUpperCase());
+			return "location enrichment skipped";
+		}
+		location.setCountry("INDIA");
+		return "country enriched successfully";
+	}
+
+	private Location parseParentLocation(String parentLocHierarchy, ObjectMapper mapper) throws Exception {
+		String trimmed = parentLocHierarchy.trim();
+		if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+			return mapper.readValue(parentLocHierarchy, Location.class);
+		}
+		Location parentLoc = new Location();
+		String[] parts = parentLocHierarchy.split(">");
+		if (parts.length > 0) parentLoc.setBranch(parts[0]);
+		if (parts.length > 1) parentLoc.setDistrict(parts[1]);
+		if (parts.length > 2) parentLoc.setCountry(parts[2]);
+		return parentLoc;
+	}
+
+	private boolean fillMissingLocationFields(Location location, Location parentLoc) {
+		boolean enriched = false;
+		if (StringUtils.isNullOrBlank(location.getBranch()) && StringUtils.isNotBlank(parentLoc.getBranch())) {
+			location.setBranch(parentLoc.getBranch());
+			enriched = true;
+		}
+		if (StringUtils.isNullOrBlank(location.getState()) && StringUtils.isNotBlank(parentLoc.getState())) {
+			location.setState(parentLoc.getState());
+			enriched = true;
+		}
+		if (StringUtils.isNullOrBlank(location.getCity()) && StringUtils.isNotBlank(parentLoc.getCity())) {
+			location.setCity(parentLoc.getCity());
+			enriched = true;
+		}
+		return enriched;
+	}
+
+	private void serializeLocation(User user, Location location, ObjectMapper mapper) {
+		try {
+			user.setLocationHierarchy(mapper.writeValueAsString(location));
+		} catch (Exception e) {
+			throw new EnrichmentFailException("Failed to serialize Location back to JSON: " + e.getMessage());
+		}
 	}
 
 	public String enrichAUSStockistUser(User user) {
 		String enrichmentMsg = "AUS enrichment skipped";
+
 		if (user.getDesignation().contains("stockist")) {
 			JsonNode curExtendedAttributes = user.getExtendedAttributes();
 			User userInDb = userService.findByLoginId(user.getLoginId());
@@ -56,171 +243,9 @@ public class VistaarUserEnrichment extends AbstractEnrichment<User> {
 					user.setExtendedAttributes(newExtendedAttributes);
 					enrichmentMsg = "AUS enriched successfully";
 				}
+
 			}
 		}
 		return enrichmentMsg;
-	}
-
-	private String enrichLocationInformation(User user) {
-		ObjectMapper mapper = new ObjectMapper();
-		String enrichmentMsg = "location enrichment skipped";
-		Location location = parseLocationHierarchy(user.getLocationHierarchy(), mapper);
-
-		User immediateParent = getImmediateParentUser(user);
-		location = enrichCountryIfMissing(location);
-
-		if (immediateParent != null && immediateParent.getLocationHierarchy() != null) {
-			enrichmentMsg = enrichFromParentLocation(mapper, location, immediateParent);
-		}
-
-		try {
-			user.setLocationHierarchy(mapper.writeValueAsString(location));
-		} catch (Exception e) {
-			throw new EnrichmentFailException("Failed to serialize Location back to JSON: " + e.getMessage());
-		}
-		return enrichmentMsg;
-	}
-
-	private Location parseLocationHierarchy(String hierarchy, ObjectMapper mapper) {
-		if (hierarchy == null) return new Location();
-		try {
-			return mapper.readValue(hierarchy, Location.class);
-		} catch (Exception e) {
-			throw new EnrichmentFailException("Failed to parse locationHierarchy JSON: " + e.getMessage());
-		}
-	}
-
-	private User getImmediateParentUser(User user) {
-		if (user.getImmediateParent() == null || user.getImmediateParent().isEmpty()) return null;
-		HierarchyMetadata hmd = user.getImmediateParent().get(0);
-		if (hmd == null || hmd.getParent() == null) return null;
-		return userService.findByLoginId(hmd.getParent());
-	}
-
-	private Location enrichCountryIfMissing(Location location) {
-		if (StringUtils.isNotBlank(location.getCountry())) {
-			location.setCountry(location.getCountry().trim().toUpperCase());
-		} else {
-			location.setCountry("INDIA");
-		}
-		return location;
-	}
-
-	private String enrichFromParentLocation(ObjectMapper mapper, Location location, User immediateParent) {
-		try {
-			Location parentLoc = parseParentLocation(immediateParent.getLocationHierarchy(), mapper);
-			copyMissingLocationFields(location, parentLoc);
-			return "location enriched from parent";
-		} catch (Exception e) {
-			throw new EnrichmentFailException("Failed to parse parent locationHierarchy JSON: " + e.getMessage());
-		}
-	}
-
-	private Location parseParentLocation(String parentLocHierarchy, ObjectMapper mapper) throws Exception {
-		if (parentLocHierarchy.trim().startsWith("{") || parentLocHierarchy.trim().startsWith("[")) {
-			return mapper.readValue(parentLocHierarchy, Location.class);
-		}
-		Location parentLoc = new Location();
-		String[] parts = parentLocHierarchy.split(">");
-		if (parts.length > 0) parentLoc.setBranch(parts[0]);
-		if (parts.length > 1) parentLoc.setDistrict(parts[1]);
-		if (parts.length > 2) parentLoc.setCountry(parts[2]);
-		return parentLoc;
-	}
-
-	private void copyMissingLocationFields(Location target, Location source) {
-		if (StringUtils.isNullOrBlank(target.getBranch())) target.setBranch(source.getBranch());
-		if (StringUtils.isNullOrBlank(target.getState())) target.setState(source.getState());
-		if (StringUtils.isNullOrBlank(target.getCity())) target.setCity(source.getCity());
-	}
-
-	private String enrichSupplierMetadata(User user) {
-		if (user.getDesignation() == null || !user.getDesignation().contains("wd")) {
-			return "Supplier Metadata enrichment skipped";
-		}
-
-		List<SupplierMetadata> supplierMetaDataList = initializeSupplierList(user);
-		boolean enriched = enrichSupplierFields(supplierMetaDataList);
-		return enriched ? "Supplier Metadata enriched for WD" : "Supplier Metadata enrichment skipped";
-	}
-
-	private List<SupplierMetadata> initializeSupplierList(User user) {
-		List<SupplierMetadata> supplierMetaDataList = user.getSupplierMetaData();
-		if (supplierMetaDataList == null || supplierMetaDataList.isEmpty()) {
-			supplierMetaDataList = new ArrayList<>();
-			supplierMetaDataList.add(new SupplierMetadata());
-			user.setSupplierMetaData(supplierMetaDataList);
-		}
-		return supplierMetaDataList;
-	}
-
-	private boolean enrichSupplierFields(List<SupplierMetadata> supplierMetaDataList) {
-		boolean enriched = false;
-		for (SupplierMetadata meta : supplierMetaDataList) {
-			if (meta.getType() == null || meta.getType().isBlank()) {
-				meta.setType("amount");
-				enriched = true;
-			}
-			if (meta.getMin() == null) {
-				meta.setMin(0);
-				enriched = true;
-			}
-			if (meta.getMax() == null) {
-				meta.setMax(1000000);
-				enriched = true;
-			}
-		}
-		return enriched;
-	}
-
-	private String enrichActiveStatus(User user) {
-		if (user.getDesignation() == null || user.getActiveStatus() != null) {
-			return ACTIVE_STATUS_NOT_ENRICHED;
-		}
-
-		String designation = user.getDesignation();
-		if (isAdminDesignation(designation)) {
-			setActive(user, ActiveStatus.ACTIVE, ActiveStatus.ACTIVE.getStatus());
-			return "active status enriched";
-		}
-
-		if (isSalesDesignation(designation)) {
-			return enrichActiveStatusFromAUS(user);
-		}
-
-		setActive(user, ActiveStatus.INACTIVE, "Unknown designation");
-		return ACTIVE_STATUS_NOT_ENRICHED;
-	}
-
-	private boolean isAdminDesignation(String designation) {
-		return designation.contains("wd") || designation.contains("branch") || designation.contains("district");
-	}
-
-	private boolean isSalesDesignation(String designation) {
-		return designation.contains("psr") || designation.contains("stockist");
-	}
-
-	private String enrichActiveStatusFromAUS(User user) {
-		JsonNode extendedAttributes = user.getExtendedAttributes();
-		if (extendedAttributes == null || !extendedAttributes.hasNonNull("AUS")) {
-			return ACTIVE_STATUS_NOT_ENRICHED;
-		}
-
-		String aus = extendedAttributes.get("AUS").asText();
-		switch (aus.toUpperCase()) {
-			case "Y":
-				setActive(user, ActiveStatus.ACTIVE, "active status activated as per AUS field");
-				return "active status enriched as per AUS field";
-			case "N":
-				setActive(user, ActiveStatus.INACTIVE, "active status inactive as per AUS field");
-				return "active status enriched as per AUS field";
-			default:
-				throw new EnrichmentFailException("AUS field should be Y or N for PSR and stockist");
-		}
-	}
-
-	private void setActive(User user, ActiveStatus status, String reason) {
-		user.setActiveStatus(status);
-		user.setActiveStatusReason(reason);
 	}
 }
