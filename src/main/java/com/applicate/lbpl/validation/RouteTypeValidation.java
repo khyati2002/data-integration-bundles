@@ -8,6 +8,8 @@ import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.jooq.impl.User;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import org.apache.commons.lang3.StringUtils;
+import com.salescode.dim.jooq.impl.GenericEntity;
+
 
 
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 public class RouteTypeValidation extends AbstractValidationRule<User> {
 
     GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
-    
+
     private static final String ROUTE_TYPE = "routetype";
 
     @Override
