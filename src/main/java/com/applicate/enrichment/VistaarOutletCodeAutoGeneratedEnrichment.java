@@ -3,7 +3,7 @@ package com.applicate.enrichment;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.generated.tables.pojos.HierarchyMetadata;
-import com.salescode.dim.jooq.generated.tables.pojos.OutletDetails;
+import com.salescode.dim.jooq.impl.OutletDetails;
 import java.util.List;
 import com.applicate.services.channelkart.services.SequenceInfoService;
 import com.applicate.services.channelkart.utils.StringUtils;
