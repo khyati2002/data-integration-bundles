@@ -1,5 +1,6 @@
 package com.applicate.kgbpl.transformer;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -107,19 +108,44 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         }
     }
 
+    /**
+     * Safely extracts raw string value from any object type, including JsonNode
+     */
     private String getRawValue(Object value) {
-        return (value != null && !ObjectUtils.isEmpty(value.toString().trim())) ? value.toString() : "";
+        if (value == null) {
+            return "";
+        }
+
+        // Handle JsonNode objects if they come from the source
+        if (value instanceof JsonNode) {
+            JsonNode node = (JsonNode) value;
+            if (node.isNull() || node.isMissingNode()) {
+                return "";
+            }
+            String textValue = node.asText();
+            return (textValue != null && !textValue.trim().isEmpty()) ? textValue : "";
+        }
+
+        // Handle regular objects
+        String strValue = value.toString().trim();
+        return !ObjectUtils.isEmpty(strValue) ? strValue : "";
     }
 
     private boolean isValidMobile(String mobile) {
         return !mobile.isEmpty() && Pattern.matches("^[6-9]\\d{9}$", mobile);
     }
 
+    /**
+     * Concatenates value with dataAreaId, handling JsonNode objects
+     */
     private String concatWithDataAreaId(Map<String, Object> source, String key, String dataAreaId) {
         String value = getRawValue(source.get(key));
         return value.isEmpty() ? "" : value + "-" + dataAreaId;
     }
 
+    /**
+     * Sanitizes coordinate values, ensuring they match valid lat/lon patterns
+     */
     private String sanitizeCoordinate(Object value, Pattern pattern) {
         String s = getRawValue(value).trim();
         if (s.isEmpty()) return "0";
