@@ -1,8 +1,6 @@
 package com.applicate.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
