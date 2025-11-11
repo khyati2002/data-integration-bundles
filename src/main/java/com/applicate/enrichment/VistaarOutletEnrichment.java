@@ -20,12 +20,12 @@ import java.util.Set;
 public class VistaarOutletEnrichment extends AbstractEnrichment<OutletDetails> {
 
 	public static final String SUPPLIER = "supplier";
-	private UserService userService = (UserService) ServiceLocator.lookup(User.class);
 	private static final String DESIGNATION_STOCKIST = "STOCKIST";
 
 
 	@Override
 	public OperationResult.StepResult apply(OutletDetails outletDetails) {
+		UserService userService = (UserService) ServiceLocator.lookup(User.class);
 		String enrichmentMsg = "";
 		List<HierarchyMetadata> hierarchyMetaDataList = outletDetails.getImmediateParent();
 		User userinDb = null;
