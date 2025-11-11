@@ -1,20 +1,16 @@
 package com.applicate.kgbpl.transformer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
-    // --- NEW: strict coordinate patterns (-90..90 for lat, -180..180 for lon) ---
     private static final Pattern LAT_PATTERN =
             Pattern.compile("^[+-]?(?:90(?:\\.0+)?|(?:[0-8]?\\d)(?:\\.\\d+)?)$");
     private static final Pattern LON_PATTERN =
@@ -28,15 +24,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
         String dataAreaId = getRawValue(source.get("dataAreaId"));
 
-        // Create locationHierarchy as a simple Map
-        Map<String, Object> locationHierarchy = new LinkedHashMap<>();
-        locationHierarchy.put("area", concatWithDataAreaId(source, "AreaCode", dataAreaId));
-        locationHierarchy.put("city", getRawValue(source.get("City")));
-        locationHierarchy.put("pincode", getRawValue(source.get("ZipCode")));
-        locationHierarchy.put("state", getRawValue(source.get("StateName")));
-        locationHierarchy.put("country", "India");
-        locationHierarchy.put("areacode", concatWithDataAreaId(source, "AreaCode", dataAreaId));
-        result.put("locationHierarchy", locationHierarchy);
+        // Build locationHierarchy as a plain string (like the reference code)
+        result.put("locationHierarchy", buildLocationHierarchy(source, dataAreaId));
 
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
         result.put("displayAddress", getRawValue(source.get("City")) + "," + getRawValue(source.get("StateName")));
@@ -71,10 +60,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
         String deactive = getRawValue(source.get("Deactive"));
         String custGroup = getRawValue(source.get("CustGroup"));
-        // Default active status
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
-        // Additional business rules (case-insensitive)
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
                 && "COLEMPTY".equalsIgnoreCase(custGroup))
                 || ("WBPL".equalsIgnoreCase(dataAreaId)
@@ -84,8 +71,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         }
 
         result.put("activeStatus", activeStatus);
-
-        // --- UPDATED: sanitize coordinates using regex; default to "0" when invalid/blank ---
         result.put("latitude", sanitizeCoordinate(source.get("Latitude"), LAT_PATTERN));
         result.put("longitude", sanitizeCoordinate(source.get("Longitude"), LON_PATTERN));
 
@@ -95,7 +80,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         }
 
         result.put("outletType", getRawValue(source.get("PartyType")));
-        result.put("outletAttr4", getRawValue(source.get(""))); // kept as-is per original code
+        result.put("outletAttr4", getRawValue(source.get("")));
         result.put("outletName", getRawValue(source.get("CustomerName")));
 
         String paymentMode = getRawValue(source.get("PaymentTerms"));
@@ -105,13 +90,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        // Create extendedAttributes as a simple Map
-        Map<String, Object> extended = new LinkedHashMap<>();
-        extended.put("CreditLimit", getRawValue(source.get("CreditLimit")));
-        extended.put("DeactiveDate", getRawValue(source.get("DeactiveDate")));
-        extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
-        extended.put("preferredPaymentMode", paymentMode);
-        result.put("extendedAttributes", extended);
+        // Build extendedAttributes as a plain string (like the reference code)
+        result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
         return result;
     }
@@ -132,7 +112,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
     }
 
     private boolean isValidMobile(String mobile) {
-        // Accepts 10-digit Indian numbers starting with 6-9
         return !mobile.isEmpty() && Pattern.matches("^[6-9]\\d{9}$", mobile);
     }
 
@@ -141,10 +120,84 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         return value.isEmpty() ? "" : value + "-" + dataAreaId;
     }
 
-    // --- NEW: helper to sanitize coordinates using the patterns above ---
     private String sanitizeCoordinate(Object value, Pattern pattern) {
         String s = getRawValue(value).trim();
         if (s.isEmpty()) return "0";
         return pattern.matcher(s).matches() ? s : "0";
+    }
+
+    /**
+     * Builds locationHierarchy as a hierarchical string similar to the reference code
+     * Format: "Area > City > Pincode > State > Country"
+     */
+    private String buildLocationHierarchy(Map<String, Object> source, String dataAreaId) {
+        String area = getRawValue(source.get("AreaCode"));
+        if (!area.isEmpty()) {
+            area = area + "-" + dataAreaId;
+        }
+
+        String city = getRawValue(source.get("City"));
+        String pincode = getRawValue(source.get("ZipCode"));
+        String state = getRawValue(source.get("StateName"));
+        String country = "India";
+
+        StringBuilder hierarchy = new StringBuilder();
+
+        if (!area.isEmpty()) {
+            hierarchy.append(area.trim());
+        }
+
+        if (!city.isEmpty()) {
+            if (hierarchy.length() > 0) hierarchy.append(" > ");
+            hierarchy.append(city.trim());
+        }
+
+        if (!pincode.isEmpty()) {
+            if (hierarchy.length() > 0) hierarchy.append(" > ");
+            hierarchy.append(pincode.trim());
+        }
+
+        if (!state.isEmpty()) {
+            if (hierarchy.length() > 0) hierarchy.append(" > ");
+            hierarchy.append(state.trim());
+        }
+
+        if (hierarchy.length() > 0) hierarchy.append(" > ");
+        hierarchy.append(country);
+
+        return hierarchy.toString();
+    }
+
+    /**
+     * Builds extendedAttributes as a formatted string
+     * Format: "CreditLimit: value | DeactiveDate: value | salesHierarchyCode: value | preferredPaymentMode: value"
+     */
+    private String buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
+        String creditLimit = getRawValue(source.get("CreditLimit"));
+        String deactiveDate = getRawValue(source.get("DeactiveDate"));
+        String salesHierarchyCode = getRawValue(source.get("SalesHierarchyCode"));
+
+        StringBuilder attributes = new StringBuilder();
+
+        if (!creditLimit.isEmpty()) {
+            attributes.append("CreditLimit: ").append(creditLimit);
+        }
+
+        if (!deactiveDate.isEmpty()) {
+            if (attributes.length() > 0) attributes.append(" | ");
+            attributes.append("DeactiveDate: ").append(deactiveDate);
+        }
+
+        if (!salesHierarchyCode.isEmpty()) {
+            if (attributes.length() > 0) attributes.append(" | ");
+            attributes.append("salesHierarchyCode: ").append(salesHierarchyCode);
+        }
+
+        if (!paymentMode.isEmpty()) {
+            if (attributes.length() > 0) attributes.append(" | ");
+            attributes.append("preferredPaymentMode: ").append(paymentMode);
+        }
+
+        return attributes.length() > 0 ? attributes.toString() : "";
     }
 }
