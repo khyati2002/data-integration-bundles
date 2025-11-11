@@ -47,7 +47,7 @@ public class RouteTypeValidation extends AbstractValidationRule<User> {
         }
 
         if(!errors.isEmpty()) {
-            String errorstr= com.applicate.services.channelkart.utils.StringUtils.format("Some values for User: {} voilating validations. Reason : {}", cdm.getLoginid(), StringUtils.join(errors, ","));
+            String errorstr= com.applicate.services.channelkart.utils.StringUtils.format("Some values for User: {} voilating validations. Reason : {}", user.getLoginid(), StringUtils.join(errors, ","));
             return new OperationResult.StepResult(OperationResult.Status.ERROR,errorstr);
         }
         return  OperationResult.StepResult.OK;
