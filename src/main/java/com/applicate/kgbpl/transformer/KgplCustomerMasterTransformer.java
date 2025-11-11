@@ -3,40 +3,45 @@ package com.applicate.kgbpl.transformer;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode, Map<String, Object>> {
 
     private static final Pattern LAT_PATTERN =
             Pattern.compile("^[+-]?(?:90(?:\\.0+)?|(?:[0-8]?\\d)(?:\\.\\d+)?)$");
     private static final Pattern LON_PATTERN =
             Pattern.compile("^[+-]?(?:180(?:\\.0+)?|(?:1[0-7]\\d|\\d?\\d)(?:\\.\\d+)?)$");
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
-    public Map<String, Object> transform(Map<String, Object> source) {
+    public Map<String, Object> transform(JsonNode source) {
         validateFields(source);
 
         HashMap<String, Object> result = new HashMap<>();
 
-        String dataAreaId = getRawValue(source.get("dataAreaId"));
+        String dataAreaId = getJsonValue(source, "dataAreaId");
 
-        // Build locationHierarchy as a plain string (like the reference code)
+        // Build locationHierarchy as a plain string
         result.put("locationHierarchy", buildLocationHierarchy(source, dataAreaId));
 
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
-        result.put("displayAddress", getRawValue(source.get("City")) + "," + getRawValue(source.get("StateName")));
+        result.put("displayAddress", getJsonValue(source, "City") + "," + getJsonValue(source, "StateName"));
         result.put("source", dataAreaId);
         result.put("segment", concatWithDataAreaId(source, "SegmentId", dataAreaId));
         result.put("outletAttr5", concatWithDataAreaId(source, "ShipToCode", dataAreaId));
         result.put("subChannel", concatWithDataAreaId(source, "SubChannel", dataAreaId));
         result.put("outletClass", concatWithDataAreaId(source, "VPO", dataAreaId));
 
-        String subsegment = getRawValue(source.get("SubsegmentId"));
-        String segment = getRawValue(source.get("SegmentId"));
+        String subsegment = getJsonValue(source, "SubsegmentId");
+        String segment = getJsonValue(source, "SegmentId");
         if (!subsegment.isEmpty() && !segment.isEmpty()) {
             result.put("outletDivision", subsegment + "-" + segment + "-" + dataAreaId);
         } else {
@@ -46,20 +51,20 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         result.put("outletCode", concatWithDataAreaId(source, "CustomerAccount", dataAreaId));
         result.put("outletCategory", concatWithDataAreaId(source, "CustomerCategory", dataAreaId));
 
-        String discountGroup = getRawValue(source.get("LineDiscountCode"));
+        String discountGroup = getJsonValue(source, "LineDiscountCode");
         result.put("discountGroup", discountGroup.isEmpty() ? "NA" : discountGroup + "-" + dataAreaId);
 
         result.put("priceListId", concatWithDataAreaId(source, "DiscountPriceGroupId", dataAreaId));
-        result.put("vpo", getRawValue(source.get("VPO")));
-        result.put("email", getRawValue(source.get("PrimaryContactEmail")));
-        result.put("gstNo", getRawValue(source.get("GSTIN")));
+        result.put("vpo", getJsonValue(source, "VPO"));
+        result.put("email", getJsonValue(source, "PrimaryContactEmail"));
+        result.put("gstNo", getJsonValue(source, "GSTIN"));
         result.put("outletAttr1", concatWithDataAreaId(source, "SiteId", dataAreaId));
-        result.put("address", getRawValue(source.get("Address")));
-        result.put("outletAttr2", getRawValue(source.get("SWIFTNo")));
-        result.put("outletAttr3", getRawValue(source.get("BankName")));
+        result.put("address", getJsonValue(source, "Address"));
+        result.put("outletAttr2", getJsonValue(source, "SWIFTNo"));
+        result.put("outletAttr3", getJsonValue(source, "BankName"));
 
-        String deactive = getRawValue(source.get("Deactive"));
-        String custGroup = getRawValue(source.get("CustGroup"));
+        String deactive = getJsonValue(source, "Deactive");
+        String custGroup = getJsonValue(source, "CustGroup");
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
@@ -71,74 +76,85 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         }
 
         result.put("activeStatus", activeStatus);
-        result.put("latitude", sanitizeCoordinate(source.get("Latitude"), LAT_PATTERN));
-        result.put("longitude", sanitizeCoordinate(source.get("Longitude"), LON_PATTERN));
+        result.put("latitude", sanitizeCoordinate(source, "Latitude", LAT_PATTERN));
+        result.put("longitude", sanitizeCoordinate(source, "Longitude", LON_PATTERN));
 
-        String contactNo = getRawValue(source.get("PrimaryContactPhone"));
+        String contactNo = getJsonValue(source, "PrimaryContactPhone");
         if (isValidMobile(contactNo)) {
             result.put("contactno", contactNo);
         }
 
-        result.put("outletType", getRawValue(source.get("PartyType")));
-        result.put("outletAttr4", getRawValue(source.get("")));
-        result.put("outletName", getRawValue(source.get("CustomerName")));
+        result.put("outletType", getJsonValue(source, "PartyType"));
+        result.put("outletAttr4", "");
+        result.put("outletName", getJsonValue(source, "CustomerName"));
 
-        String paymentMode = getRawValue(source.get("PaymentTerms"));
+        String paymentMode = getJsonValue(source, "PaymentTerms");
         result.put("paymentMode", paymentMode);
-        result.put("outletAttr6", getRawValue(source.get("InvoiceAccount")));
+        result.put("outletAttr6", getJsonValue(source, "InvoiceAccount"));
 
-        String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
+        String calculateWithholdingTax = getJsonValue(source, "CalculateWithholdingTax");
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        // Build extendedAttributes as a plain string (like the reference code)
         result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
         return result;
     }
 
-    private void validateFields(Map<String, Object> source) {
-        String customerAccount = getRawValue(source.get("CustomerAccount"));
+    private void validateFields(JsonNode source) {
+        String customerAccount = getJsonValue(source, "CustomerAccount");
         if (customerAccount.isEmpty()) {
-            throw new DataTransformationService.TransformationException("EntityValidation Failed: Field 'outletCode' cannot be empty ,CustomerAccount is missing");
+            throw new DataTransformationService.TransformationException(
+                    "EntityValidation Failed: Field 'outletCode' cannot be empty, CustomerAccount is missing");
         }
-        String customerName = getRawValue(source.get("CustomerName"));
+        String customerName = getJsonValue(source, "CustomerName");
         if (customerName.isEmpty()) {
-            throw new DataTransformationService.TransformationException("EntityValidation Failed: Field 'outletName' cannot be empty CustomerName is missing");
+            throw new DataTransformationService.TransformationException(
+                    "EntityValidation Failed: Field 'outletName' cannot be empty, CustomerName is missing");
         }
     }
 
-    private String getRawValue(Object value) {
-        return (value != null && !ObjectUtils.isEmpty(value.toString().trim())) ? value.toString() : "";
+    /**
+     * Safely extracts a text value from JsonNode
+     */
+    private String getJsonValue(JsonNode node, String fieldName) {
+        if (node == null || !node.has(fieldName)) {
+            return "";
+        }
+        JsonNode fieldNode = node.get(fieldName);
+        if (fieldNode == null || fieldNode.isNull() || fieldNode.asText().trim().isEmpty()) {
+            return "";
+        }
+        return fieldNode.asText().trim();
     }
 
     private boolean isValidMobile(String mobile) {
         return !mobile.isEmpty() && Pattern.matches("^[6-9]\\d{9}$", mobile);
     }
 
-    private String concatWithDataAreaId(Map<String, Object> source, String key, String dataAreaId) {
-        String value = getRawValue(source.get(key));
+    private String concatWithDataAreaId(JsonNode source, String key, String dataAreaId) {
+        String value = getJsonValue(source, key);
         return value.isEmpty() ? "" : value + "-" + dataAreaId;
     }
 
-    private String sanitizeCoordinate(Object value, Pattern pattern) {
-        String s = getRawValue(value).trim();
+    private String sanitizeCoordinate(JsonNode source, String fieldName, Pattern pattern) {
+        String s = getJsonValue(source, fieldName);
         if (s.isEmpty()) return "0";
         return pattern.matcher(s).matches() ? s : "0";
     }
 
     /**
-     * Builds locationHierarchy as a hierarchical string similar to the reference code
+     * Builds locationHierarchy as a hierarchical string
      * Format: "Area > City > Pincode > State > Country"
      */
-    private String buildLocationHierarchy(Map<String, Object> source, String dataAreaId) {
-        String area = getRawValue(source.get("AreaCode"));
+    private String buildLocationHierarchy(JsonNode source, String dataAreaId) {
+        String area = getJsonValue(source, "AreaCode");
         if (!area.isEmpty()) {
             area = area + "-" + dataAreaId;
         }
 
-        String city = getRawValue(source.get("City"));
-        String pincode = getRawValue(source.get("ZipCode"));
-        String state = getRawValue(source.get("StateName"));
+        String city = getJsonValue(source, "City");
+        String pincode = getJsonValue(source, "ZipCode");
+        String state = getJsonValue(source, "StateName");
         String country = "India";
 
         StringBuilder hierarchy = new StringBuilder();
@@ -170,12 +186,11 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
     /**
      * Builds extendedAttributes as a formatted string
-     * Format: "CreditLimit: value | DeactiveDate: value | salesHierarchyCode: value | preferredPaymentMode: value"
      */
-    private String buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
-        String creditLimit = getRawValue(source.get("CreditLimit"));
-        String deactiveDate = getRawValue(source.get("DeactiveDate"));
-        String salesHierarchyCode = getRawValue(source.get("SalesHierarchyCode"));
+    private String buildExtendedAttributes(JsonNode source, String paymentMode) {
+        String creditLimit = getJsonValue(source, "CreditLimit");
+        String deactiveDate = getJsonValue(source, "DeactiveDate");
+        String salesHierarchyCode = getJsonValue(source, "SalesHierarchyCode");
 
         StringBuilder attributes = new StringBuilder();
 
