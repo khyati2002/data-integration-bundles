@@ -19,7 +19,6 @@ import java.util.List;
 
 public class VistaarOutletValidation extends AbstractValidationRule<OutletDetails> {
     public static final String STOCKIST = "stockist";
-    final UserService userService = (UserService) ServiceLocator.lookup(User.class);
     final OutletDetailsService outletDetailsService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
     static final String CAPITAL_CASE_REGEX = "(^[A-Z\\s]*$)";
     static final String CAPITAL_CASE_BRANCH_REGEX = "(^[A-Z]*$)";
@@ -104,6 +103,7 @@ public class VistaarOutletValidation extends AbstractValidationRule<OutletDetail
     }
 
     private void validateParentAndRelations(OutletDetails outletDetails, List<String> ruleResult) {
+        UserService userService = (UserService) ServiceLocator.lookup(User.class);
         String parentId = outletDetails.getImmediateParent().get(0).getImmediateParent();
         if (parentId == null) {
             ruleResult.add("immediate parent can not be null.");
@@ -141,6 +141,7 @@ public class VistaarOutletValidation extends AbstractValidationRule<OutletDetail
     }
 
     private void validateOutletLocation(OutletDetails outletDetails, User dbparent, List<String> ruleResult) {
+        UserService userService = (UserService) ServiceLocator.lookup(User.class);
         Location outletLocation = outletDetails.getLocationHierarchyModel();
         if (outletDetails.getOutletType().equalsIgnoreCase(STOCKIST)) {
             String psrCrmId = outletDetails.getExtendedAttributes().get("PSRCRMID").asText();
