@@ -1,15 +1,15 @@
 package com.applicate.simasg.transformer;
 
 
-
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+
 
 import java.math.BigDecimal;
 import java.util.*;
