@@ -35,9 +35,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         locationHierarchy.put("pincode", getRawValue(source.get("ZipCode")));
         locationHierarchy.put("state", getRawValue(source.get("StateName")));
         locationHierarchy.put("country", "India");
-        locationHierarchy.put("areacode",  concatWithDataAreaId(source, "AreaCode", dataAreaId));
-        JsonNode locationHierarchyNode = JSONUtils.getObjectMapper().convertValue(locationHierarchy, JsonNode.class);
-        result.put("locationHierarchy", locationHierarchyNode);
+        locationHierarchy.put("areacode", concatWithDataAreaId(source, "AreaCode", dataAreaId));
+        result.put("locationHierarchy", locationHierarchy);
 
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
         result.put("displayAddress", getRawValue(source.get("City")) + "," + getRawValue(source.get("StateName")));
@@ -72,12 +71,10 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
         String deactive = getRawValue(source.get("Deactive"));
         String custGroup = getRawValue(source.get("CustGroup"));
-// Default active status
+        // Default active status
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
-// Normalize values for comparison
-
-// Additional business rules (case-insensitive)
+        // Additional business rules (case-insensitive)
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
                 && "COLEMPTY".equalsIgnoreCase(custGroup))
                 || ("WBPL".equalsIgnoreCase(dataAreaId)
@@ -113,8 +110,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         extended.put("DeactiveDate", getRawValue(source.get("DeactiveDate")));
         extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
         extended.put("preferredPaymentMode", paymentMode);
-        JsonNode extendedAttributes = JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class);
-        result.put("extendedAttributes", extendedAttributes);
+        result.put("extendedAttributes", extended);
 
         return result;
     }
