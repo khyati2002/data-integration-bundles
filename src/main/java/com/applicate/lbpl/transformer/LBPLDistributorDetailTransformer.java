@@ -10,55 +10,48 @@ public class LBPLDistributorDetailTransformer extends AbstractTransformer<Map<St
 
         List<Map<String, Object>> outputList = new ArrayList<>();
 
-        List<Map<String, Object>> features = (List<Map<String, Object>>) inputMap.get("features");
-        if (features == null) return outputList;
-
-        for (Map<String, Object> feature : features) {
-
             Map<String, Object> output = new HashMap<>();
 
             // 1. userAccountId and loginId = distributorcode
-            output.put("userAccountId", safeString(feature.get("distributorcode")));
-            output.put("loginId", safeString(feature.get("distributorcode")));
+            output.put("userAccountId", safeString(inputMap.get("distributorcode")));
+            output.put("loginId", safeString(inputMap.get("distributorcode")));
 
             // 2. name = distributorname
-            output.put("name", safeString(feature.get("distributorname")));
+            output.put("name", safeString(inputMap.get("distributorname")));
 
             // 3. activeStatus = ActiveFunction
-            Object isactive = feature.get("isactive");
+            Object isactive = inputMap.get("isactive");
             output.put("activeStatus", (isactive != null && isactive.toString().equals("1")) ? "active" : "inactive");
 
             // 4. email
-            output.put("email", safeString(feature.get("email")));
+            output.put("email", safeString(inputMap.get("email")));
 
             // 5. mobile = countrycodecheck(mobile)
-            String mobile = safeString(feature.get("mobile"));
+            String mobile = safeString(inputMap.get("mobile"));
             output.put("mobile", normalizeMobile(mobile));
 
             // 6. locationHierarchy = createLocationLbpl(zip)
-            String zip = safeString(feature.get("zip"));
+            String zip = safeString(inputMap.get("zip"));
             Map<String, Object> locationHierarchy = new HashMap<>();
             locationHierarchy.put("pincode", zip);
             locationHierarchy.put("country", "India");
             output.put("locationHierarchy", locationHierarchy);
 
             // 7. address
-            output.put("address", safeString(feature.get("address")));
+            output.put("address", safeString(inputMap.get("address")));
 
             // 8. designation = constant "supplier"
             output.put("designation", "supplier");
 
             // 9. extendedAttributes = toMap(categorycode1, phone, tenantcode, categorycode4)
             Map<String, Object> ext = new HashMap<>();
-            ext.put("categorycode1", feature.get("categorycode1"));
-            ext.put("phone", feature.get("phone"));
-            ext.put("tenantcode", feature.get("tenantcode"));
-            ext.put("categorycode4", feature.get("categorycode4"));
+            ext.put("categorycode1", inputMap.get("categorycode1"));
+            ext.put("phone", inputMap.get("phone"));
+            ext.put("tenantcode", inputMap.get("tenantcode"));
+            ext.put("categorycode4", inputMap.get("categorycode4"));
             output.put("extendedAttributes", ext);
 
             outputList.add(output);
-        }
-
         return outputList;
     }
 
