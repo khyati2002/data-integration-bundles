@@ -1,6 +1,7 @@
 package com.applicate.lbpl.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.impl.HierarchyMetadata;
 
 import java.util.*;
 
@@ -16,7 +17,14 @@ public class LBPLSalesmanTransformer extends AbstractTransformer<Map<String, Obj
 
             // 1. immediateParent = convertToString(tenantcode)
             Object tenantcode = inputMap.get("tenantcode");
-            output.put("immediateParent", tenantcode != null ? tenantcode.toString() : null);
+            // convert tenantcode to HierarchyMetadata object
+            List<HierarchyMetadata> immediateParentList = new ArrayList<>();
+
+            HierarchyMetadata parentObj = new HierarchyMetadata();
+            parentObj.setImmediateParent(tenantcode.toString());     // or use correct field name (ex: parentCode)
+            immediateParentList.add(parentObj);
+
+            output.put("immediateParent", immediateParentList);
 
             // 2. address = addressFunction(address,state,city,zip)
             String address = safeString(inputMap.get("address"));
