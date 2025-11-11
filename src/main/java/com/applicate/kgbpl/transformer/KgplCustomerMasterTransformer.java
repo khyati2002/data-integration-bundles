@@ -1,9 +1,9 @@
 package com.applicate.kgbpl.transformer;
 
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 
 public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
-    // --- Strict coordinate patterns ---
     private static final Pattern LAT_PATTERN =
             Pattern.compile("^[+-]?(?:90(?:\\.0+)?|(?:[0-8]?\\d)(?:\\.\\d+)?)$");
     private static final Pattern LON_PATTERN =
@@ -26,10 +25,10 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         Map<String, Object> result = new HashMap<>();
         String dataAreaId = getRawValue(source.get("dataAreaId"));
 
-        // Location hierarchy
+        // ---------------- Location Hierarchy ----------------
         result.put("locationHierarchy", setClientLocationHierarchy(source, dataAreaId));
 
-        // Basic details
+        // ---------------- Basic Fields ----------------
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
         result.put("displayAddress", setDisplayAddress(source));
         result.put("source", dataAreaId);
@@ -39,11 +38,9 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         result.put("outletClass", concatWithDataAreaId(source, "VPO", dataAreaId));
         result.put("outletDivision", buildOutletDivision(source, dataAreaId));
 
-        // Identifiers
         result.put("outletCode", concatWithDataAreaId(source, "CustomerAccount", dataAreaId));
         result.put("outletCategory", concatWithDataAreaId(source, "CustomerCategory", dataAreaId));
 
-        // Discount group logic
         String discountGroup = getRawValue(source.get("LineDiscountCode"));
         result.put("discountGroup", discountGroup.isEmpty() ? "NA" : discountGroup + "-" + dataAreaId);
 
@@ -56,25 +53,22 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         result.put("outletAttr2", getRawValue(source.get("SWIFTNo")));
         result.put("outletAttr3", getRawValue(source.get("BankName")));
 
-        // Active status logic
+        // ---------------- Active Status ----------------
         result.put("activeStatus", determineActiveStatus(source, dataAreaId));
 
-        // Coordinates
+        // ---------------- Coordinates ----------------
         result.put("latitude", sanitizeCoordinate(source.get("Latitude"), LAT_PATTERN));
         result.put("longitude", sanitizeCoordinate(source.get("Longitude"), LON_PATTERN));
 
-        // Contact
+        // ---------------- Contact ----------------
         String contactNo = getValidContact(source.get("PrimaryContactPhone"));
-        if (!contactNo.isEmpty()) {
-            result.put("contactno", contactNo);
-        }
+        if (!contactNo.isEmpty()) result.put("contactno", contactNo);
 
-        // Outlet details
+        // ---------------- Miscellaneous ----------------
         result.put("outletType", getRawValue(source.get("PartyType")));
-        result.put("outletAttr4", getRawValue(source.get(""))); // left as-is per original code
+        result.put("outletAttr4", getRawValue(source.get(""))); // kept as-is
         result.put("outletName", getRawValue(source.get("CustomerName")));
 
-        // Payment & TCS details
         String paymentMode = getRawValue(source.get("PaymentTerms"));
         result.put("paymentMode", paymentMode);
         result.put("outletAttr6", getRawValue(source.get("InvoiceAccount")));
@@ -82,17 +76,17 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        // Extended attributes
+        // ---------------- Extended Attributes ----------------
         result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
         return result;
     }
 
-    // -------------------------------------------------------------------------
-    // Helper methods
-    // -------------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // Helper methods (Flink-shaded Jackson)
+    // ----------------------------------------------------------------------
 
-    private JsonNode setClientLocationHierarchy(Map<String, Object> source, String dataAreaId) {
+    private ObjectNode setClientLocationHierarchy(Map<String, Object> source, String dataAreaId) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode locationHierarchy = mapper.createObjectNode();
 
@@ -109,7 +103,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         locationHierarchy.put("country", country);
         locationHierarchy.put("areacode", area);
 
-        return JSONUtils.getObjectMapper().convertValue(locationHierarchy, JsonNode.class);
+        return locationHierarchy;
     }
 
     private String setDisplayAddress(Map<String, Object> source) {
@@ -121,16 +115,14 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
     private String buildOutletDivision(Map<String, Object> source, String dataAreaId) {
         String subsegment = getRawValue(source.get("SubsegmentId"));
         String segment = getRawValue(source.get("SegmentId"));
-        if (!subsegment.isEmpty() && !segment.isEmpty()) {
+        if (!subsegment.isEmpty() && !segment.isEmpty())
             return subsegment + "-" + segment + "-" + dataAreaId;
-        }
         return "";
     }
 
     private String determineActiveStatus(Map<String, Object> source, String dataAreaId) {
         String deactive = getRawValue(source.get("Deactive"));
         String custGroup = getRawValue(source.get("CustGroup"));
-
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
@@ -140,7 +132,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
                 .stream().anyMatch(cg -> cg.equalsIgnoreCase(custGroup)))) {
             activeStatus = "inactive";
         }
-
         return activeStatus;
     }
 
@@ -149,7 +140,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         return isValidMobile(mobile) ? mobile : "";
     }
 
-    private JsonNode buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
+    private ObjectNode buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode extended = mapper.createObjectNode();
 
@@ -158,28 +149,36 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
         extended.put("preferredPaymentMode", paymentMode);
 
-        return JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class);
+        return extended;
     }
 
-    // -------------------------------------------------------------------------
-    // Utility methods (unchanged core logic)
-    // -------------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // Utility methods
+    // ----------------------------------------------------------------------
 
     private void validateFields(Map<String, Object> source) {
         String customerAccount = getRawValue(source.get("CustomerAccount"));
-        if (customerAccount.isEmpty()) {
+        if (customerAccount.isEmpty())
             throw new DataTransformationService.TransformationException(
                     "EntityValidation Failed: Field 'outletCode' cannot be empty ,CustomerAccount is missing");
-        }
         String customerName = getRawValue(source.get("CustomerName"));
-        if (customerName.isEmpty()) {
+        if (customerName.isEmpty())
             throw new DataTransformationService.TransformationException(
                     "EntityValidation Failed: Field 'outletName' cannot be empty CustomerName is missing");
-        }
     }
 
     private String getRawValue(Object value) {
-        return (value != null && !ObjectUtils.isEmpty(value.toString().trim())) ? value.toString() : "";
+        if (value == null) return "";
+        if (value instanceof String) {
+            String s = ((String) value).trim();
+            return s.isEmpty() ? "" : s;
+        }
+        if (value instanceof JsonNode) {
+            JsonNode node = (JsonNode) value;
+            if (node.isValueNode()) return node.asText("");
+            return node.toString();
+        }
+        return value.toString().trim();
     }
 
     private boolean isValidMobile(String mobile) {
