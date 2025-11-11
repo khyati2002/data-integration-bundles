@@ -21,15 +21,9 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
     public Map<String, Object> transform(Map<String, Object> source) {
         validateFields(source);
 
-        // Use LinkedHashMap to maintain insertion order and ensure type safety
         HashMap<String, Object> result = new HashMap<>();
 
         String dataAreaId = getRawValue(source.get("dataAreaId"));
-
-        // Ensure dataAreaId is never null
-        if (dataAreaId == null || dataAreaId.isEmpty()) {
-            dataAreaId = "";
-        }
 
         // Build locationHierarchy as a plain string (like the reference code)
         result.put("locationHierarchy", buildLocationHierarchy(source, dataAreaId));
@@ -84,8 +78,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String contactNo = getRawValue(source.get("PrimaryContactPhone"));
         if (isValidMobile(contactNo)) {
             result.put("contactno", contactNo);
-        } else {
-            result.put("contactno", ""); // Always set a value, even if empty
         }
 
         result.put("outletType", getRawValue(source.get("PartyType")));
@@ -102,28 +94,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         // Build extendedAttributes as a plain string (like the reference code)
         result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
-        // Final safety check: ensure all values are Strings, not JsonNodes or other objects
-        return sanitizeResultMap(result);
-    }
-
-    /**
-     * Ensures all values in the result map are plain Strings, not JsonNodes or complex objects
-     */
-    private Map<String, Object> sanitizeResultMap(Map<String, Object> result) {
-        Map<String, Object> sanitized = new HashMap<>();
-        for (Map.Entry<String, Object> entry : result.entrySet()) {
-            Object value = entry.getValue();
-            if (value == null) {
-                sanitized.put(entry.getKey(), "");
-            } else if (value instanceof String) {
-                sanitized.put(entry.getKey(), value);
-            } else if (value instanceof JsonNode) {
-                sanitized.put(entry.getKey(), ((JsonNode) value).asText(""));
-            } else {
-                sanitized.put(entry.getKey(), value.toString());
-            }
-        }
-        return sanitized;
+        return result;
     }
 
     private void validateFields(Map<String, Object> source) {
@@ -139,7 +110,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
     /**
      * Safely extracts raw string value from any object type, including JsonNode
-     * This method ensures ONLY String values are returned, never JsonNode or other objects
      */
     private String getRawValue(Object value) {
         if (value == null) {
@@ -152,25 +122,13 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
             if (node.isNull() || node.isMissingNode()) {
                 return "";
             }
-            // Use asText() with empty string default
-            String textValue = node.asText("");
-            if (textValue == null || textValue.trim().isEmpty()) {
-                return "";
-            }
-            return textValue.trim();
+            String textValue = node.asText();
+            return (textValue != null && !textValue.trim().isEmpty()) ? textValue : "";
         }
 
-        // Handle regular objects - ensure we return a clean string
-        try {
-            String strValue = value.toString();
-            if (strValue == null || strValue.trim().isEmpty() || ObjectUtils.isEmpty(strValue.trim())) {
-                return "";
-            }
-            return strValue.trim();
-        } catch (Exception e) {
-            // If toString() fails for any reason, return empty string
-            return "";
-        }
+        // Handle regular objects
+        String strValue = value.toString().trim();
+        return !ObjectUtils.isEmpty(strValue) ? strValue : "";
     }
 
     private boolean isValidMobile(String mobile) {
