@@ -14,8 +14,6 @@ import java.util.List;
 
 public class VistaarStockistOutletEnrichment extends AbstractEnrichment<OutletDetails> {
 
-    private final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-
     @Override
     public OperationResult.StepResult apply(OutletDetails outletDetails) {
         if (shouldSkipEnrichment(outletDetails)) {
@@ -82,6 +80,7 @@ public class VistaarStockistOutletEnrichment extends AbstractEnrichment<OutletDe
     }
 
     private String getValidatedLoginId(String value) {
+        UserService userService = (UserService) ServiceLocator.lookup(User.class);
         User user = userService.findById(value);
         if (user != null && !user.getLoginId().equalsIgnoreCase(value)) {
             return user.getLoginId();
