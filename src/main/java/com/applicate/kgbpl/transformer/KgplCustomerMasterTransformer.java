@@ -18,51 +18,48 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
 
     @Override
     public Map<String, Object> transform(JsonNode source) {
-        // Convert JsonNode to Map first
-        Map<String, Object> sourceMap = convertJsonNodeToMap(source);
-
-        validateFields(sourceMap);
+        validateFields(source);
 
         HashMap<String, Object> result = new HashMap<>();
 
-        String dataAreaId = getString(sourceMap, "dataAreaId");
+        String dataAreaId = getStringValue(source, "dataAreaId");
 
-        // Build locationHierarchy as a plain string (like the reference code)
-        result.put("locationHierarchy", buildLocationHierarchy(sourceMap, dataAreaId));
+        // Build locationHierarchy as a plain string
+        result.put("locationHierarchy", buildLocationHierarchy(source, dataAreaId));
 
-        result.put("channel", concatWithDataAreaId(sourceMap, "Channel", dataAreaId));
-        result.put("displayAddress", getString(sourceMap, "City") + "," + getString(sourceMap, "StateName"));
+        result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
+        result.put("displayAddress", getStringValue(source, "City") + "," + getStringValue(source, "StateName"));
         result.put("source", dataAreaId);
-        result.put("segment", concatWithDataAreaId(sourceMap, "SegmentId", dataAreaId));
-        result.put("outletAttr5", concatWithDataAreaId(sourceMap, "ShipToCode", dataAreaId));
-        result.put("subChannel", concatWithDataAreaId(sourceMap, "SubChannel", dataAreaId));
-        result.put("outletClass", concatWithDataAreaId(sourceMap, "VPO", dataAreaId));
+        result.put("segment", concatWithDataAreaId(source, "SegmentId", dataAreaId));
+        result.put("outletAttr5", concatWithDataAreaId(source, "ShipToCode", dataAreaId));
+        result.put("subChannel", concatWithDataAreaId(source, "SubChannel", dataAreaId));
+        result.put("outletClass", concatWithDataAreaId(source, "VPO", dataAreaId));
 
-        String subsegment = getString(sourceMap, "SubsegmentId");
-        String segment = getString(sourceMap, "SegmentId");
+        String subsegment = getStringValue(source, "SubsegmentId");
+        String segment = getStringValue(source, "SegmentId");
         if (!subsegment.isEmpty() && !segment.isEmpty()) {
             result.put("outletDivision", subsegment + "-" + segment + "-" + dataAreaId);
         } else {
             result.put("outletDivision", "");
         }
 
-        result.put("outletCode", concatWithDataAreaId(sourceMap, "CustomerAccount", dataAreaId));
-        result.put("outletCategory", concatWithDataAreaId(sourceMap, "CustomerCategory", dataAreaId));
+        result.put("outletCode", concatWithDataAreaId(source, "CustomerAccount", dataAreaId));
+        result.put("outletCategory", concatWithDataAreaId(source, "CustomerCategory", dataAreaId));
 
-        String discountGroup = getString(sourceMap, "LineDiscountCode");
+        String discountGroup = getStringValue(source, "LineDiscountCode");
         result.put("discountGroup", discountGroup.isEmpty() ? "NA" : discountGroup + "-" + dataAreaId);
 
-        result.put("priceListId", concatWithDataAreaId(sourceMap, "DiscountPriceGroupId", dataAreaId));
-        result.put("vpo", getString(sourceMap, "VPO"));
-        result.put("email", getString(sourceMap, "PrimaryContactEmail"));
-        result.put("gstNo", getString(sourceMap, "GSTIN"));
-        result.put("outletAttr1", concatWithDataAreaId(sourceMap, "SiteId", dataAreaId));
-        result.put("address", getString(sourceMap, "Address"));
-        result.put("outletAttr2", getString(sourceMap, "SWIFTNo"));
-        result.put("outletAttr3", getString(sourceMap, "BankName"));
+        result.put("priceListId", concatWithDataAreaId(source, "DiscountPriceGroupId", dataAreaId));
+        result.put("vpo", getStringValue(source, "VPO"));
+        result.put("email", getStringValue(source, "PrimaryContactEmail"));
+        result.put("gstNo", getStringValue(source, "GSTIN"));
+        result.put("outletAttr1", concatWithDataAreaId(source, "SiteId", dataAreaId));
+        result.put("address", getStringValue(source, "Address"));
+        result.put("outletAttr2", getStringValue(source, "SWIFTNo"));
+        result.put("outletAttr3", getStringValue(source, "BankName"));
 
-        String deactive = getString(sourceMap, "Deactive");
-        String custGroup = getString(sourceMap, "CustGroup");
+        String deactive = getStringValue(source, "Deactive");
+        String custGroup = getStringValue(source, "CustGroup");
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
@@ -74,72 +71,55 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
         }
 
         result.put("activeStatus", activeStatus);
-        result.put("latitude", sanitizeCoordinate(sourceMap, "Latitude", LAT_PATTERN));
-        result.put("longitude", sanitizeCoordinate(sourceMap, "Longitude", LON_PATTERN));
+        result.put("latitude", sanitizeCoordinate(source, "Latitude", LAT_PATTERN));
+        result.put("longitude", sanitizeCoordinate(source, "Longitude", LON_PATTERN));
 
-        String contactNo = getString(sourceMap, "PrimaryContactPhone");
+        String contactNo = getStringValue(source, "PrimaryContactPhone");
         if (isValidMobile(contactNo)) {
             result.put("contactno", contactNo);
         }
 
-        result.put("outletType", getString(sourceMap, "PartyType"));
-        result.put("outletAttr4", getString(sourceMap, ""));
-        result.put("outletName", getString(sourceMap, "CustomerName"));
+        result.put("outletType", getStringValue(source, "PartyType"));
+        result.put("outletAttr4", getStringValue(source, ""));
+        result.put("outletName", getStringValue(source, "CustomerName"));
 
-        String paymentMode = getString(sourceMap, "PaymentTerms");
+        String paymentMode = getStringValue(source, "PaymentTerms");
         result.put("paymentMode", paymentMode);
-        result.put("outletAttr6", getString(sourceMap, "InvoiceAccount"));
+        result.put("outletAttr6", getStringValue(source, "InvoiceAccount"));
 
-        String calculateWithholdingTax = getString(sourceMap, "CalculateWithholdingTax");
+        String calculateWithholdingTax = getStringValue(source, "CalculateWithholdingTax");
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        // Build extendedAttributes as a plain string (like the reference code)
-        result.put("extendedAttributes", buildExtendedAttributes(sourceMap, paymentMode));
+        // Build extendedAttributes as a plain string
+        result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
         return result;
     }
 
-    /**
-     * Convert JsonNode to Map<String, Object>
-     * Extracts all fields and converts them to string values
-     */
-    private Map<String, Object> convertJsonNodeToMap(JsonNode node) {
-        Map<String, Object> map = new HashMap<>();
-        node.fields().forEachRemaining(entry -> {
-            String key = entry.getKey();
-            JsonNode value = entry.getValue();
-
-            // Convert JsonNode values to strings, handling all types
-            if (value == null || value.isNull() || value.isMissingNode()) {
-                map.put(key, null);
-            } else {
-                map.put(key, value.asText());
-            }
-        });
-        return map;
-    }
-
-    private void validateFields(Map<String, Object> source) {
-        String customerAccount = getString(source, "CustomerAccount");
+    private void validateFields(JsonNode source) {
+        String customerAccount = getStringValue(source, "CustomerAccount");
         if (customerAccount.isEmpty()) {
             throw new DataTransformationService.TransformationException("EntityValidation Failed: Field 'outletCode' cannot be empty ,CustomerAccount is missing");
         }
-        String customerName = getString(source, "CustomerName");
+        String customerName = getStringValue(source, "CustomerName");
         if (customerName.isEmpty()) {
             throw new DataTransformationService.TransformationException("EntityValidation Failed: Field 'outletName' cannot be empty CustomerName is missing");
         }
     }
 
     /**
-     * Simple null-safe string extractor - returns empty string if null or empty
+     * Extract string directly from JsonNode - NO Map conversion, NO convertValue calls
      */
-    private String getString(Map<String, Object> source, String key) {
-        Object value = source.get(key);
-        if (value == null) {
+    private String getStringValue(JsonNode source, String key) {
+        if (source == null || !source.has(key)) {
             return "";
         }
-        String strValue = String.valueOf(value).trim();
-        return strValue.isEmpty() || "null".equals(strValue) ? "" : strValue;
+        JsonNode node = source.get(key);
+        if (node == null || node.isNull() || node.isMissingNode()) {
+            return "";
+        }
+        String value = node.asText().trim();
+        return value.isEmpty() || "null".equals(value) ? "" : value;
     }
 
     private boolean isValidMobile(String mobile) {
@@ -147,35 +127,35 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
     }
 
     /**
-     * Concatenates value with dataAreaId
+     * Concatenates value with dataAreaId - using direct JsonNode access
      */
-    private String concatWithDataAreaId(Map<String, Object> source, String key, String dataAreaId) {
-        String value = getString(source, key);
+    private String concatWithDataAreaId(JsonNode source, String key, String dataAreaId) {
+        String value = getStringValue(source, key);
         return value.isEmpty() ? "" : value + "-" + dataAreaId;
     }
 
     /**
-     * Sanitizes coordinate values, ensuring they match valid lat/lon patterns
+     * Sanitizes coordinate values - using direct JsonNode access
      */
-    private String sanitizeCoordinate(Map<String, Object> source, String key, Pattern pattern) {
-        String s = getString(source, key);
+    private String sanitizeCoordinate(JsonNode source, String key, Pattern pattern) {
+        String s = getStringValue(source, key);
         if (s.isEmpty()) return "0";
         return pattern.matcher(s).matches() ? s : "0";
     }
 
     /**
-     * Builds locationHierarchy as a hierarchical string similar to the reference code
+     * Builds locationHierarchy as a hierarchical string
      * Format: "Area > City > Pincode > State > Country"
      */
-    private String buildLocationHierarchy(Map<String, Object> source, String dataAreaId) {
-        String area = getString(source, "AreaCode");
+    private String buildLocationHierarchy(JsonNode source, String dataAreaId) {
+        String area = getStringValue(source, "AreaCode");
         if (!area.isEmpty()) {
             area = area + "-" + dataAreaId;
         }
 
-        String city = getString(source, "City");
-        String pincode = getString(source, "ZipCode");
-        String state = getString(source, "StateName");
+        String city = getStringValue(source, "City");
+        String pincode = getStringValue(source, "ZipCode");
+        String state = getStringValue(source, "StateName");
         String country = "India";
 
         StringBuilder hierarchy = new StringBuilder();
@@ -209,10 +189,10 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
      * Builds extendedAttributes as a formatted string
      * Format: "CreditLimit: value | DeactiveDate: value | salesHierarchyCode: value | preferredPaymentMode: value"
      */
-    private String buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
-        String creditLimit = getString(source, "CreditLimit");
-        String deactiveDate = getString(source, "DeactiveDate");
-        String salesHierarchyCode = getString(source, "SalesHierarchyCode");
+    private String buildExtendedAttributes(JsonNode source, String paymentMode) {
+        String creditLimit = getStringValue(source, "CreditLimit");
+        String deactiveDate = getStringValue(source, "DeactiveDate");
+        String salesHierarchyCode = getStringValue(source, "SalesHierarchyCode");
 
         StringBuilder attributes = new StringBuilder();
 
