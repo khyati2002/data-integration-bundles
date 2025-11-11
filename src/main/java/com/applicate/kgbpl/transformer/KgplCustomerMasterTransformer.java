@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -27,19 +28,15 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
         String dataAreaId = getRawValue(source.get("dataAreaId"));
 
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode locationHierarchy = mapper.createObjectNode();
+        // Create locationHierarchy as a simple Map
+        Map<String, Object> locationHierarchy = new LinkedHashMap<>();
         locationHierarchy.put("area", concatWithDataAreaId(source, "AreaCode", dataAreaId));
         locationHierarchy.put("city", getRawValue(source.get("City")));
         locationHierarchy.put("pincode", getRawValue(source.get("ZipCode")));
         locationHierarchy.put("state", getRawValue(source.get("StateName")));
         locationHierarchy.put("country", "India");
         locationHierarchy.put("areacode", concatWithDataAreaId(source, "AreaCode", dataAreaId));
-
-        // Convert to a Map instead of JsonNode
-        Map<String, Object> locationHierarchyMap = mapper.convertValue(locationHierarchy, Map.class);
-        result.put("locationHierarchy", locationHierarchyMap);
+        result.put("locationHierarchy", locationHierarchy);
 
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
         result.put("displayAddress", getRawValue(source.get("City")) + "," + getRawValue(source.get("StateName")));
@@ -108,15 +105,13 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        ObjectNode extended = mapper.createObjectNode();
+        // Create extendedAttributes as a simple Map
+        Map<String, Object> extended = new LinkedHashMap<>();
         extended.put("CreditLimit", getRawValue(source.get("CreditLimit")));
         extended.put("DeactiveDate", getRawValue(source.get("DeactiveDate")));
         extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
         extended.put("preferredPaymentMode", paymentMode);
-
-        // Convert to a Map instead of JsonNode
-        Map<String, Object> extendedMap = mapper.convertValue(extended, Map.class);
-        result.put("extendedAttributes", extendedMap);
+        result.put("extendedAttributes", extended);
 
         return result;
     }
