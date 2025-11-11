@@ -86,24 +86,34 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
     // Helper methods (Flink-shaded Jackson)
     // ----------------------------------------------------------------------
 
-    private ObjectNode setClientLocationHierarchy(Map<String, Object> source, String dataAreaId) {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode locationHierarchy = mapper.createObjectNode();
-
+    private String setClientLocationHierarchy(Map<String, Object> source, String dataAreaId) {
         String area = concatWithDataAreaId(source, "AreaCode", dataAreaId);
         String city = getRawValue(source.get("City"));
         String pincode = getRawValue(source.get("ZipCode"));
         String state = getRawValue(source.get("StateName"));
         String country = "India";
 
-        locationHierarchy.put("area", area);
-        locationHierarchy.put("city", city);
-        locationHierarchy.put("pincode", pincode);
-        locationHierarchy.put("state", state);
-        locationHierarchy.put("country", country);
-        locationHierarchy.put("areacode", area);
+        StringBuilder location = new StringBuilder();
 
-        return locationHierarchy;
+        if (!area.isEmpty()) location.append(area.trim());
+        if (!city.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(city.trim());
+        }
+        if (!state.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(state.trim());
+        }
+        if (!pincode.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(pincode.trim());
+        }
+        if (!country.isEmpty()) {
+            if (location.length() > 0) location.append(" > ");
+            location.append(country.trim());
+        }
+
+        return location.length() > 0 ? location.toString() : "India";
     }
 
     private String setDisplayAddress(Map<String, Object> source) {
@@ -140,18 +150,20 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         return isValidMobile(mobile) ? mobile : "";
     }
 
-    private ObjectNode buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode extended = mapper.createObjectNode();
+    private String buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
+        String creditLimit = getRawValue(source.get("CreditLimit"));
+        String deactiveDate = getRawValue(source.get("DeactiveDate"));
+        String salesHierarchyCode = getRawValue(source.get("SalesHierarchyCode"));
+        String preferredPaymentMode = paymentMode;
 
-        extended.put("CreditLimit", getRawValue(source.get("CreditLimit")));
-        extended.put("DeactiveDate", getRawValue(source.get("DeactiveDate")));
-        extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
-        extended.put("preferredPaymentMode", paymentMode);
+        StringBuilder extended = new StringBuilder();
+        extended.append("CreditLimit=").append(creditLimit.isEmpty() ? "NA" : creditLimit);
+        extended.append(" | DeactiveDate=").append(deactiveDate.isEmpty() ? "NA" : deactiveDate);
+        extended.append(" | SalesHierarchyCode=").append(salesHierarchyCode.isEmpty() ? "NA" : salesHierarchyCode);
+        extended.append(" | PreferredPaymentMode=").append(preferredPaymentMode.isEmpty() ? "NA" : preferredPaymentMode);
 
-        return extended;
+        return extended.toString();
     }
-
     // ----------------------------------------------------------------------
     // Utility methods
     // ----------------------------------------------------------------------
