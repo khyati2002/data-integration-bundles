@@ -3,14 +3,13 @@ package com.applicate.kgbpl.transformer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode, Map<String, Object>> {
 
     private static final Pattern LAT_PATTERN =
             Pattern.compile("^[+-]?(?:90(?:\\.0+)?|(?:[0-8]?\\d)(?:\\.\\d+)?)$");
@@ -18,49 +17,52 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
             Pattern.compile("^[+-]?(?:180(?:\\.0+)?|(?:1[0-7]\\d|\\d?\\d)(?:\\.\\d+)?)$");
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> source) {
-        validateFields(source);
+    public Map<String, Object> transform(JsonNode source) {
+        // Convert JsonNode to Map first
+        Map<String, Object> sourceMap = convertJsonNodeToMap(source);
+
+        validateFields(sourceMap);
 
         HashMap<String, Object> result = new HashMap<>();
 
-        String dataAreaId = getString(source, "dataAreaId");
+        String dataAreaId = getString(sourceMap, "dataAreaId");
 
         // Build locationHierarchy as a plain string (like the reference code)
-        result.put("locationHierarchy", buildLocationHierarchy(source, dataAreaId));
+        result.put("locationHierarchy", buildLocationHierarchy(sourceMap, dataAreaId));
 
-        result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
-        result.put("displayAddress", getString(source, "City") + "," + getString(source, "StateName"));
+        result.put("channel", concatWithDataAreaId(sourceMap, "Channel", dataAreaId));
+        result.put("displayAddress", getString(sourceMap, "City") + "," + getString(sourceMap, "StateName"));
         result.put("source", dataAreaId);
-        result.put("segment", concatWithDataAreaId(source, "SegmentId", dataAreaId));
-        result.put("outletAttr5", concatWithDataAreaId(source, "ShipToCode", dataAreaId));
-        result.put("subChannel", concatWithDataAreaId(source, "SubChannel", dataAreaId));
-        result.put("outletClass", concatWithDataAreaId(source, "VPO", dataAreaId));
+        result.put("segment", concatWithDataAreaId(sourceMap, "SegmentId", dataAreaId));
+        result.put("outletAttr5", concatWithDataAreaId(sourceMap, "ShipToCode", dataAreaId));
+        result.put("subChannel", concatWithDataAreaId(sourceMap, "SubChannel", dataAreaId));
+        result.put("outletClass", concatWithDataAreaId(sourceMap, "VPO", dataAreaId));
 
-        String subsegment = getString(source, "SubsegmentId");
-        String segment = getString(source, "SegmentId");
+        String subsegment = getString(sourceMap, "SubsegmentId");
+        String segment = getString(sourceMap, "SegmentId");
         if (!subsegment.isEmpty() && !segment.isEmpty()) {
             result.put("outletDivision", subsegment + "-" + segment + "-" + dataAreaId);
         } else {
             result.put("outletDivision", "");
         }
 
-        result.put("outletCode", concatWithDataAreaId(source, "CustomerAccount", dataAreaId));
-        result.put("outletCategory", concatWithDataAreaId(source, "CustomerCategory", dataAreaId));
+        result.put("outletCode", concatWithDataAreaId(sourceMap, "CustomerAccount", dataAreaId));
+        result.put("outletCategory", concatWithDataAreaId(sourceMap, "CustomerCategory", dataAreaId));
 
-        String discountGroup = getString(source, "LineDiscountCode");
+        String discountGroup = getString(sourceMap, "LineDiscountCode");
         result.put("discountGroup", discountGroup.isEmpty() ? "NA" : discountGroup + "-" + dataAreaId);
 
-        result.put("priceListId", concatWithDataAreaId(source, "DiscountPriceGroupId", dataAreaId));
-        result.put("vpo", getString(source, "VPO"));
-        result.put("email", getString(source, "PrimaryContactEmail"));
-        result.put("gstNo", getString(source, "GSTIN"));
-        result.put("outletAttr1", concatWithDataAreaId(source, "SiteId", dataAreaId));
-        result.put("address", getString(source, "Address"));
-        result.put("outletAttr2", getString(source, "SWIFTNo"));
-        result.put("outletAttr3", getString(source, "BankName"));
+        result.put("priceListId", concatWithDataAreaId(sourceMap, "DiscountPriceGroupId", dataAreaId));
+        result.put("vpo", getString(sourceMap, "VPO"));
+        result.put("email", getString(sourceMap, "PrimaryContactEmail"));
+        result.put("gstNo", getString(sourceMap, "GSTIN"));
+        result.put("outletAttr1", concatWithDataAreaId(sourceMap, "SiteId", dataAreaId));
+        result.put("address", getString(sourceMap, "Address"));
+        result.put("outletAttr2", getString(sourceMap, "SWIFTNo"));
+        result.put("outletAttr3", getString(sourceMap, "BankName"));
 
-        String deactive = getString(source, "Deactive");
-        String custGroup = getString(source, "CustGroup");
+        String deactive = getString(sourceMap, "Deactive");
+        String custGroup = getString(sourceMap, "CustGroup");
         String activeStatus = "Yes".equalsIgnoreCase(deactive) ? "inactive" : "active";
 
         if ((("KBPL".equalsIgnoreCase(dataAreaId) || "KGPL".equalsIgnoreCase(dataAreaId))
@@ -72,29 +74,49 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         }
 
         result.put("activeStatus", activeStatus);
-        result.put("latitude", sanitizeCoordinate(source, "Latitude", LAT_PATTERN));
-        result.put("longitude", sanitizeCoordinate(source, "Longitude", LON_PATTERN));
+        result.put("latitude", sanitizeCoordinate(sourceMap, "Latitude", LAT_PATTERN));
+        result.put("longitude", sanitizeCoordinate(sourceMap, "Longitude", LON_PATTERN));
 
-        String contactNo = getString(source, "PrimaryContactPhone");
+        String contactNo = getString(sourceMap, "PrimaryContactPhone");
         if (isValidMobile(contactNo)) {
             result.put("contactno", contactNo);
         }
 
-        result.put("outletType", getString(source, "PartyType"));
-        result.put("outletAttr4", getString(source, ""));
-        result.put("outletName", getString(source, "CustomerName"));
+        result.put("outletType", getString(sourceMap, "PartyType"));
+        result.put("outletAttr4", getString(sourceMap, ""));
+        result.put("outletName", getString(sourceMap, "CustomerName"));
 
-        String paymentMode = getString(source, "PaymentTerms");
+        String paymentMode = getString(sourceMap, "PaymentTerms");
         result.put("paymentMode", paymentMode);
-        result.put("outletAttr6", getString(source, "InvoiceAccount"));
+        result.put("outletAttr6", getString(sourceMap, "InvoiceAccount"));
 
-        String calculateWithholdingTax = getString(source, "CalculateWithholdingTax");
+        String calculateWithholdingTax = getString(sourceMap, "CalculateWithholdingTax");
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
         // Build extendedAttributes as a plain string (like the reference code)
-        result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
+        result.put("extendedAttributes", buildExtendedAttributes(sourceMap, paymentMode));
 
         return result;
+    }
+
+    /**
+     * Convert JsonNode to Map<String, Object>
+     * Extracts all fields and converts them to string values
+     */
+    private Map<String, Object> convertJsonNodeToMap(JsonNode node) {
+        Map<String, Object> map = new HashMap<>();
+        node.fields().forEachRemaining(entry -> {
+            String key = entry.getKey();
+            JsonNode value = entry.getValue();
+
+            // Convert JsonNode values to strings, handling all types
+            if (value == null || value.isNull() || value.isMissingNode()) {
+                map.put(key, null);
+            } else {
+                map.put(key, value.asText());
+            }
+        });
+        return map;
     }
 
     private void validateFields(Map<String, Object> source) {
