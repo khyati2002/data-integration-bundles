@@ -47,7 +47,7 @@ public class LBPLSalesmanTransformer extends AbstractTransformer<Map<String, Obj
             output.put("userAccountId", tenantcode + "-" + salesmancode);
 
             // 7. loginId = same concat
-            output.put("loginId", tenantcode + "-" + salesmancode);
+            output.put("loginid", tenantcode + "-" + salesmancode);
 
             // 8. locationHierarchy = createLocationSLMG
             Map<String, Object> locationHierarchy = new HashMap<>();

@@ -14,7 +14,7 @@ public class LBPLDistributorDetailTransformer extends AbstractTransformer<Map<St
 
             // 1. userAccountId and loginId = distributorcode
             output.put("userAccountId", safeString(inputMap.get("distributorcode")));
-            output.put("loginId", safeString(inputMap.get("distributorcode")));
+            output.put("loginid", safeString(inputMap.get("distributorcode")));
 
             // 2. name = distributorname
             output.put("name", safeString(inputMap.get("distributorname")));
