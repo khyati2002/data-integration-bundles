@@ -1,127 +1,90 @@
 package com.applicate.lbpl.transformer;
 
-import com.applicate.services.channelkart.utils.JSONUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.salescode.dim.jooq.impl.GenericEntity;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LBPLSalesmanTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
 
-        // Extract input fields
-        String tenantCode = getStringValue(inputMap, "tenantcode");
-        String salesmanCode = getStringValue(inputMap, "salesmancode");
-        String salesmanName = getStringValue(inputMap, "salesmanname");
-        String phone = getStringValue(inputMap, "phone");
-        String isActive = getStringValue(inputMap, "isactive");
-        String address = getStringValue(inputMap, "address");
-        String city = getStringValue(inputMap, "city");
-        String state = getStringValue(inputMap, "state");
-        String zip = getStringValue(inputMap, "zip");
-        String locationCode = getStringValue(inputMap, "locationcode");
+        List<Map<String, Object>> outputList = new ArrayList<>();
 
-        // Apply transformations
-        String immediateParent = convertToString(tenantCode);
-        String addressField = addressFunction(address, state, city, zip);
-        String activeStatus = activeFunction(isActive);
-        String mobile = phone;
-        String name = salesmanName;
-        String userAccountId = concatLoginid(tenantCode, salesmanCode);
-        String loginId = concatLoginid(tenantCode, salesmanCode);
-        ObjectNode locationHierarchy = createLocationSLMG(state, zip, city);
-        String designation = "mgr";
-        Map<String, String> extendedAttributes = toMap(new String[]{"locationcode"}, new String[]{locationCode});
+        List<Map<String, Object>> features = (List<Map<String, Object>>) inputMap.get("features");
+        if (features == null) return outputList;
 
-        // Create GenericEntity
-        GenericEntity entity = new GenericEntity();
-        entity.setId(userAccountId); // or loginId, both are same
-        entity.setName(name);
-        entity.setKey1(tenantCode);
+        for (Map<String, Object> feature : features) {
 
-        // Build payload
-        ObjectNode payload = JSONUtils.getObjectMapper().createObjectNode();
-        payload.put("immediateParent", immediateParent);
-        payload.put("address", addressField);
-        payload.put("activeStatus", activeStatus);
-        payload.put("mobile", mobile);
-        payload.put("name", name);
-        payload.put("userAccountId", userAccountId);
-        payload.put("loginId", loginId);
-        payload.set("locationHierarchy", locationHierarchy);
-        payload.put("designation", designation);
+            Map<String, Object> output = new HashMap<>();
 
-        // Add extendedAttributes
-        ObjectNode extendedAttrsNode = JSONUtils.getObjectMapper().createObjectNode();
-        extendedAttributes.forEach(extendedAttrsNode::put);
-        payload.set("extendedAttributes", extendedAttrsNode);
+            // 1. immediateParent = convertToString(tenantcode)
+            Object tenantcode = feature.get("tenantcode");
+            output.put("immediateParent", tenantcode != null ? tenantcode.toString() : null);
 
-        entity.setPayload(payload);
+            // 2. address = addressFunction(address,state,city,zip)
+            String address = safeString(feature.get("address"));
+            String state = safeString(feature.get("state"));
+            String city = safeString(feature.get("city"));
+            String zip = safeString(feature.get("zip"));
 
-        // Convert to Map
-        Map<String, Object> entityMap = new HashMap<>();
-        entityMap.put("id", entity.getId());
-        entityMap.put("name", entity.getName());
-        entityMap.put("key1", entity.getKey1());
-        entityMap.put("payload", entity.getPayload());
+            if (address != null) {
+                output.put("address", address);
+            } else if (isNullOrEmpty(state) && isNullOrEmpty(city) && isNullOrEmpty(zip)) {
+                output.put("address", "India");
+            } else {
+                output.put("address", state + " " + city + " " + zip);
+            }
 
-        return Collections.singletonList(entityMap);
-    }
+            // 3. activeStatus = ActiveFunction(isactive)
+            Object isActive = feature.get("isactive");
+            output.put("activeStatus", (isActive != null && isActive.toString().equals("1")) ? "active" : "inactive");
 
-    // Helper method to safely get string values
-    private String getStringValue(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        return value != null ? String.valueOf(value) : "";
-    }
+            // 4. mobile = phone
+            output.put("mobile", feature.get("phone"));
 
-    // Conversion functions
-    private String convertToString(String param) {
-        return param != null ? param.toString() : "";
-    }
+            // 5. name = salesmanname
+            output.put("name", safeString(feature.get("salesmanname")));
 
-    private String addressFunction(String address, String state, String city, String zip) {
-        if (address != null && !address.isEmpty() && !"null".equals(address)) {
-            return address;
-        } else if (("null".equals(state) && "null".equals(city) && "null".equals(zip)) ||
-                ("".equals(state) && "".equals(city) && "".equals(zip))) {
-            return "India";
-        } else {
-            return state + " " + city + " " + zip;
+            // 6. userAccountId = concatLoginid(tenantcode, salesmancode)
+            String salesmancode = safeString(feature.get("salesmancode"));
+            output.put("userAccountId", tenantcode + "-" + salesmancode);
+
+            // 7. loginId = same concat
+            output.put("loginId", tenantcode + "-" + salesmancode);
+
+            // 8. locationHierarchy = createLocationSLMG
+            Map<String, Object> locationHierarchy = new HashMap<>();
+            locationHierarchy.put("state", state);
+            locationHierarchy.put("country", "India");
+            locationHierarchy.put("pincode", zip);
+            locationHierarchy.put("city", city);
+            output.put("locationHierarchy", locationHierarchy);
+
+            // 9. designation = constant "mgr"
+            output.put("designation", "mgr");
+
+            // 10. extendedAttributes = toMap (locationcode)
+            Object locationcode = feature.get("locationcode");
+            Map<String, Object> extendedAttrs = new HashMap<>();
+            extendedAttrs.put("locationcode", locationcode);
+            output.put("extendedAttributes", extendedAttrs);
+
+            outputList.add(output);
         }
+
+        return outputList;
     }
 
-    private String activeFunction(String param) {
-        if ("1".equals(param)) {
-            return "active";
-        } else {
-            return "inactive";
-        }
+    private static String safeString(Object obj) {
+        if (obj == null) return null;
+        String s = obj.toString();
+        return s.equalsIgnoreCase("null") || s.trim().isEmpty() ? null : s;
     }
 
-    private String concatLoginid(String param1, String param2) {
-        return param1 + "-" + param2;
+    private static boolean isNullOrEmpty(String str) {
+        return (str == null || str.trim().isEmpty() || str.equalsIgnoreCase("null"));
     }
 
-    private ObjectNode createLocationSLMG(String state, String zip, String city) {
-        ObjectNode location = JSONUtils.getObjectMapper().createObjectNode();
-        location.put("state", state);
-        location.put("country", "India");
-        location.put("pincode", zip);
-        location.put("city", city);
-        return location;
-    }
 
-    private Map<String, String> toMap(String[] keys, String[] values) {
-        Map<String, String> map = new HashMap<>();
-        for (int i = 0; i < keys.length && i < values.length; i++) {
-            map.put(keys[i], values[i]);
-        }
-        return map;
-    }
 }
