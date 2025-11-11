@@ -3,7 +3,7 @@ package com.applicate.lbpl.enrichment;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.User;
+import com.salescode.dim.jooq.impl.User;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Set;
@@ -20,7 +20,7 @@ public class SupplierCategoryEnrichmentLBPL extends AbstractEnrichment<User> {
                 userObject.setDesignation(Set.of("retailer", "supplier"));
             }
         }
-        return OperationResult.StepResult(OperationResult.Status.OK, "User data enriched.");
+        return new OperationResult.StepResult(OperationResult.Status.OK, "User data enriched.");
     }
 }
 
