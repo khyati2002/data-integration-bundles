@@ -1,7 +1,5 @@
 package com.applicate.kgbpl.transformer;
 
-import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
@@ -29,14 +27,19 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
         String dataAreaId = getRawValue(source.get("dataAreaId"));
 
-        ObjectNode locationHierarchy = new ObjectMapper().createObjectNode();
+        ObjectMapper mapper = new ObjectMapper();
+
+        ObjectNode locationHierarchy = mapper.createObjectNode();
         locationHierarchy.put("area", concatWithDataAreaId(source, "AreaCode", dataAreaId));
         locationHierarchy.put("city", getRawValue(source.get("City")));
         locationHierarchy.put("pincode", getRawValue(source.get("ZipCode")));
         locationHierarchy.put("state", getRawValue(source.get("StateName")));
         locationHierarchy.put("country", "India");
         locationHierarchy.put("areacode", concatWithDataAreaId(source, "AreaCode", dataAreaId));
-        result.put("locationHierarchy", locationHierarchy);
+
+        // Convert to a Map instead of JsonNode
+        Map<String, Object> locationHierarchyMap = mapper.convertValue(locationHierarchy, Map.class);
+        result.put("locationHierarchy", locationHierarchyMap);
 
         result.put("channel", concatWithDataAreaId(source, "Channel", dataAreaId));
         result.put("displayAddress", getRawValue(source.get("City")) + "," + getRawValue(source.get("StateName")));
@@ -105,12 +108,15 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
         result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
 
-        ObjectNode extended = new ObjectMapper().createObjectNode();
+        ObjectNode extended = mapper.createObjectNode();
         extended.put("CreditLimit", getRawValue(source.get("CreditLimit")));
         extended.put("DeactiveDate", getRawValue(source.get("DeactiveDate")));
         extended.put("salesHierarchyCode", getRawValue(source.get("SalesHierarchyCode")));
         extended.put("preferredPaymentMode", paymentMode);
-        result.put("extendedAttributes", extended);
+
+        // Convert to a Map instead of JsonNode
+        Map<String, Object> extendedMap = mapper.convertValue(extended, Map.class);
+        result.put("extendedAttributes", extendedMap);
 
         return result;
     }
