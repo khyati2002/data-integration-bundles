@@ -110,25 +110,35 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
 
     /**
      * Safely extracts raw string value from any object type, including JsonNode
+     * Uses StringBuilder for consistent string handling across the transformer
      */
     private String getRawValue(Object value) {
+        StringBuilder result = new StringBuilder();
+
         if (value == null) {
-            return "";
+            return result.toString(); // Returns empty string
         }
 
         // Handle JsonNode objects if they come from the source
         if (value instanceof JsonNode) {
             JsonNode node = (JsonNode) value;
             if (node.isNull() || node.isMissingNode()) {
-                return "";
+                return result.toString(); // Returns empty string
             }
             String textValue = node.asText();
-            return (textValue != null && !textValue.trim().isEmpty()) ? textValue : "";
+            if (textValue != null && !textValue.trim().isEmpty()) {
+                result.append(textValue.trim());
+            }
+            return result.toString();
         }
 
         // Handle regular objects
         String strValue = value.toString().trim();
-        return !ObjectUtils.isEmpty(strValue) ? strValue : "";
+        if (!ObjectUtils.isEmpty(strValue)) {
+            result.append(strValue);
+        }
+
+        return result.toString();
     }
 
     private boolean isValidMobile(String mobile) {
