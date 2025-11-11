@@ -3,6 +3,8 @@ package com.applicate.kgbpl.transformer;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
+
+// USE FLINK SHADED JACKSON - THIS IS CRITICAL
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -19,7 +21,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
     private static final Pattern LON_PATTERN =
             Pattern.compile("^[+-]?(?:180(?:\\.0+)?|(?:1[0-7]\\d|\\d?\\d)(?:\\.\\d+)?)$");
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // Use Flink's shaded ObjectMapper
+    private static final ObjectMapper objectMapper = new org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper();
 
     @Override
     public Map<String, Object> transform(JsonNode source) {
@@ -115,16 +118,18 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
 
     /**
      * Safely extracts a text value from JsonNode
+     * Handles null, missing fields, and empty strings
      */
     private String getJsonValue(JsonNode node, String fieldName) {
         if (node == null || !node.has(fieldName)) {
             return "";
         }
         JsonNode fieldNode = node.get(fieldName);
-        if (fieldNode == null || fieldNode.isNull() || fieldNode.asText().trim().isEmpty()) {
+        if (fieldNode == null || fieldNode.isNull()) {
             return "";
         }
-        return fieldNode.asText().trim();
+        String value = fieldNode.asText();
+        return (value != null && !value.trim().isEmpty()) ? value.trim() : "";
     }
 
     private boolean isValidMobile(String mobile) {
@@ -160,22 +165,22 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
         StringBuilder hierarchy = new StringBuilder();
 
         if (!area.isEmpty()) {
-            hierarchy.append(area.trim());
+            hierarchy.append(area);
         }
 
         if (!city.isEmpty()) {
             if (hierarchy.length() > 0) hierarchy.append(" > ");
-            hierarchy.append(city.trim());
+            hierarchy.append(city);
         }
 
         if (!pincode.isEmpty()) {
             if (hierarchy.length() > 0) hierarchy.append(" > ");
-            hierarchy.append(pincode.trim());
+            hierarchy.append(pincode);
         }
 
         if (!state.isEmpty()) {
             if (hierarchy.length() > 0) hierarchy.append(" > ");
-            hierarchy.append(state.trim());
+            hierarchy.append(state);
         }
 
         if (hierarchy.length() > 0) hierarchy.append(" > ");
@@ -186,6 +191,7 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<JsonNode,
 
     /**
      * Builds extendedAttributes as a formatted string
+     * Format: "CreditLimit: value | DeactiveDate: value | salesHierarchyCode: value | preferredPaymentMode: value"
      */
     private String buildExtendedAttributes(JsonNode source, String paymentMode) {
         String creditLimit = getJsonValue(source, "CreditLimit");
