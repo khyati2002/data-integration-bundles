@@ -1,12 +1,8 @@
 package com.applicate.kgbpl.transformer;
 
-import com.applicate.services.channelkart.utils.JSONUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -122,13 +118,6 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         return (city.isEmpty() && state.isEmpty()) ? "" : city + "," + state;
     }
 
-    private String buildOutletDivision(Map<String, Object> source, String dataAreaId) {
-        String subsegment = getRawValue(source.get("SubsegmentId"));
-        String segment = getRawValue(source.get("SegmentId"));
-        if (!subsegment.isEmpty() && !segment.isEmpty())
-            return subsegment + "-" + segment + "-" + dataAreaId;
-        return "";
-    }
 
     private String determineActiveStatus(Map<String, Object> source, String dataAreaId) {
         String deactive = getRawValue(source.get("Deactive"));
@@ -149,7 +138,35 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         String mobile = getRawValue(mobileObj);
         return isValidMobile(mobile) ? mobile : "";
     }
+    private String flattenToString(Object value) {
+        if (value == null) return "";
+        try {
+            if (value instanceof org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode) {
+                org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode node =
+                        (org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode) value;
+                return node.isValueNode() ? node.asText("") : node.toString();
+            }
+            String s = value.toString().trim();
+            return s.isEmpty() ? "" : s;
+        } catch (Exception e) {
+            return "";
+        }
+    }
 
+    private String buildOutletDivision(Map<String, Object> source, String dataAreaId) {
+        String subsegment = flattenToString(source.get("SubsegmentId"));
+        String segment = flattenToString(source.get("SegmentId"));
+        String dataArea = flattenToString(dataAreaId);
+
+        if (!subsegment.isEmpty() && !segment.isEmpty()) {
+            return subsegment + "-" + segment + "-" + dataArea;
+        } else if (!segment.isEmpty()) {
+            return segment + "-" + dataArea;
+        } else if (!subsegment.isEmpty()) {
+            return subsegment + "-" + dataArea;
+        }
+        return "";
+    }
     private String buildExtendedAttributes(Map<String, Object> source, String paymentMode) {
         String creditLimit = getRawValue(source.get("CreditLimit"));
         String deactiveDate = getRawValue(source.get("DeactiveDate"));
