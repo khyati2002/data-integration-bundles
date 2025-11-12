@@ -37,31 +37,49 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 
 			Map<String, Object> output = new LinkedHashMap<>();
 
-			output.put(SYS_SKU_CODE, input.get(SYS_SKU_CODE));
-			output.put("productName", input.get("ProductName"));
-			output.put("brand", input.get("Brand"));
-			output.put("category", input.get("Category"));
+			// --- Core Field Mappings ---
+			putIfPresent(input, output, "MRP", "mrp");
+			putIfPresent(input, output, "Tax", "tax");
+			putIfPresent(input, output, "WDDEST", "supplier");
+
+			// SysSkuCode maps to both skuCode and batchCode
+			String sysSkuCode = input.get(SYS_SKU_CODE).toString();
+			output.put("skuCode", sysSkuCode);
+			output.put("batchCode", sysSkuCode);
+
+			// Add channel (constant)
 			output.put("channel", "All");
 
-			extractPackAndCasePointers(output, input);
+			// --- Extended Attributes (from JOLT spec) ---
+			putIfPresent(input, extendedAttributes, "SBU", "SBU");
+			putIfPresent(input, extendedAttributes, "UOM", "UOM");
+			putIfPresent(input, extendedAttributes, "CatCode", "CatCode");
+			putIfPresent(input, extendedAttributes, "CatName", "CatName");
+			putIfPresent(input, extendedAttributes, "BrandCode", "BrandCode");
+			putIfPresent(input, extendedAttributes, "BrandName", "BrandName");
+			putIfPresent(input, extendedAttributes, "PACIN1CFC", "PACIn1CFC");
+			putIfPresent(input, extendedAttributes, "MktSkuCode", "MktSkuCode");
+			putIfPresent(input, extendedAttributes, "MktSkuName", "MktSkuName");
+			putIfPresent(input, extendedAttributes, "SubCatCode", "SubCatCode");
+			putIfPresent(input, extendedAttributes, "SubCatName", "SubCatName");
+			putIfPresent(input, extendedAttributes, "SysSkuName", "SysSkuName");
+
+			extractPackAndCasePointers(output, extendedAttributes, input);
+
+			extendedAttributes.put("source_key", "integration");
 
 			if (productDetails != null && input.containsKey("MRP")) {
-				BigDecimal caseToPieceQuantityBD = productDetails.getCaseToPieceQuantity();
-				Float caseToPieceQuantity = (caseToPieceQuantityBD != null)
-						? caseToPieceQuantityBD.floatValue()
-						: null;
-
-				Float mrpPerPiece = Float.parseFloat(input.get("MRP").toString());
-				if (caseToPieceQuantity != null) {
-					Float caseMrp = caseToPieceQuantity * mrpPerPiece;
-					output.put("caseMrp", caseMrp);
+				BigDecimal caseToPieceQtyBD = productDetails.getCaseToPieceQuantity();
+				if (caseToPieceQtyBD != null) {
+					Float caseToPieceQty = caseToPieceQtyBD.floatValue();
+					Float mrpPerPiece = Float.parseFloat(input.get("MRP").toString());
+					output.put("caseMrp", caseToPieceQty * mrpPerPiece);
 				}
 			}
 
-			Map<String, Object> extendedAttributes = getExtendedAttributesObj(input);
 			output.put("extendedAttributes", extendedAttributes);
-
 			data.add(output);
+
 		} catch (Exception ex) {
 			logger.error("Unexpected error transforming product metadata for SysSkuCode: {}",
 					input != null ? input.get(SYS_SKU_CODE) : "unknown", ex);
@@ -71,30 +89,35 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 	}
 
 	/**
-	 * Extracts packPtr (PACPTR) and casePtr (CFCPTR) from the input map.
+	 * Helper: Copy a field from input to output if present.
 	 */
-	private void extractPackAndCasePointers(Map<String, Object> targetMap, Map<String, Object> sourceInput) {
-		try {
-			if (sourceInput.containsKey(PACPTR) && sourceInput.get(PACPTR) != null) {
-				targetMap.put("packPtr", sourceInput.get(PACPTR).toString());
-			}
-			if (sourceInput.containsKey(CFCPTR) && sourceInput.get(CFCPTR) != null) {
-				targetMap.put("casePtr", sourceInput.get(CFCPTR).toString());
-			}
-		} catch (Exception e) {
-			logger.error("Error extracting PACPTR/CFCPTR for SysSkuCode: {}", sourceInput.get(SYS_SKU_CODE), e);
+	private void putIfPresent(Map<String, Object> input, Map<String, Object> output, String sourceKey, String targetKey) {
+		if (input.containsKey(sourceKey) && input.get(sourceKey) != null) {
+			output.put(targetKey, input.get(sourceKey));
 		}
 	}
 
 	/**
-	 * Builds the extendedAttributes section with extra metadata.
+	 * Extracts PACPTR/CFCPTR values and places them in both direct and extended attributes.
 	 */
-	private Map<String, Object> getExtendedAttributesObj(Map<String, Object> input) {
-		Map<String, Object> extAttr = new LinkedHashMap<>();
-		extAttr.put("division", input.get("Division"));
-		extAttr.put("subCategory", input.get("SubCategory"));
-		extAttr.put("variant", input.get("Variant"));
-		extAttr.put("uom", input.get("UOM"));
-		return extAttr;
+	private void extractPackAndCasePointers(Map<String, Object> targetMap,
+											Map<String, Object> extendedAttributes,
+											Map<String, Object> sourceInput) {
+		try {
+			if (sourceInput.containsKey(PACPTR) && sourceInput.get(PACPTR) != null) {
+				String pacPtr = sourceInput.get(PACPTR).toString();
+				targetMap.put("packPtr", pacPtr);
+				extendedAttributes.put(PACPTR, pacPtr);
+				extendedAttributes.put("PACPTS", pacPtr);
+			}
+			if (sourceInput.containsKey(CFCPTR) && sourceInput.get(CFCPTR) != null) {
+				String cfcPtr = sourceInput.get(CFCPTR).toString();
+				targetMap.put("casePtr", cfcPtr);
+				extendedAttributes.put(CFCPTR, cfcPtr);
+				extendedAttributes.put("CFCPTS", cfcPtr);
+			}
+		} catch (Exception e) {
+			logger.error("Error extracting PACPTR/CFCPTR for SysSkuCode: {}", sourceInput.get(SYS_SKU_CODE), e);
+		}
 	}
 }
