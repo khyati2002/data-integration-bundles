@@ -2,10 +2,12 @@ package com.applicate.validation;
 
 import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.services.ServiceLocator;
+import com.applicate.services.channelkart.services.UserDesignationService;
 import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.validations.repository.RegexValidation;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.jooq.impl.ProductDetails;
+import com.salescode.dim.jooq.impl.UserDesignation;
 import org.apache.commons.lang3.StringUtils;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.ProductMetaData;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class VistaarProductMetadataValidator extends AbstractValidationRule<ProductMetaData> {
 	public static final String ONLY_DECIMAL_VALUE_ARE_ALLOWED_IN = "only decimal value are allowed in ";
@@ -146,12 +149,18 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 
 	private void validateSupplier(ProductMetaData cdm, List<String> errors) {
 		UserService userService = (UserService) ServiceLocator.lookup(User.class);
+		UserDesignationService userDesignationService = (UserDesignationService) ServiceLocator.lookup(UserDesignation.class);
 		if (cdm.getLoginid() == null) {
 			errors.add("supplier should not be null or empty");
 			return;
 		}
 
 		User user = userService.findByLoginId(cdm.getLoginid());
+		if(user!=null){
+			Set<String> designations = userDesignationService.getDesignationsByLoginId(user.getLoginId());
+			user.setDesignation(designations);
+		}
+
 		if (user == null) {
 			errors.add("supplier not present in database " + cdm.getLoginid());
 		} else if (!user.hasDesignation("wd")) {
