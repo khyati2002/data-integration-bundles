@@ -16,7 +16,7 @@ import java.util.*;
 public class StockistProductMetadataJavaTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
 	public static final String CFCPTR = "CFCPTR";
-	private static final Logger logger = LoggerFactory.getLogger(StockistProductMetadataTransformer.class);
+	private static final Logger logger = LoggerFactory.getLogger(StockistProductMetadataJavaTransformer.class);
 	private static final String SYS_SKU_CODE = "SysSkuCode";
 	public static final String PACPTR = "PACPTR";
 
