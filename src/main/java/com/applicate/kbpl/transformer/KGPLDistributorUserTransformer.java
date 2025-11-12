@@ -62,7 +62,7 @@ public class KGPLDistributorUserTransformer extends AbstractTransformer<Map<Stri
 
     // Mimics the appendKGPL function (appends "KGPL" suffix)
     private String appendKGPL(String code) {
-        return code != null ? code + "KGPL" : null;
+        return code != null ? code + "-KGPL" : null;
     }
 
     // Mimics createLocationKbpl(country, zip) function from provided JS
