@@ -6,7 +6,6 @@ import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.validations.repository.RegexValidation;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.jooq.impl.ProductDetails;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
 import com.salescode.dim.jooq.impl.ProductMetaData;
@@ -18,247 +17,220 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class VistaarProductMetadataValidator extends AbstractValidationRule<ProductMetaData> {
-    String decimalRegex = "^([0-9]*\\.)[0-9]+$";
-    String integerRegex = "(^[0-9]*$)";
-    private static final String CASEPTR="casePtr";
-    private static final String PACKPTR="packPtr";
-    private static final String CASEPTS="CFCPTS";
-    private static final String PACKPTS="PACPTS";
-    private static final String SBU="SBU";
-    private static final String SUB_CAT_CODE="SubCatCode";
-    private static final String SUB_CAT_NAME="SubCatName";
-    private static final String MKTSKUCODE="MktSkuCode";
-    private static final String MKTSKUNAME="MktSkuName";
-    private static final String BRANDCODE="BrandCode";
-    private static final String BRANDNAME="BrandName";
-    private static final String CATCODE="CatCode";
-    private static final String CATNAME="CatName";
+	public static final String ONLY_DECIMAL_VALUE_ARE_ALLOWED_IN = "only decimal value are allowed in ";
+	String decimalRegex = "^([0-9]*\\.)[0-9]+$";
+	String integerRegex = "(^[0-9]*$)";
+	private static final String CASEPTS = "CFCPTS";
+	private static final String PACKPTS = "PACPTS";
+	private static final String SBU = "SBU";
+	private static final String SUB_CAT_CODE = "SubCatCode";
+	private static final String SUB_CAT_NAME = "SubCatName";
+	private static final String MKTSKUCODE = "MktSkuCode";
+	private static final String MKTSKUNAME = "MktSkuName";
+	private static final String BRANDCODE = "BrandCode";
+	private static final String BRANDNAME = "BrandName";
+	private static final String CATCODE = "CatCode";
+	private static final String CATNAME = "CatName";
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
-    private UserService userService = (UserService) ServiceLocator.lookup(User.class);
-    private ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	private UserService userService = (UserService) ServiceLocator.lookup(User.class);
+	private ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 
-    @Override
-    public OperationResult.StepResult apply(ProductMetaData cdm) {
-        List<String> errors = new ArrayList<>();
+	@Override
+	public OperationResult.StepResult apply(ProductMetaData cdm) {
+		List<String> errors = new ArrayList<>();
 
-        if (StringUtils.isBlank(cdm.getSkuCode())) {
-            errors.add("skuCode should not be null or empty and present in Product metadata");
-        }
+		validateMandatoryFields(cdm, errors);
+		validateNumericFields(cdm, errors);
+		validateExtendedAttributes(cdm, errors);
+		validateSupplier(cdm, errors);
+		validateProductDetails(cdm, errors);
 
-        if(StringUtils.isBlank(cdm.getBatchCode())) {
-            errors.add("batchcode should not be null or empty and present in Product metadata");
-        }
+		if (!errors.isEmpty()) {
+			String errorStr = String.format(
+					"Validation error occurred for Product Metadata. Kindly go through provided errors and make sure those conditions should fulfill while retrying. %s",
+					StringUtils.join(errors, ", "));
+			logger.info(errorStr);
+			return new OperationResult.StepResult(OperationResult.Status.ERROR, errorStr);
+		}
 
-        if (cdm.getCasePtr()==null || cdm.getCasePtr().compareTo(BigDecimal.ZERO) == 0) {
-            errors.add(CASEPTR + " should not be null or empty in Product metadata");
-        } else {
-            if (!validatePattern(decimalRegex, String.valueOf(cdm.getCasePtr()))) {
-                errors.add("only decimal value are allowed in " +CASEPTR);
-            }
-        }
+		return OperationResult.StepResult.OK;
+	}
 
-        if (cdm.getPackPtr()==null || cdm.getPackPtr().compareTo(BigDecimal.ZERO) == 0) {
-            errors.add(PACKPTR +" should not be null or empty in Product metadata");
-        } else {
-            if (!validatePattern(decimalRegex, String.valueOf(cdm.getPackPtr()))) {
-                errors.add("only decimal value are allowed in "+ PACKPTR);
-            }
-        }
+	private void validateMandatoryFields(ProductMetaData cdm, List<String> errors) {
+		if (StringUtils.isBlank(cdm.getSkuCode()))
+			errors.add("skuCode should not be null or empty and present in Product metadata");
 
-        if (cdm.getMrp()==null || cdm.getMrp().compareTo(BigDecimal.ZERO) == 0) {
-            errors.add("mrp should not be null or empty in Product metadata");
-        } else {
-            if (!validatePattern(decimalRegex, String.valueOf(cdm.getMrp())) &&  !validatePattern(integerRegex, String.valueOf(cdm.getMrp()))) {
-                errors.add("only decimal or integer values are allowed in mrp");
-            }
-        }
+		if (StringUtils.isBlank(cdm.getBatchCode()))
+			errors.add("batchcode should not be null or empty and present in Product metadata");
+	}
 
-        if (StringUtils.isBlank(cdm.getTax())) {
-            errors.add("tax should not be null or empty in Product metadata");
-        } else {
-            if (!validatePattern(decimalRegex, String.valueOf(cdm.getTax())) &&  !validatePattern(integerRegex, String.valueOf(cdm.getTax()))) {
-                errors.add("only decimal or integer values allowed in tax");
-            }
-        }
+	private void validateNumericFields(ProductMetaData cdm, List<String> errors) {
+		validateDecimalField(cdm.getCasePtr(), "CasePtr", errors);
+		validateDecimalField(cdm.getPackPtr(), "PackPtr", errors);
 
-        JsonNode extendAttr = cdm.getExtendedAttributes();
+		if (cdm.getMrp() == null || cdm.getMrp().compareTo(BigDecimal.ZERO) == 0) {
+			errors.add("mrp should not be null or empty in Product metadata");
+		} else if (!validatePattern(decimalRegex, cdm.getMrp().toString()) &&
+				!validatePattern(integerRegex, cdm.getMrp().toString())) {
+			errors.add("only decimal or integer values are allowed in mrp");
+		}
 
-        //non-mandatory fields - mentioned by nikhil
-        if (extendAttr.has(CASEPTS)) {
-            String valueAttr = extendAttr.get(CASEPTS).asText();
-            if (StringUtils.isBlank(valueAttr) || valueAttr.equalsIgnoreCase("null")) {
-                errors.add("CASEPTR should not be null or empty");
-            }
-            if (!validatePattern(decimalRegex, valueAttr) && !validatePattern(integerRegex, valueAttr)) {
-                errors.add("only decimal value are allowed in" + CASEPTS);
-            }
-        }
+		if (StringUtils.isBlank(cdm.getTax())) {
+			errors.add("tax should not be null or empty in Product metadata");
+		} else if (!validatePattern(decimalRegex, cdm.getTax()) &&
+				!validatePattern(integerRegex, cdm.getTax())) {
+			errors.add("only decimal or integer values allowed in tax");
+		}
+	}
 
-        if (extendAttr.has(PACKPTS)) {
-            String valueAttr = extendAttr.get(PACKPTS).asText();
-            if (StringUtils.isBlank(valueAttr) || valueAttr.equalsIgnoreCase("null")) {
-                errors.add("PACPTR should not be null or empty");
-            }
-            if (!validatePattern(decimalRegex, valueAttr) && !validatePattern(integerRegex, valueAttr)) {
-                errors.add("only decimal value are allowed in " + PACKPTS);
-            }
-        }
+	private void validateDecimalField(BigDecimal value, String fieldName, List<String> errors) {
+		if (value == null || value.compareTo(BigDecimal.ZERO) == 0) {
+			errors.add(fieldName + " should not be null or empty in Product metadata");
+		} else if (!validatePattern(decimalRegex, value.toString())) {
+			errors.add("only decimal values are allowed in " + fieldName);
+		}
+	}
 
-        if (extendAttr.has("PACIn1CFC")) {
-            String valueAttr = extendAttr.get("PACIn1CFC").asText();
-            if (StringUtils.isBlank(valueAttr) || valueAttr.equalsIgnoreCase("null")) {
-                errors.add("PACIn1CFC should not be null or empty");
-            }
-            try{
-                if (Float.parseFloat(valueAttr)%1!=0) {
-                    errors.add("only int value are allowed in PACIn1CFC");
-                }
-            }catch (NumberFormatException e){
-                errors.add("only int value are allowed in PACIn1CFC");
-            }
-        }
+	private void validateExtendedAttributes(ProductMetaData cdm, List<String> errors) {
+		JsonNode extendAttr = cdm.getExtendedAttributes();
 
-        if(!ObjectUtils.isEmpty(extendAttr)) {
-            if(extendAttr.has(SBU)) {
-                String sbu = extendAttr.get(SBU).asText();
-                if (StringUtils.isBlank(sbu) || sbu.equalsIgnoreCase("null")) {
-                    errors.add("SBU should not be null or empty");
-                }
-            }
-            else {
-                errors.add(SBU + "cannot be null or empty");
-            }
+		if (extendAttr == null || extendAttr.isEmpty()) {
+			errors.add(SBU + " fields missing");
+			return;
+		}
 
-        }
-        else {
-            errors.add(SBU + " fields missing");
-        }
+		validateExtendedNumericField(extendAttr, CASEPTS, errors);
+		validateExtendedNumericField(extendAttr, PACKPTS, errors);
+		validatePACIn1CFC(extendAttr, errors);
+		validateSBU(extendAttr, errors);
+	}
 
-        if (cdm.getLoginid() == null) {
-            errors.add("supplier should not be null or empty");
-        } else {
-            User user = userService.findByLoginId(cdm.getLoginid());
-            if (user == null) {
-                errors.add("supplier not present in database " +cdm.getLoginid());
-            }
-            else if(!user.hasDesignation("wd")){
-                errors.add("supplier is not wd");
-            }
-        }
+	private void validateExtendedNumericField(JsonNode extendAttr, String field, List<String> errors) {
+		if (extendAttr.has(field)) {
+			String value = extendAttr.get(field).asText();
+			if (StringUtils.isBlank(value) || "null".equalsIgnoreCase(value))
+				errors.add(field + " should not be null or empty");
+			if (!validatePattern(decimalRegex, value) && !validatePattern(integerRegex, value))
+				errors.add(ONLY_DECIMAL_VALUE_ARE_ALLOWED_IN + field);
+		}
+	}
 
-        ProductDetails productDetails = productDetailsService.findByBatchCode(cdm.getBatchCode());
-        if(productDetails == null) {
-            errors.add("product details not found in database for batchcode " +cdm.getBatchCode());
-        }
-        else {
-            String error = validateMismatchProdDetails(productDetails, cdm);
-            error+= validateOtherFields(cdm);
-            if(error.length() > 0) {
-                errors.add(error);
-            }
-        }
+	private void validatePACIn1CFC(JsonNode extendAttr, List<String> errors) {
+		if (extendAttr.has("PACIn1CFC")) {
+			String value = extendAttr.get("PACIn1CFC").asText();
+			if (StringUtils.isBlank(value) || "null".equalsIgnoreCase(value)) {
+				errors.add("PACIn1CFC should not be null or empty");
+				return;
+			}
+			try {
+				if (Float.parseFloat(value) % 1 != 0)
+					errors.add("only int value are allowed in PACIn1CFC");
+			} catch (NumberFormatException e) {
+				errors.add("only int value are allowed in PACIn1CFC");
+			}
+		}
+	}
 
-        if (errors.size() > 0) {
-            String errorstr = String.format(
-                    "Validation error occurred for Product Metadata. Kindly go through provided errors and make sure those conditions should fulfill while retrying. %s",
-                    StringUtils.join(errors, ", "));
-            logger.info(errorstr);
-            return new OperationResult.StepResult(OperationResult.Status.ERROR, errorstr);
-        }
-        return OperationResult.StepResult.OK;
-    }
+	private void validateSBU(JsonNode extendAttr, List<String> errors) {
+		if (extendAttr.has(SBU)) {
+			String sbu = extendAttr.get(SBU).asText();
+			if (StringUtils.isBlank(sbu) || "null".equalsIgnoreCase(sbu))
+				errors.add("SBU should not be null or empty");
+		} else {
+			errors.add(SBU + "cannot be null or empty");
+		}
+	}
 
-    private String validateMismatchProdDetails(ProductDetails productDetails, ProductMetaData cdm) {
-        JsonNode extAttr = cdm.getExtendedAttributes();
-        String brandCode = productDetails.getBrandCode();
-        String brand = productDetails.getBrand();
-        StringBuilder error= new StringBuilder();
-        if(!StringUtils.isBlank(getValue(extAttr, BRANDCODE)) && !getValue(extAttr, BRANDCODE).equalsIgnoreCase(brandCode)) {
-            error.append("BrandCode details mismatch with product details. ");
-        }
-        else if(!StringUtils.isBlank(getValue(extAttr, BRANDNAME)) && !getValue(extAttr, BRANDNAME).equalsIgnoreCase(brand)) {
-            error.append("BrandName details mismatch with product details. " );
-        }
+	private void validateSupplier(ProductMetaData cdm, List<String> errors) {
+		if (cdm.getLoginid() == null) {
+			errors.add("supplier should not be null or empty");
+			return;
+		}
 
-        String CatCode = productDetails.getCategoryCode();
-        String CatName = productDetails.getCategory();
-        if(!StringUtils.isBlank(getValue(extAttr, CATCODE)) && !getValue(extAttr, CATCODE).equalsIgnoreCase(CatCode)) {
-            error.append("CatCode details mismatch with product details. " );
-        }
-        else if(!StringUtils.isBlank(getValue(extAttr, CATNAME)) && !getValue(extAttr, CATNAME).equalsIgnoreCase(CatName)) {
-            error.append("CatName details mismatch with product details. " );
-        }
+		User user = userService.findByLoginId(cdm.getLoginid());
+		if (user == null) {
+			errors.add("supplier not present in database " + cdm.getLoginid());
+		} else if (!user.hasDesignation("wd")) {
+			errors.add("supplier is not wd");
+		}
+	}
 
-        String SubCatCode = productDetails.getSubCategoryCode();
-        String SubCatName = productDetails.getSubCategory();
-        if(!StringUtils.isBlank(getValue(extAttr,SUB_CAT_CODE)) && !getValue(extAttr, SUB_CAT_CODE).equalsIgnoreCase(SubCatCode)) {
-            error.append("SubCatCode details mismatch with product details. " );
-        }
-        else if(!StringUtils.isBlank(getValue(extAttr, SUB_CAT_NAME)) && !getValue(extAttr, SUB_CAT_NAME).equalsIgnoreCase(SubCatName)) {
-            error.append("SubCatName details mismatch with product details. " );
-        }
+	private void validateProductDetails(ProductMetaData cdm, List<String> errors) {
+		ProductDetails productDetails = productDetailsService.findByBatchCode(cdm.getBatchCode());
+		if (productDetails == null) {
+			errors.add("product details not found in database for batchcode " + cdm.getBatchCode());
+			return;
+		}
 
-        String MktSkuCode = productDetails.getMarketSkuCode();
-        String MktSkuName = productDetails.getMarketSku();
-        if(!StringUtils.isBlank(getValue(extAttr, MKTSKUCODE)) && !getValue(extAttr, MKTSKUCODE).equalsIgnoreCase(MktSkuCode)) {
-            error.append("MktSkuCode details mismatch with product details. " );
-        }
-        else if(!StringUtils.isBlank(getValue(extAttr, MKTSKUNAME)) && !getValue(extAttr, MKTSKUNAME).equalsIgnoreCase(MktSkuName)) {
-            error.append("MktSkuName details mismatch with product details. " );
-        }
-        return error.toString();
-    }
+		String error = validateMismatchProdDetails(productDetails, cdm);
+		error += validateOtherFields(cdm);
+		if (!error.isEmpty()) errors.add(error);
+	}
 
-    private String validateOtherFields(ProductMetaData cdm){
-        JsonNode extAttr = cdm.getExtendedAttributes();
-        StringBuilder error= new StringBuilder();
-        if(extAttr!=null){
-            if(StringUtils.isBlank(getValue(extAttr, BRANDCODE))){
-                error.append("BrandCode should not be null or empty ");
-            }
-            if(StringUtils.isBlank(getValue(extAttr, BRANDNAME))){
-                error.append("BrandName should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, CATCODE))){
-                error.append("CatCode should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, CATNAME))){
-                error.append("CatName should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, SUB_CAT_CODE))){
-                error.append("SubCatCode should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, SUB_CAT_NAME))){
-                error.append("SubCatName should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, MKTSKUCODE))){
-                error.append("MktSkuCode should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, MKTSKUNAME))){
-                error.append("MktSkuName should not be null or empty ");
-            }
-            if (StringUtils.isBlank(getValue(extAttr, "SysSkuName"))){
-                error.append("SysSkuName should not be null or empty ");
-            }
-        }
-        return error.toString();
-    }
+	private String validateMismatchProdDetails(ProductDetails productDetails, ProductMetaData cdm) {
+		JsonNode extAttr = cdm.getExtendedAttributes();
+		StringBuilder error = new StringBuilder();
+
+		validateMismatch(error, extAttr, BRANDCODE, productDetails.getBrandCode(), BRANDCODE);
+		validateMismatch(error, extAttr, BRANDNAME, productDetails.getBrand(), BRANDNAME);
+		validateMismatch(error, extAttr, CATCODE, productDetails.getCategoryCode(), CATCODE);
+		validateMismatch(error, extAttr, CATNAME, productDetails.getCategory(), CATNAME);
+		validateMismatch(error, extAttr, SUB_CAT_CODE, productDetails.getSubCategoryCode(), SUB_CAT_CODE);
+		validateMismatch(error, extAttr, SUB_CAT_NAME, productDetails.getSubCategory(), SUB_CAT_NAME);
+		validateMismatch(error, extAttr, MKTSKUCODE, productDetails.getMarketSkuCode(), MKTSKUCODE);
+		validateMismatch(error, extAttr, MKTSKUNAME, productDetails.getMarketSku(), MKTSKUNAME);
+
+		return error.toString();
+	}
+
+	private void validateMismatch(StringBuilder error, JsonNode extAttr, String key, String actualValue, String label) {
+		String extValue = getValue(extAttr, key);
+
+		if (!StringUtils.isBlank(extValue) && !StringUtils.equalsIgnoreCase(extValue, StringUtils.defaultString(actualValue))) {
+			error.append(label).append(" details mismatch with product details. ");
+		}
+	}
+
+	private String validateOtherFields(ProductMetaData cdm) {
+		JsonNode extAttr = cdm.getExtendedAttributes();
+		StringBuilder error = new StringBuilder();
+
+		if (extAttr == null) {
+			return error.toString();
+		}
+
+		List<String> keys = Arrays.asList(
+				BRANDCODE, BRANDNAME, CATCODE, CATNAME,
+				SUB_CAT_CODE, SUB_CAT_NAME, MKTSKUCODE,
+				MKTSKUNAME, "SysSkuName"
+		);
+
+		for (String key : keys) {
+			String value = getValue(extAttr, key);
+			if (StringUtils.isBlank(value)) {
+				error.append(key).append(" should not be null or empty ");
+			}
+		}
+
+		return error.toString();
+	}
 
 
-    private String getValue(JsonNode extAttr, String key) {
-        if(extAttr.has(key)&& extAttr.get(key).asText().equalsIgnoreCase("null")){
-            return null;
-        }
-        return extAttr.has(key)? extAttr.get(key).asText(): null;
-    }
+	private String getValue(JsonNode extAttr, String key) {
+		if (extAttr.has(key) && extAttr.get(key).asText().equalsIgnoreCase("null")) {
+			return null;
+		}
+		return extAttr.has(key) ? extAttr.get(key).asText() : null;
+	}
 
-    public boolean validatePattern(String pattern, String value) {
-        RegexValidation regexValidation = new RegexValidation();
-        return regexValidation.match(pattern, value);
+	public boolean validatePattern(String pattern, String value) {
+		RegexValidation regexValidation = new RegexValidation();
+		return regexValidation.match(pattern, value);
 
-    }
+	}
 }
