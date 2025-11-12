@@ -11,7 +11,7 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.ProductDetails;
 
-public class StockistProductMetadataTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
+public class StockistProductMetadataJavaTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
 	private static final String SYS_SKU_CODE = "SysSkuCode";
 	public static final String PACPTR = "PACPTR";
