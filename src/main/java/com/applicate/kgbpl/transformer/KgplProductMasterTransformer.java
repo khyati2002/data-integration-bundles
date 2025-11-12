@@ -1,9 +1,5 @@
 package com.applicate.kgbpl.transformer;
 
-import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,7 +34,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         result.put("itemType", getValueOrNA(source.get("AcxItemType")));
         result.put("skuName", validateAndReturn(source.get("ProductSearchName"), "ProductSearchName"));
 
-        // ---------------- Size & Color Handling ----------------
+        // ---------------- Size & Color ----------------
         String sizeId = getValueOrNA(source.get("SizeId"));
         boolean hasValidSize = !"NA".equals(sizeId);
         result.put("size", formatWithDataAreaId(sizeId, dataAreaId));
@@ -87,7 +83,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         result.put("szcd", formatWithDataAreaId(getValueOrNA(source.get("SZCD")), dataAreaId));
         result.put("lineDiscountGroup", formatWithDataAreaId(getValueOrNA(source.get("LineDisc")), dataAreaId));
 
-        // ---------------- SKU Code Generation ----------------
+        // ---------------- SKU Code ----------------
         String itemId = validateAndReturn(source.get("ItemId"), "ItemId");
         String styleId = validateAndReturn(source.get("StyleId"), "StyleId");
         String configId = validateAndReturn(source.get("ConfigurationId"), "ConfigurationId");
@@ -112,9 +108,8 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
             throw new DataTransformationService.TransformationException("Invalid value for Deactive field: " + deactive);
         }
 
-        // ---------------- Extended Attributes ----------------
-        JsonNode extendedAttributes = buildExtendedAttributes(source);
-        result.put("extendedAttributes", extendedAttributes);
+        // ---------------- Extended Attributes (string-based) ----------------
+        result.put("extendedAttributes", buildExtendedAttributes(source));
 
         // ---------------- Miscellaneous ----------------
         result.put("skuPieceWeight", Optional.ofNullable(calculateSkuPcWeight(source.get("NetProductWeight"), source.get("NOB"))).orElse(0.0f));
@@ -130,52 +125,33 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
     }
 
     // ----------------------------------------------------------------------
-    // Extended Attributes Builder (Consistent with Customer Transformer)
+    // String-based Extended Attributes (same logic style as Customer Transformer)
     // ----------------------------------------------------------------------
 
-    private JsonNode buildExtendedAttributes(Map<String, Object> source) {
-        ObjectMapper mapper = JSONUtils.getObjectMapper();
-        ObjectNode extended = mapper.createObjectNode();
+    private String buildExtendedAttributes(Map<String, Object> source) {
+        StringBuilder extended = new StringBuilder();
 
-        double skuCaseWeight = 0.0;
-        try {
-            skuCaseWeight = Double.parseDouble(getValueOrNA(source.get("NetProductWeight")));
-        } catch (NumberFormatException e) {
-            skuCaseWeight = 0.0;
-        }
-        extended.put("skuCaseWeight", skuCaseWeight);
+        String palletSize = getValueOrNA(source.get("PalletSize"));
+        String packSize = getValueOrNA(source.get("PackSize"));
+        String packType = getValueOrNA(source.get("PackType"));
+        String productSegment = getValueOrNA(source.get("ProductSegment"));
+        String grossWeight = getValueOrNA(source.get("GrossWeight"));
+        String netWeight = getValueOrNA(source.get("NetProductWeight"));
+        String brandCategory = getValueOrNA(source.get("BrandCategory"));
+        String taxGroup = getValueOrNA(source.get("TaxItemGroupName"));
+        String eanCode = getValueOrNA(source.get("EanCode"));
 
-        String rawPalletSize = getValueOrNA(source.get("PalletSize"));
-        if ("NA".equals(rawPalletSize)) extended.putNull("palletSize");
-        else extended.put("palletSize", rawPalletSize);
+        extended.append("PalletSize=").append(palletSize);
+        extended.append(" | PackSize=").append(packSize);
+        extended.append(" | PackType=").append(packType);
+        extended.append(" | ProductSegment=").append(productSegment);
+        extended.append(" | GrossWeight=").append(grossWeight);
+        extended.append(" | NetWeight=").append(netWeight);
+        extended.append(" | BrandCategory=").append(brandCategory);
+        extended.append(" | TaxGroup=").append(taxGroup);
+        extended.append(" | EANCode=").append(eanCode);
 
-        // Additional contextual attributes
-        extended.put("palletType", getValueOrNA(source.get("PalletType")));
-        extended.put("caseConfiguration", getValueOrNA(source.get("ConfigurationId")));
-        extended.put("unitOfMeasure", getValueOrNA(source.get("UnitOfMeasure")));
-        extended.put("grossWeight", getValueOrNA(source.get("GrossWeight")));
-        extended.put("netWeight", getValueOrNA(source.get("NetProductWeight")));
-
-        Float nob = getNumericValue(source.get("NOB"), "NOB");
-        extended.put("bottlesPerCase", nob);
-        if (nob != null && nob > 0) {
-            double skuPieceWeight = skuCaseWeight / nob;
-            extended.put("skuPieceWeight", Math.round(skuPieceWeight * 100.0) / 100.0);
-        } else {
-            extended.put("skuPieceWeight", 0.0);
-        }
-
-        extended.put("brandCategory", getValueOrNA(source.get("BrandCategory")));
-        extended.put("productSegment", getValueOrNA(source.get("ProductSegment")));
-        extended.put("packType", getValueOrNA(source.get("PackType")));
-        extended.put("packTypeGroup", getValueOrNA(source.get("PackTypeGroup")));
-        extended.put("lineDiscountGroup", getValueOrNA(source.get("LineDisc")));
-        extended.put("taxGroup", getValueOrNA(source.get("TaxItemGroupName")));
-        extended.put("priceGroup", getValueOrNA(source.get("PriceGroup")));
-        extended.put("barcode", getValueOrNA(source.get("EanCode")));
-        extended.put("rgbVariant", getValueOrNA(source.get("RGBRetailVariantId")));
-
-        return mapper.convertValue(extended, JsonNode.class);
+        return extended.toString();
     }
 
     // ----------------------------------------------------------------------
