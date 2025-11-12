@@ -1,100 +1,70 @@
 package com.applicate.transformer;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.ProductDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.*;
+public class StockistProductMetadataTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
-/**
- * Transformer for Stockist Product Metadata.
- */
-public class StockistProductMetadataJavaTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
-
-	public static final String CFCPTR = "CFCPTR";
-	private static final Logger logger = LoggerFactory.getLogger(StockistProductMetadataJavaTransformer.class);
 	private static final String SYS_SKU_CODE = "SysSkuCode";
 	public static final String PACPTR = "PACPTR";
+	public static final String CFCPTR = "CFCPTR";
 
 	@Override
-	public List<Map<String, Object>> transform(Map<String, Object> input) {
+	public List<Map<String, Object>> transform(Map<String, Object> s) {
+
+		ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
+		ProductDetails productDetails = productDetailsService.findBySkuCode(s.get(SYS_SKU_CODE).toString());
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("mrp", s.get("MRP"));
+		map.put("tax", s.get("Tax"));
+		map.put("supplier", s.get("WDDEST"));
+
+		Map<String, Object> extendedAttributes = new HashMap<>();
+		String[] keys = {"SBU", "UOM", "CatCode", "CatName", "BrandCode", "BrandName",
+				"PACIN1CFC", "MktSkuCode", "MktSkuName", "SubCatCode", "SubCatName", "SysSkuName", "#integration"};
+		for (String key : keys) {
+			extendedAttributes.put(key.equals("#integration") ? "source_key" : key, s.get(key));
+		}
+
+		// CFCPTR / PACPTR
+		if (s.containsKey(CFCPTR) && s.get(CFCPTR) != null) {
+			extendedAttributes.put(CFCPTR, s.get(CFCPTR));
+			extendedAttributes.put("CFCPTS", s.get(CFCPTR));
+			map.put("casePtr", s.get(CFCPTR));
+		}
+
+		if (s.containsKey(PACPTR) && s.get(PACPTR) != null) {
+			extendedAttributes.put(PACPTR, s.get(PACPTR));
+			extendedAttributes.put("PACPTS", s.get(PACPTR));
+			map.put("packPtr", s.get(PACPTR));
+		}
+
+		map.put("extendedAttributes", extendedAttributes);
+
+		// SKU codes
+		map.put("skuCode", s.get(SYS_SKU_CODE));
+		map.put("batchCode", s.get(SYS_SKU_CODE));
+		map.put("channel", "All");
+
+		// Case MRP
+		if (productDetails != null && s.get("MRP") != null) {
+			BigDecimal caseToPieceQuantity = productDetails.getCaseToPieceQuantity();
+			BigDecimal mrpPerPiece = new BigDecimal(s.get("MRP").toString());
+			BigDecimal caseMrp = caseToPieceQuantity.multiply(mrpPerPiece);
+			map.put("caseMrp", caseMrp.floatValue());
+		}
+
 		List<Map<String, Object>> data = new ArrayList<>();
-
-		try {
-			if (input == null || input.get(SYS_SKU_CODE) == null) {
-				logger.warn("Input map or SysSkuCode is null — skipping transformation.");
-				return data;
-			}
-
-			// Look up ProductDetailsService and fetch product details
-			ProductDetailsService productDetailsService =
-					(ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
-			ProductDetails productDetails = productDetailsService.findBySkuCode(input.get(SYS_SKU_CODE).toString());
-
-			Map<String, Object> output = new LinkedHashMap<>();
-
-			output.put(SYS_SKU_CODE, input.get(SYS_SKU_CODE));
-			output.put("productName", input.get("ProductName"));
-			output.put("brand", input.get("Brand"));
-			output.put("category", input.get("Category"));
-			output.put("channel", "All");
-
-			extractPackAndCasePointers(output, input);
-
-			if (productDetails != null && input.containsKey("MRP")) {
-				BigDecimal caseToPieceQuantityBD = productDetails.getCaseToPieceQuantity();
-				Float caseToPieceQuantity = (caseToPieceQuantityBD != null)
-						? caseToPieceQuantityBD.floatValue()
-						: null;
-
-				Float mrpPerPiece = Float.parseFloat(input.get("MRP").toString());
-				if (caseToPieceQuantity != null) {
-					Float caseMrp = caseToPieceQuantity * mrpPerPiece;
-					output.put("caseMrp", caseMrp);
-				}
-			}
-
-			Map<String, Object> extendedAttributes = getExtendedAttributesObj(input);
-			output.put("extendedAttributes", extendedAttributes);
-
-			data.add(output);
-		} catch (Exception ex) {
-			logger.error("Unexpected error transforming product metadata for SysSkuCode: {}",
-					input != null ? input.get(SYS_SKU_CODE) : "unknown", ex);
-		}
-
+		data.add(map);
 		return data;
-	}
-
-	/**
-	 * Extracts packPtr (PACPTR) and casePtr (CFCPTR) from the input map.
-	 */
-	private void extractPackAndCasePointers(Map<String, Object> targetMap, Map<String, Object> sourceInput) {
-		try {
-			if (sourceInput.containsKey(PACPTR) && sourceInput.get(PACPTR) != null) {
-				targetMap.put("packPtr", sourceInput.get(PACPTR).toString());
-			}
-			if (sourceInput.containsKey(CFCPTR) && sourceInput.get(CFCPTR) != null) {
-				targetMap.put("casePtr", sourceInput.get(CFCPTR).toString());
-			}
-		} catch (Exception e) {
-			logger.error("Error extracting PACPTR/CFCPTR for SysSkuCode: {}", sourceInput.get(SYS_SKU_CODE), e);
-		}
-	}
-
-	/**
-	 * Builds the extendedAttributes section with extra metadata.
-	 */
-	private Map<String, Object> getExtendedAttributesObj(Map<String, Object> input) {
-		Map<String, Object> extAttr = new LinkedHashMap<>();
-		extAttr.put("division", input.get("Division"));
-		extAttr.put("subCategory", input.get("SubCategory"));
-		extAttr.put("variant", input.get("Variant"));
-		extAttr.put("uom", input.get("UOM"));
-		return extAttr;
 	}
 }
