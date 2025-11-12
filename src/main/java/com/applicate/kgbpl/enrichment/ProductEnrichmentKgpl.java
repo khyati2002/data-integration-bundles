@@ -5,7 +5,7 @@ import com.applicate.services.channelkart.services.GenericEntityService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.impl.CategoryInfo;
+import com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo;
 import com.salescode.dim.jooq.impl.GenericEntity;
 import com.salescode.dim.jooq.impl.ProductDetails;
 
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 public class ProductEnrichmentKgpl extends AbstractEnrichment<ProductDetails> {
     GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
-    CategoryInfoService categoryInfoService = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
+    CategoryInfoService categoryInfoService = new CategoryInfoService();
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("-?\\d+(\\.\\d+)?");
 
