@@ -13,9 +13,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ProductEnrichmentKgpl extends AbstractEnrichment<ProductDetails> {
-    private final CategoryInfoService categoryInfoService =
-            (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
-
+    private final CategoryInfoService categoryInfoService = new CategoryInfoService();
     private static final Pattern NUMBER_PATTERN = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     private static final Map<String, Integer> unitConversionMap = new HashMap<>();
