@@ -50,14 +50,7 @@ public class OutletMasterKGPLTransformer extends AbstractTransformer<Map<String,
         ifEmpty(inputMap.get("customername")).ifPresent(val -> responseMap.put("outletName", inputMap.get("customername").toString()));
         ifEmpty(inputMap.get(email)).ifPresent(val -> responseMap.put(email, inputMap.get(email).toString()));
         ifEmpty(inputMap.get("address1")).ifPresent(val -> responseMap.put("address", inputMap.get("address1").toString()));
-        ifEmpty(inputMap.get("customerstatus")).ifPresent(val -> {
-            String status = val.toString();
-            if ("1".equals(status)) {
-                responseMap.put("activeStatus", "active");
-            } else if ("0".equals(status)) {
-                responseMap.put("activeStatus", "inactive");
-            }
-        });
+        ifEmpty(inputMap.get("customerstatus")).ifPresent(val -> responseMap.put("activeStatus", inputMap.get("customerstatus").toString()));
         ifEmpty(inputMap.get("phone")).ifPresentOrElse(val -> responseMap.put("contactno", formatPhoneNumber(inputMap.get("phone").toString())), () -> {
             responseMap.put("contactno", "0000000000");
         });
