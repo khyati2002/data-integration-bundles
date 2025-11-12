@@ -70,8 +70,8 @@ public class KgplCustomerMasterTransformer extends AbstractTransformer<Map<Strin
         result.put("outletAttr6", getRawValue(source.get("InvoiceAccount")));
 
         String calculateWithholdingTax = getRawValue(source.get("CalculateWithholdingTax"));
-        result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
-
+//        result.put("tcsEligibility", "Yes".equalsIgnoreCase(calculateWithholdingTax) ? "true" : "false");
+        result.put("tcsEligibility", (byte) ("Yes".equalsIgnoreCase(calculateWithholdingTax) ? 1 : 0));
         // ---------------- Extended Attributes ----------------
         result.put("extendedAttributes", buildExtendedAttributes(source, paymentMode));
 
