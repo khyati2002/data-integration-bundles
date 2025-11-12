@@ -17,7 +17,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
             "ItemId",             // used in skuCode, mCode
             "ConfigurationId",    // used in skuCode
             "StyleId",            // used in skuCode
-            "Deactive"            //used in activeStatus
+            "Deactive"            // used in activeStatus
     );
 
     @Override
@@ -38,16 +38,16 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         result.put("itemType", getValueOrNA(source.get("AcxItemType")));
         result.put("skuName", validateAndReturn(source.get("ProductSearchName"), "ProductSearchName"));
 
-        // Existing size handling
+        // ---------------- Size & Color Handling ----------------
         String sizeId = getValueOrNA(source.get("SizeId"));
         boolean hasValidSize = !"NA".equals(sizeId);
-        result.put("size", formatWithDataAreaId(sizeId, dataAreaId)); // Always present
+        result.put("size", formatWithDataAreaId(sizeId, dataAreaId));
 
-        // NEW colorCode handling same as size
         String colorId = getValueOrNA(source.get("ColorId"));
         boolean hasValidColor = !"NA".equals(colorId);
-        result.put("colorCode", formatWithDataAreaId(colorId, dataAreaId)); // Always present
+        result.put("colorCode", formatWithDataAreaId(colorId, dataAreaId));
 
+        // ---------------- Product Hierarchy ----------------
         result.put("productCode", formatWithDataAreaId(getValueOrNA(source.get("AcxPriceGroup")), dataAreaId));
         result.put("pieceSize", formatWithDataAreaId(getValueOrNA(source.get("PackSize")), dataAreaId));
         result.put("pieceSizeDesc", formatWithDataAreaId(getValueOrNA(source.get("PackTypeGroup")), dataAreaId));
@@ -59,6 +59,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         result.put("brandCode", formatWithDataAreaId(getValueOrNA(source.get("Brand")), dataAreaId));
         result.put("flavour", formatWithDataAreaId(getValueOrNA(source.get("BrandCategory")), dataAreaId));
 
+        // ---------------- Quantity Conversion ----------------
         Float palletSize = getNumericValue(source.get("PalletSize"), "PalletSize");
         Float nob = getNumericValue(source.get("NOB"), "NOB");
 
@@ -67,9 +68,12 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
             Float otherUnitToPieceQuantity = effectivePalletSize * nob;
             result.put("otherUnitToPieceQuantity", otherUnitToPieceQuantity);
         } else {
-            throw new DataTransformationService.TransformationException("NOB value is required for otherUnitToPieceQuantity calculation but is missing or null");
+            throw new DataTransformationService.TransformationException(
+                    "NOB value is required for otherUnitToPieceQuantity calculation but is missing or null"
+            );
         }
 
+        // ---------------- MRP & Capacity ----------------
         String configIdRaw = getValueOrNA(source.get("ConfigurationId"));
         try {
             Float.parseFloat(configIdRaw);
@@ -83,27 +87,22 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         result.put("szcd", formatWithDataAreaId(getValueOrNA(source.get("SZCD")), dataAreaId));
         result.put("lineDiscountGroup", formatWithDataAreaId(getValueOrNA(source.get("LineDisc")), dataAreaId));
 
+        // ---------------- SKU Code Generation ----------------
         String itemId = validateAndReturn(source.get("ItemId"), "ItemId");
         String styleId = validateAndReturn(source.get("StyleId"), "StyleId");
         String configId = validateAndReturn(source.get("ConfigurationId"), "ConfigurationId");
 
-        // Build skuCode with optional size and colorCode
         StringBuilder skuCodeBuilder = new StringBuilder();
         skuCodeBuilder.append(itemId).append("_").append(styleId).append("_").append(configId);
-        if (hasValidSize) {
-            skuCodeBuilder.append("_").append(sizeId);
-        }
-        if (hasValidColor) {
-            skuCodeBuilder.append("_").append(colorId);
-        }
-
-
+        if (hasValidSize) skuCodeBuilder.append("_").append(sizeId);
+        if (hasValidColor) skuCodeBuilder.append("_").append(colorId);
         skuCodeBuilder.append("_").append(dataAreaId);
 
         String skuCode = skuCodeBuilder.toString();
         result.put("skuCode", skuCode);
         result.put("batchCode", skuCode);
 
+        // ---------------- Active Status ----------------
         String deactive = getValueOrNA(source.get("Deactive")).toLowerCase();
         if ("yes".equals(deactive)) {
             result.put("activeStatus", "inactive");
@@ -113,25 +112,15 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
             throw new DataTransformationService.TransformationException("Invalid value for Deactive field: " + deactive);
         }
 
-        ObjectNode extended = new ObjectMapper().createObjectNode();
-        try {
-            extended.put("skuCaseWeight", Double.parseDouble(getValueOrNA(source.get("NetProductWeight"))));
-        } catch (NumberFormatException e) {
-            extended.put("skuCaseWeight", 0.0);
-        }
-        Object rawPalletSize = source.get("PalletSize");
-        if (rawPalletSize == null || ObjectUtils.isEmpty(rawPalletSize.toString().trim())) {
-            extended.putNull("palletSize");
-        } else {
-            extended.put("palletSize", rawPalletSize.toString()); // no trim/parse, preserve exactly
-        }
+        // ---------------- Extended Attributes ----------------
+        JsonNode extendedAttributes = buildExtendedAttributes(source);
+        result.put("extendedAttributes", extendedAttributes);
 
-        result.put("extendedAttributes", JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class));
+        // ---------------- Miscellaneous ----------------
         result.put("skuPieceWeight", Optional.ofNullable(calculateSkuPcWeight(source.get("NetProductWeight"), source.get("NOB"))).orElse(0.0f));
         result.put("empties", getValueOrNA(source.get("RGBItemId")));
         result.put("crateRequired", getValueOrNA(source.get("CrateItemId")));
         result.put("emptiesVariant", getValueOrNA(source.get("RGBRetailVariantId")));
-
         result.put("bbd", getValueOrNA(source.get("BBD")));
         result.put("dod", getValueOrNA(source.get("DOD")));
         result.put("idod", getValueOrNA(source.get("IDOD")));
@@ -139,6 +128,59 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
 
         return result;
     }
+
+    // ----------------------------------------------------------------------
+    // Extended Attributes Builder (Consistent with Customer Transformer)
+    // ----------------------------------------------------------------------
+
+    private JsonNode buildExtendedAttributes(Map<String, Object> source) {
+        ObjectMapper mapper = JSONUtils.getObjectMapper();
+        ObjectNode extended = mapper.createObjectNode();
+
+        double skuCaseWeight = 0.0;
+        try {
+            skuCaseWeight = Double.parseDouble(getValueOrNA(source.get("NetProductWeight")));
+        } catch (NumberFormatException e) {
+            skuCaseWeight = 0.0;
+        }
+        extended.put("skuCaseWeight", skuCaseWeight);
+
+        String rawPalletSize = getValueOrNA(source.get("PalletSize"));
+        if ("NA".equals(rawPalletSize)) extended.putNull("palletSize");
+        else extended.put("palletSize", rawPalletSize);
+
+        // Additional contextual attributes
+        extended.put("palletType", getValueOrNA(source.get("PalletType")));
+        extended.put("caseConfiguration", getValueOrNA(source.get("ConfigurationId")));
+        extended.put("unitOfMeasure", getValueOrNA(source.get("UnitOfMeasure")));
+        extended.put("grossWeight", getValueOrNA(source.get("GrossWeight")));
+        extended.put("netWeight", getValueOrNA(source.get("NetProductWeight")));
+
+        Float nob = getNumericValue(source.get("NOB"), "NOB");
+        extended.put("bottlesPerCase", nob);
+        if (nob != null && nob > 0) {
+            double skuPieceWeight = skuCaseWeight / nob;
+            extended.put("skuPieceWeight", Math.round(skuPieceWeight * 100.0) / 100.0);
+        } else {
+            extended.put("skuPieceWeight", 0.0);
+        }
+
+        extended.put("brandCategory", getValueOrNA(source.get("BrandCategory")));
+        extended.put("productSegment", getValueOrNA(source.get("ProductSegment")));
+        extended.put("packType", getValueOrNA(source.get("PackType")));
+        extended.put("packTypeGroup", getValueOrNA(source.get("PackTypeGroup")));
+        extended.put("lineDiscountGroup", getValueOrNA(source.get("LineDisc")));
+        extended.put("taxGroup", getValueOrNA(source.get("TaxItemGroupName")));
+        extended.put("priceGroup", getValueOrNA(source.get("PriceGroup")));
+        extended.put("barcode", getValueOrNA(source.get("EanCode")));
+        extended.put("rgbVariant", getValueOrNA(source.get("RGBRetailVariantId")));
+
+        return mapper.convertValue(extended, JsonNode.class);
+    }
+
+    // ----------------------------------------------------------------------
+    // Utility & Validation Helpers
+    // ----------------------------------------------------------------------
 
     private void validateRequiredFields(Map<String, Object> source) {
         for (String key : requiredFields) {
@@ -176,14 +218,11 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         try {
             double netWeight = Double.parseDouble(getValueOrNA(weight));
             double numberOfBottles = Double.parseDouble(getValueOrNA(nob));
-            if (numberOfBottles == 0) {
-                return null;
-            }
+            if (numberOfBottles == 0) return null;
             double result = netWeight / numberOfBottles;
-            return Math.round(result * 100.0) / 100.0f;  // rounded to 2 decimal places
+            return Math.round(result * 100.0) / 100.0f;
         } catch (NumberFormatException e) {
             return null;
         }
     }
-
 }
