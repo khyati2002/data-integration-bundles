@@ -146,7 +146,7 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         if (monitoringScope != 4) {
             schemeProductMap.put("eanNumber", "all");
         }
-        if(inputMap.get("discountedscope").equals("1")) {
+        if ("1".equals(inputMap.get("discountedscope"))) {
             String discountedItemId=inputMap.get("discounted_item_id").toString();
             String[] parts = discountedItemId.split("_");
             String eanCode = parts[0];

@@ -106,7 +106,7 @@ public class HCCBChannelEnrichment
     }
 
     private boolean isItemSchemeWithProductCode(SchemeDefination cdm) {
-        return cdm.getSchemeType().contains("item");
+        return NullUtils.isNotNull(cdm.getSchemeType()) && cdm.getSchemeType().contains("item");
     }
 
     private List<SchemeFreeproductinfo> findAllFreeProductsByEanCode(String inputCode, BigDecimal freeQty, String schemeId) {
