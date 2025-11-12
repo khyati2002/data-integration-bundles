@@ -13,9 +13,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ProductEnrichmentKgpl extends AbstractEnrichment<ProductDetails> {
-    private final CategoryInfoService categoryInfoService = new CategoryInfoService();
     private static final Pattern NUMBER_PATTERN = Pattern.compile("-?\\d+(\\.\\d+)?");
-
     private static final Map<String, Integer> unitConversionMap = new HashMap<>();
     static {
         unitConversionMap.put("ML", 1);
@@ -31,6 +29,7 @@ public class ProductEnrichmentKgpl extends AbstractEnrichment<ProductDetails> {
 
     @Override
     public OperationResult.StepResult apply(ProductDetails cdm) {
+        CategoryInfoService categoryInfoService = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
         List<CategoryInfo> brandList = categoryInfoService.findByCategoryCodeAndFeature(cdm.getBrandCode(), "brandcode");
         if (!brandList.isEmpty()) {
             cdm.setBrand(brandList.get(0).getCategoryValue());
