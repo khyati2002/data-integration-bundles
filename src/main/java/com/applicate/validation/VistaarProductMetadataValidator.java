@@ -37,8 +37,6 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 	private static final String CATNAME = "CatName";
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
-	private UserService userService = (UserService) ServiceLocator.lookup(User.class);
-	private ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 
 	@Override
 	public OperationResult.StepResult apply(ProductMetaData cdm) {
@@ -147,6 +145,7 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 	}
 
 	private void validateSupplier(ProductMetaData cdm, List<String> errors) {
+		UserService userService = (UserService) ServiceLocator.lookup(User.class);
 		if (cdm.getLoginid() == null) {
 			errors.add("supplier should not be null or empty");
 			return;
@@ -161,6 +160,7 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 	}
 
 	private void validateProductDetails(ProductMetaData cdm, List<String> errors) {
+		ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 		ProductDetails productDetails = productDetailsService.findByBatchCode(cdm.getBatchCode());
 		if (productDetails == null) {
 			errors.add("product details not found in database for batchcode " + cdm.getBatchCode());
