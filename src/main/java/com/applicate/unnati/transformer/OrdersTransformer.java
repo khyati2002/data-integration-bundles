@@ -48,7 +48,8 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
             output.put("normalizedVolume",0);
             output.put("totalInitialAmt",0);
             output.put("locationHierarchy","EORI > EDIS > India");
-            output.put("outletCode","232");
+            output.put("outletcode","C20220005949786");
+            output.put("loginid","OUTLET123456");
             output.put("supplierid","en5v39c2n");
             output.put("hierarchy","BL40572 > SBLR > PSBLR > neha@applicatetechnology.com");
 
