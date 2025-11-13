@@ -39,7 +39,7 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
         ArrayNode siDetailC2 = objectMapper.createArrayNode();
         //ArrayNode siDetailC2 = JSONUtils.getObjectMapper().createArrayNode();
         //JsonNode dmssiDetailsC2 = JSONUtils.convert(jsonobj.get("dmssidetailsc2"), JsonNode.class);
-        JsonNode dmssiDetailsC2 = objectMapper.valueToTree(jsonobj.get("dmssidetailsc2").toString());
+        JsonNode dmssiDetailsC2 = objectMapper.valueToTree(jsonobj.get("dmssidetailsc2"));
         //JsonNode dmssiDetailsC2 = JSONUtils.getObjectMapper().convertValue(jsonobj.get("dmssidetailsc2"), JsonNode.class);
         if (dmssiDetailsC2.get(SI_DETAIL) instanceof ObjectNode) {
             siDetailC2.add(dmssiDetailsC2.get(SI_DETAIL));
