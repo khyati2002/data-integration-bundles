@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.apache.commons.collections.MapUtils.*;
-    
+
 public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final Logger logger = LoggerFactory.getLogger(OrdersTransformer.class);
@@ -36,6 +36,7 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
             output.put("processingStatus", processingStatus);
 
             output.put("statusReason", getString(responseEnvelope, "statusReason"));
+            output.put("bill_amount", 0);
 
             // Map date fields
             output.put("deliveryDate", getFormattedDate(responseEnvelope, "deliveryDate"));
