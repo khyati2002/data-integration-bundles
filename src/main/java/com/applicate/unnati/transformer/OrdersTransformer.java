@@ -41,6 +41,7 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
             output.put("netAmount",0);
             output.put("totalAmount",0);
             output.put("totalMrp",0);
+            output.put("totalInitialQuantity",0);
             output.put("totalQuantity",0);
             output.put("normalizedQuantity",0);
             output.put("initialNormalizedQuantity",0);
