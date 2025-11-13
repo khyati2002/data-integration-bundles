@@ -48,6 +48,9 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
             output.put("normalizedVolume",0);
             output.put("totalInitialAmt",0);
             output.put("locationHierarchy","EORI > EDIS > India");
+            output.put("outletCode","232");
+            output.put("supplierid","en5v39c2n");
+            output.put("hierarchy","BL40572 > SBLR > PSBLR > neha@applicatetechnology.com");
 
             // Map date fields
             output.put("deliveryDate", getFormattedDate(responseEnvelope, "deliveryDate"));
