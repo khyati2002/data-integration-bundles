@@ -37,6 +37,7 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
 
             output.put("statusReason", getString(responseEnvelope, "statusReason"));
             output.put("billAmount", 0);
+            output.put("lineOutput",0);
 
             // Map date fields
             output.put("deliveryDate", getFormattedDate(responseEnvelope, "deliveryDate"));
