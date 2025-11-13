@@ -36,7 +36,6 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
 
         //ObjectNode sales = JSONUtils.getObjectMapper().createObjectNode();
         ObjectNode sales = new ObjectMapper().createObjectNode();
-
         ArrayNode siDetailC2 = objectMapper.createArrayNode();
         //ArrayNode siDetailC2 = JSONUtils.getObjectMapper().createArrayNode();
         //JsonNode dmssiDetailsC2 = JSONUtils.convert(jsonobj.get("dmssidetailsc2"), JsonNode.class);
@@ -114,7 +113,8 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
         sales.set(EXTENDED_ATTRIBUTES, extended1);
         sales.put("source", "KGPL");
 
-        return (Map<String, Object>) sales;
+        //return (Map<String, Object>) sales;
+        return objectMapper.convertValue(sales, Map.class);
     }
 
     private ObjectNode updateMap(JsonNode item, Map<String, JsonNode> skuMap) {
