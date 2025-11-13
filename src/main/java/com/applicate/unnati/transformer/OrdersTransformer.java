@@ -50,7 +50,7 @@ public class OrdersTransformer extends AbstractTransformer<Map<String, Object>, 
             output.put("locationHierarchy","EORI > EDIS > India");
             output.put("outletcode","C20220005949786");
             output.put("loginid","OUTLET123456");
-            output.put("supplierid","en5v39c2n");
+            output.put("supplierid","OUTLET123456");
             output.put("hierarchy","BL40572 > SBLR > PSBLR > neha@applicatetechnology.com");
 
             // Map date fields
