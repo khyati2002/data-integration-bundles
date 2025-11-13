@@ -23,6 +23,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
         HashMap<String, Object> result = new HashMap<>();
         String dataAreaId = getValueOrNA(source.get("dataAreaId"));
 
+        // ---------------- Core Identifiers ----------------
         result.put("mCode", validateAndReturn(source.get("ItemId"), "ItemId"));
         result.put("source", dataAreaId);
         result.put("display", "false");
@@ -108,11 +109,35 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
             throw new DataTransformationService.TransformationException("Invalid value for Deactive field: " + deactive);
         }
 
-        // ---------------- Extended Attributes (string-based) ----------------
-        result.put("extendedAttributes", buildExtendedAttributes(source));
+        // ---------------- Extended Attributes (JSON-style like old repo) ----------------
+        // This is equivalent to:
+        // {"palletSize": "0", "skuCaseWeight": 8.4}
+        // but built as a Map so the engine stores a JSON object, not a string.
+        Map<String, Object> extended = new LinkedHashMap<>();
+
+        // skuCaseWeight from NetProductWeight
+        Double skuCaseWeight;
+        try {
+            skuCaseWeight = Double.parseDouble(getValueOrNA(source.get("NetProductWeight")));
+        } catch (NumberFormatException e) {
+            skuCaseWeight = 0.0;
+        }
+        extended.put("skuCaseWeight", skuCaseWeight);
+
+        // palletSize (preserve as string, null if missing)
+        Object rawPalletSize = source.get("PalletSize");
+        if (rawPalletSize == null || ObjectUtils.isEmpty(rawPalletSize.toString().trim())) {
+            extended.put("palletSize", null);
+        } else {
+            extended.put("palletSize", rawPalletSize.toString());
+        }
+
+        result.put("extendedAttributes", extended);
 
         // ---------------- Miscellaneous ----------------
-        result.put("skuPieceWeight", Optional.ofNullable(calculateSkuPcWeight(source.get("NetProductWeight"), source.get("NOB"))).orElse(0.0f));
+        result.put("skuPieceWeight",
+                Optional.ofNullable(calculateSkuPcWeight(source.get("NetProductWeight"), source.get("NOB")))
+                        .orElse(0.0f));
         result.put("empties", getValueOrNA(source.get("RGBItemId")));
         result.put("crateRequired", getValueOrNA(source.get("CrateItemId")));
         result.put("emptiesVariant", getValueOrNA(source.get("RGBRetailVariantId")));
@@ -125,37 +150,7 @@ public class KgplProductMasterTransformer extends AbstractTransformer<Map<String
     }
 
     // ----------------------------------------------------------------------
-    // String-based Extended Attributes (same logic style as Customer Transformer)
-    // ----------------------------------------------------------------------
-
-    private String buildExtendedAttributes(Map<String, Object> source) {
-        StringBuilder extended = new StringBuilder();
-
-        String palletSize = getValueOrNA(source.get("PalletSize"));
-        String packSize = getValueOrNA(source.get("PackSize"));
-        String packType = getValueOrNA(source.get("PackType"));
-        String productSegment = getValueOrNA(source.get("ProductSegment"));
-        String grossWeight = getValueOrNA(source.get("GrossWeight"));
-        String netWeight = getValueOrNA(source.get("NetProductWeight"));
-        String brandCategory = getValueOrNA(source.get("BrandCategory"));
-        String taxGroup = getValueOrNA(source.get("TaxItemGroupName"));
-        String eanCode = getValueOrNA(source.get("EanCode"));
-
-        extended.append("PalletSize=").append(palletSize);
-        extended.append(" | PackSize=").append(packSize);
-        extended.append(" | PackType=").append(packType);
-        extended.append(" | ProductSegment=").append(productSegment);
-        extended.append(" | GrossWeight=").append(grossWeight);
-        extended.append(" | NetWeight=").append(netWeight);
-        extended.append(" | BrandCategory=").append(brandCategory);
-        extended.append(" | TaxGroup=").append(taxGroup);
-        extended.append(" | EANCode=").append(eanCode);
-
-        return extended.toString();
-    }
-
-    // ----------------------------------------------------------------------
-    // Utility & Validation Helpers
+    // Utility & Validation Helpers (unchanged)
     // ----------------------------------------------------------------------
 
     private void validateRequiredFields(Map<String, Object> source) {
