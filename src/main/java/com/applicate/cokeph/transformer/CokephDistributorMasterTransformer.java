@@ -19,13 +19,13 @@ public class CokephDistributorMasterTransformer extends AbstractTransformer<Map<
     private static final ObjectMapper mapper = new ObjectMapper();
     static final String IS_ACTIVE = "is_active";
 
-     final UserService userService = (UserService) ServiceLocator.lookup(User.class);
-
-     final OutletMetadataService outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
-
+    private UserService userService;
+    private OutletMetadataService outletMetadataService;
 
     @Override
     public Map<String, Object> transform(Map<String, Object> stringObjectMap) {
+        this.userService = (UserService) ServiceLocator.lookup(User.class);
+        this.outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
 
         ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
