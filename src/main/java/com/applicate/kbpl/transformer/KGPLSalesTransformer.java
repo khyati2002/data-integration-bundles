@@ -41,11 +41,22 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
         //JsonNode dmssiDetailsC2 = JSONUtils.convert(jsonobj.get("dmssidetailsc2"), JsonNode.class);
         JsonNode dmssiDetailsC2 = objectMapper.valueToTree(jsonobj.get("dmssidetailsc2"));
         //JsonNode dmssiDetailsC2 = JSONUtils.getObjectMapper().convertValue(jsonobj.get("dmssidetailsc2"), JsonNode.class);
-        if (dmssiDetailsC2.get(SI_DETAIL) instanceof ObjectNode) {
-            siDetailC2.add(dmssiDetailsC2.get(SI_DETAIL));
+//        if (dmssiDetailsC2.get(SI_DETAIL) instanceof ObjectNode) {
+//            siDetailC2.add(dmssiDetailsC2.get(SI_DETAIL));
+//        } else {
+//            siDetailC2 = JSONUtils.getObjectMapper().convertValue(dmssiDetailsC2.get(SI_DETAIL), ArrayNode.class);
+//        }
+        JsonNode siDetailNode = dmssiDetailsC2.get(SI_DETAIL);
+        if (siDetailNode == null) {
+            return null; // or handle error
+        } else if (siDetailNode.isArray()) {
+            siDetailC2 = (ArrayNode) siDetailNode;
+        } else if (siDetailNode.isObject()) {
+            siDetailC2.add(siDetailNode);
         } else {
-            siDetailC2 = JSONUtils.getObjectMapper().convertValue(dmssiDetailsC2.get(SI_DETAIL), ArrayNode.class);
+            return null; // or handle unexpected JSON type
         }
+
         if (siDetailC2 != null && siDetailC2.isArray()) {
             ArrayNode dummyNode = objectMapper.createArrayNode();
             siDetailC2.forEach(item -> dummyNode.add(updateMap(item, skuMap)));
