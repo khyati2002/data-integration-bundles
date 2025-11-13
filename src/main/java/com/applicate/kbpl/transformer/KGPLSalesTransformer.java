@@ -196,7 +196,12 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
 
     private JsonNode getSalesDetails(Map<String, JsonNode> skuMap) {
         //return JSONUtils.convert(skuMap.values(), JsonNode.class);
-        return JSONUtils.getObjectMapper().convertValue(skuMap.values(), JsonNode.class);
+        //return JSONUtils.getObjectMapper().convertValue(skuMap.values(), JsonNode.class);
+        ArrayNode arrayNode = objectMapper.createArrayNode();
+        for (JsonNode node : skuMap.values()) {
+            arrayNode.add(node);
+        }
+        return arrayNode;
     }
 
     private int getUpdatedNormalizedQty(Map<String, JsonNode> skuMap) {
