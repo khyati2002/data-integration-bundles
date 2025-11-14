@@ -54,6 +54,10 @@ public class WAVEProductMasterTransformer extends AbstractTransformer<Map<String
                 inputMap.get("lastmodifieddatetime")
         ));
 
+        if (!output.containsKey("priority") || output.get("priority") == null) {
+            output.put("priority", 0);
+        }
+
         return output;
     }
 
