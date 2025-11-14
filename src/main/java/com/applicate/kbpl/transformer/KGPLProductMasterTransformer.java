@@ -1,7 +1,6 @@
 package com.applicate.kbpl.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,47 +11,47 @@ public class KGPLProductMasterTransformer extends AbstractTransformer<Map<String
         Map<String, Object> output = new HashMap<>();
 
         // Mappings with addKgplIfPresent function
-        output.put("category", addKgplIfPresent(inputMap.get("[translate:categorycode3]")));
-        output.put("pieceSizeDesc", addKgplIfPresent(inputMap.get("[translate:categorycode4]")));
-        output.put("subCategory", addKgplIfPresent(inputMap.get("[translate:categorycode5]")));
-        output.put("flavour", addKgplIfPresent(inputMap.get("[translate:categorycode6]")));
-        output.put("pieceSize", addKgplIfPresent(inputMap.get("[translate:categorycode8]")));
-        output.put("itemType", addKgplIfPresent(inputMap.get("[translate:categorycode1]")));
-        output.put("brand", addKgplIfPresent(inputMap.get("[translate:categorycode2]")));
-        output.put("itemId", addKgplIfPresent(inputMap.get("[translate:hierarchycode]")));
-        output.put("batchCode", addKgplIfPresent(inputMap.get("[translate:itemcode]")));
-        output.put("skuCode", addKgplIfPresent(inputMap.get("[translate:itemcode]")));
+        output.put("category", addKgplIfPresent(inputMap.get("categorycode3")));
+        output.put("pieceSizeDesc", addKgplIfPresent(inputMap.get("categorycode4")));
+        output.put("subCategory", addKgplIfPresent(inputMap.get("categorycode5")));
+        output.put("flavour", addKgplIfPresent(inputMap.get("categorycode6")));
+        output.put("pieceSize", addKgplIfPresent(inputMap.get("categorycode8")));
+        output.put("itemType", addKgplIfPresent(inputMap.get("categorycode1")));
+        output.put("brand", addKgplIfPresent(inputMap.get("categorycode2")));
+        output.put("itemId", addKgplIfPresent(inputMap.get("hierarchycode")));
+        output.put("batchCode", addKgplIfPresent(inputMap.get("itemcode")));
+        output.put("skuCode", addKgplIfPresent(inputMap.get("itemcode")));
 
         // Direct field mappings
-        output.put("skuDescription", inputMap.get("[translate:itemdescription]"));
-        output.put("skuName", inputMap.get("[translate:itemdescription]"));
+        output.put("skuDescription", inputMap.get("itemdescription"));
+        output.put("skuName", inputMap.get("itemdescription"));
 
-        output.put("caseToPieceQuantity", inputMap.get("[translate:conversion1]"));
-        output.put("uom", inputMap.get("[translate:baseuom]"));
-        output.put("pieceToOtherUnitQuantity", inputMap.get("[translate:pc_conversion]"));
-        output.put("caseToOtherUnitQuantity", inputMap.get("[translate:uc_conversion]"));
-        output.put("mrp", inputMap.get("[translate:mrp]"));
+        output.put("caseToPieceQuantity", inputMap.get("conversion1"));
+        output.put("uom", inputMap.get("baseuom"));
+        output.put("pieceToOtherUnitQuantity", inputMap.get("pc_conversion"));
+        output.put("caseToOtherUnitQuantity", inputMap.get("uc_conversion"));
+        output.put("mrp", inputMap.get("mrp"));
 
         // activeStatus field transformation: "1" -> "active", else "inactive"
-        output.put("activeStatus", setActiveFunctionkbpl(inputMap.get("[translate:isactive]")));
+        output.put("activeStatus", setActiveFunctionkbpl(inputMap.get("isactive")));
 
         // Constant field "source" = "KGPL"
         output.put("source", toConstant());
 
         // Extended attributes map from multiple keys
         output.put("extendedAttributes", toMap(
-                inputMap.get("[translate:eannumber]"),
-                inputMap.get("[translate:categorycode7]"),
-                inputMap.get("[translate:stockcoverdays]"),
-                inputMap.get("[translate:packsize]"),
-                inputMap.get("[translate:taxgroupcode]"),
-                inputMap.get("[translate:itemshelflife]"),
-                inputMap.get("[translate:tenantcode]"),
-                inputMap.get("[translate:shortdescription]"),
-                inputMap.get("[translate:weight]"),
-                inputMap.get("[translate:manufactureritemcode]"),
-                inputMap.get("[translate:hsncode]"),
-                inputMap.get("[translate:lastmodifieddatetime]")
+                inputMap.get("eannumber"),
+                inputMap.get("categorycode7"),
+                inputMap.get("stockcoverdays"),
+                inputMap.get("packsize"),
+                inputMap.get("taxgroupcode"),
+                inputMap.get("itemshelflife"),
+                inputMap.get("tenantcode"),
+                inputMap.get("shortdescription"),
+                inputMap.get("weight"),
+                inputMap.get("manufactureritemcode"),
+                inputMap.get("hsncode"),
+                inputMap.get("lastmodifieddatetime")
         ));
 
         return output;
@@ -94,4 +93,3 @@ public class KGPLProductMasterTransformer extends AbstractTransformer<Map<String
         return map;
     }
 }
-

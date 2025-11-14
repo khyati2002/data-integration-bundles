@@ -1,7 +1,6 @@
 package com.applicate.kbpl.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,47 +11,47 @@ public class WAVEProductMasterTransformer extends AbstractTransformer<Map<String
         Map<String, Object> output = new HashMap<>();
 
         // Mappings with addWAVEIfPresent function
-        output.put("category", addWAVEIfPresent(inputMap.get("[translate:categorycode3]")));
-        output.put("pieceSizeDesc", addWAVEIfPresent(inputMap.get("[translate:categorycode4]")));
-        output.put("subCategory", addWAVEIfPresent(inputMap.get("[translate:categorycode5]")));
-        output.put("flavour", addWAVEIfPresent(inputMap.get("[translate:categorycode6]")));
-        output.put("pieceSize", addWAVEIfPresent(inputMap.get("[translate:categorycode8]")));
-        output.put("itemType", addWAVEIfPresent(inputMap.get("[translate:categorycode1]")));
-        output.put("brand", addWAVEIfPresent(inputMap.get("[translate:categorycode2]")));
-        output.put("itemId", addWAVEIfPresent(inputMap.get("[translate:hierarchycode]")));
-        output.put("batchCode", addWAVEIfPresent(inputMap.get("[translate:itemcode]")));
-        output.put("skuCode", addWAVEIfPresent(inputMap.get("[translate:itemcode]")));
+        output.put("category", addWAVEIfPresent(inputMap.get("categorycode3")));
+        output.put("pieceSizeDesc", addWAVEIfPresent(inputMap.get("categorycode4")));
+        output.put("subCategory", addWAVEIfPresent(inputMap.get("categorycode5")));
+        output.put("flavour", addWAVEIfPresent(inputMap.get("categorycode6")));
+        output.put("pieceSize", addWAVEIfPresent(inputMap.get("categorycode8")));
+        output.put("itemType", addWAVEIfPresent(inputMap.get("categorycode1")));
+        output.put("brand", addWAVEIfPresent(inputMap.get("categorycode2")));
+        output.put("itemId", addWAVEIfPresent(inputMap.get("hierarchycode")));
+        output.put("batchCode", addWAVEIfPresent(inputMap.get("itemcode")));
+        output.put("skuCode", addWAVEIfPresent(inputMap.get("itemcode")));
 
         // Direct field mappings
-        output.put("skuDescription", inputMap.get("[translate:itemdescription]"));
-        output.put("skuName", inputMap.get("[translate:itemdescription]"));
+        output.put("skuDescription", inputMap.get("itemdescription"));
+        output.put("skuName", inputMap.get("itemdescription"));
 
-        output.put("caseToPieceQuantity", inputMap.get("[translate:conversion1]"));
-        output.put("uom", inputMap.get("[translate:baseuom]"));
-        output.put("pieceToOtherUnitQuantity", inputMap.get("[translate:pc_conversion]"));
-        output.put("caseToOtherUnitQuantity", inputMap.get("[translate:uc_conversion]"));
-        output.put("mrp", inputMap.get("[translate:mrp]"));
+        output.put("caseToPieceQuantity", inputMap.get("conversion1"));
+        output.put("uom", inputMap.get("baseuom"));
+        output.put("pieceToOtherUnitQuantity", inputMap.get("pc_conversion"));
+        output.put("caseToOtherUnitQuantity", inputMap.get("uc_conversion"));
+        output.put("mrp", inputMap.get("mrp"));
 
         // activeStatus field transformation: "1" -> "active", else "inactive"
-        output.put("activeStatus", setActiveFunctionkbpl(inputMap.get("[translate:isactive]")));
+        output.put("activeStatus", setActiveFunctionkbpl(inputMap.get("isactive")));
 
         // Constant field "source" = "WAVE"
         output.put("source", toConstant());
 
         // Extended attributes map from multiple keys
         output.put("extendedAttributes", toMap(
-                inputMap.get("[translate:eannumber]"),
-                inputMap.get("[translate:categorycode7]"),
-                inputMap.get("[translate:stockcoverdays]"),
-                inputMap.get("[translate:packsize]"),
-                inputMap.get("[translate:taxgroupcode]"),
-                inputMap.get("[translate:itemshelflife]"),
-                inputMap.get("[translate:tenantcode]"),
-                inputMap.get("[translate:shortdescription]"),
-                inputMap.get("[translate:weight]"),
-                inputMap.get("[translate:manufactureritemcode]"),
-                inputMap.get("[translate:hsncode]"),
-                inputMap.get("[translate:lastmodifieddatetime]")
+                inputMap.get("eannumber"),
+                inputMap.get("categorycode7"),
+                inputMap.get("stockcoverdays"),
+                inputMap.get("packsize"),
+                inputMap.get("taxgroupcode"),
+                inputMap.get("itemshelflife"),
+                inputMap.get("tenantcode"),
+                inputMap.get("shortdescription"),
+                inputMap.get("weight"),
+                inputMap.get("manufactureritemcode"),
+                inputMap.get("hsncode"),
+                inputMap.get("lastmodifieddatetime")
         ));
 
         return output;
@@ -94,4 +93,3 @@ public class WAVEProductMasterTransformer extends AbstractTransformer<Map<String
         return map;
     }
 }
-
