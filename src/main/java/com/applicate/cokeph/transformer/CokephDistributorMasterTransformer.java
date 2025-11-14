@@ -40,7 +40,11 @@ public class CokephDistributorMasterTransformer extends AbstractTransformer<Map<
         validateDesignation(user);
         finalTransformedObj.put("userAccountId", stringObjectMap.get("distributor_code").toString());
         finalTransformedObj.put("designation","supplier");
-        finalTransformedObj.put("immediateParent", "admin@applicate.in");
+        ObjectNode parentObj = mapper.createObjectNode();
+        parentObj.put("immediateParent", "admin@applicate.in");
+        finalTransformedObj.put("immediateParent", parentObj);
+
+//        finalTransformedObj.put("immediateParent", "admin@applicate.in");
         //adding supplier metadata
 
         ObjectNode supplierMetaData = mapper.createObjectNode();
