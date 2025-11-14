@@ -2,16 +2,20 @@ package com.applicate.cokeph.transformer;
 
 import com.applicate.services.channelkart.services.OutletMetadataService;
 import com.applicate.services.channelkart.services.ServiceLocator;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.NullUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import com.salescode.dim.jooq.generated.tables.pojos.OutletMetadata;
+import com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
 
@@ -48,11 +52,24 @@ public class CokephDistributorMasterTransformer extends AbstractTransformer<Map<
 //        finalTransformedObj.put("immediateParent", "admin@applicate.in");
         //adding supplier metadata
 
-        ObjectNode supplierMetaData = mapper.createObjectNode();
-        ObjectNode extendedSupplier = new ObjectMapper().createObjectNode();
-        extendedSupplier.put("minOrderValidation", "N") ;
-        supplierMetaData.set("extendedAttributes", extendedSupplier);
-        finalTransformedObj.put("supplierMetaData", supplierMetaData);
+//        ObjectNode supplierMetaData = mapper.createObjectNode();
+//        ObjectNode extendedSupplier = new ObjectMapper().createObjectNode();
+//        extendedSupplier.put("minOrderValidation", "N") ;
+//        supplierMetaData.set("extendedAttributes", extendedSupplier);
+//        finalTransformedObj.put("supplierMetaData", supplierMetaData);
+
+        SupplierMetadata supplierMeta = new SupplierMetadata();
+
+        org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper shadedMapper =
+                new org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper();
+
+        ObjectNode extendedSupplier = shadedMapper.createObjectNode();
+        extendedSupplier.put("minOrderValidation", "N");
+
+        supplierMeta.setExtendedAttributes(extendedSupplier);
+        finalTransformedObj.put("supplierMetaData", supplierMeta);
+
+
         if(NullUtils.isNotNull(stringObjectMap.get("distributor_name"))){
             finalTransformedObj.put("name", stringObjectMap.get("distributor_name").toString()) ;
         }
