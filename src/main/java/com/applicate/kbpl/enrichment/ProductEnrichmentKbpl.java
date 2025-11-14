@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 
 public class ProductEnrichmentKbpl extends AbstractEnrichment<ProductDetails> {
     private static final String PRODUCT_MAPPING = "productMapping";
-    GenericEntityRepository repository = (GenericEntityRepository) ServiceLocator.lookup(GenericEntity.class);
 
     @Override
     public EnrichmentResult apply(ProductDetails cdm) {
+        GenericEntityRepository repository = (GenericEntityRepository) ServiceLocator.lookup(GenericEntity.class);
         Map<String, Map<String, String>> productMappingCache = repository.readModelsByName(PRODUCT_MAPPING).stream()
                 .filter(entity -> StringUtils.isNotEmpty(entity.getKey1()) && StringUtils.isNotEmpty(entity.getKey2()) && StringUtils.isNotEmpty(entity.getKey3()))
                 .collect(Collectors.groupingBy(
