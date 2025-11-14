@@ -19,12 +19,14 @@ import java.util.stream.Collectors;
 
 public class RouteTypeValidation extends AbstractValidationRule<User> {
 
-    GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
     private static final String ROUTE_TYPE = "routetype";
 
     @Override
     public OperationResult.StepResult apply(User user) {
+
+        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+
 
         List<String> errors = new ArrayList<>();
 

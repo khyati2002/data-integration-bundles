@@ -1,6 +1,7 @@
 package com.applicate.lbpl.enrichment;
 
 import com.applicate.services.channelkart.repository.GenericEntityRepository;
+import com.applicate.services.channelkart.services.GenericEntityService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.SecurityContextUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +24,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
     @Override
     public EnrichmentResult apply(ProductDetails cdm) {
 
+        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
         String authToken = SecurityContextUtils.getPrincipal();
         if (!"integration_user".equals(authToken)) {
@@ -112,7 +114,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
 
 
         if(!ObjectUtils.isEmpty(piecesize)) {
-            List<GenericEntity> piecesizemap = repository.findByNameAndKey1AndKey2("productMapping", "8", piecesize);
+            List<GenericEntity> piecesizemap = genericEntityService.findByNameAndKey1AndKey2("productMapping", "8", piecesize);
             if(!piecesizemap.isEmpty()){
                 String cc8 = piecesizemap.get(0).getKey3();
                 String[] parts = cc8.split(" ");
@@ -132,7 +134,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
         }
 
         if(!ObjectUtils.isEmpty(cat4)) {
-            List<GenericEntity> cc4map = repository.findByNameAndKey1AndKey2("productMapping", "4", cat4);
+            List<GenericEntity> cc4map = genericEntityService.findByNameAndKey1AndKey2("productMapping", "4", cat4);
             if(!cc4map.isEmpty()){
                 String cc4 = cc4map.get(0).getKey3();
                 cdm.setSubCategory(cc4);
@@ -141,7 +143,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
         }
 
         if(!ObjectUtils.isEmpty(cat7)) {
-            List<GenericEntity> cc7map = repository.findByNameAndKey1AndKey2("productMapping", "7", cat7);
+            List<GenericEntity> cc7map = genericEntityService.findByNameAndKey1AndKey2("productMapping", "7", cat7);
             if(!cc7map.isEmpty()) {
                 String cc7 = cc7map.get(0).getKey3();
                 ((ObjectNode) extendedAttributes).put("categorycode7", cc7);
