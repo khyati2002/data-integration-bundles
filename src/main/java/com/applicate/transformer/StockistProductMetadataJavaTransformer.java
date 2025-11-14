@@ -4,6 +4,7 @@ import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.ProductDetails;
+import static com.applicate.services.channelkart.models.enums.ActiveStatus.ACTIVE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,7 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			// Constant channel
 			output.put("channel", "All");
 			output.put("extendedAttributes", extendedAttributes);
+			output.put("activeStatus", ACTIVE);
 			data.add(output);
 
 		} catch (Exception ex) {
