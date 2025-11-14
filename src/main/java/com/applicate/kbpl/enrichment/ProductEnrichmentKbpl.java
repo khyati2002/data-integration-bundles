@@ -1,6 +1,7 @@
 package com.applicate.kbpl.enrichment;
 
 import com.applicate.services.channelkart.repository.GenericEntityRepository;
+import com.applicate.services.channelkart.services.GenericEntityService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.EnrichmentResult;
@@ -21,8 +22,8 @@ public class ProductEnrichmentKbpl extends AbstractEnrichment<ProductDetails> {
 
     @Override
     public EnrichmentResult apply(ProductDetails cdm) {
-        GenericEntityRepository repository = (GenericEntityRepository) ServiceLocator.lookup(GenericEntity.class);
-        Map<String, Map<String, String>> productMappingCache = repository.readModelsByName(PRODUCT_MAPPING).stream()
+        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+        Map<String, Map<String, String>> productMappingCache = genericEntityService.readModelsByName(PRODUCT_MAPPING).stream()
                 .filter(entity -> StringUtils.isNotEmpty(entity.getKey1()) && StringUtils.isNotEmpty(entity.getKey2()) && StringUtils.isNotEmpty(entity.getKey3()))
                 .collect(Collectors.groupingBy(
                         GenericEntity::getKey1,
