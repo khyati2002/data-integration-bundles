@@ -38,6 +38,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	/**
+	 * Entry point for validation. Runs all validation checks and returns aggregated result.
+	 */
 	@Override
 	public OperationResult.StepResult apply(ProductMetaData cdm) {
 		List<String> errors = new ArrayList<>();
@@ -59,6 +62,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		return OperationResult.StepResult.OK;
 	}
 
+	/**
+	 * Validates mandatory fields such as skuCode and batchCode.
+	 */
 	private void validateMandatoryFields(ProductMetaData cdm, List<String> errors) {
 		if (StringUtils.isBlank(cdm.getSkuCode()))
 			errors.add("skuCode should not be null or empty and present in Product metadata");
@@ -67,6 +73,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 			errors.add("batchcode should not be null or empty and present in Product metadata");
 	}
 
+	/**
+	 * Validates numeric fields including CasePtr, PackPtr, MRP, and tax.
+	 */
 	private void validateNumericFields(ProductMetaData cdm, List<String> errors) {
 		validateDecimalField(cdm.getCasePtr(), "CasePtr", errors);
 		validateDecimalField(cdm.getPackPtr(), "PackPtr", errors);
@@ -86,6 +95,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Helper to validate decimal fields where only decimal numbers are allowed.
+	 */
 	private void validateDecimalField(BigDecimal value, String fieldName, List<String> errors) {
 		if (value == null || value.compareTo(BigDecimal.ZERO) == 0) {
 			errors.add(fieldName + " should not be null or empty in Product metadata");
@@ -94,6 +106,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates extended attributes JSON fields and their required checks.
+	 */
 	private void validateExtendedAttributes(ProductMetaData cdm, List<String> errors) {
 		JsonNode extendAttr = cdm.getExtendedAttributes();
 
@@ -108,6 +123,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		validateSBU(extendAttr, errors);
 	}
 
+	/**
+	 * Validates that a numeric field in extended attributes contains a number.
+	 */
 	private void validateExtendedNumericField(JsonNode extendAttr, String field, List<String> errors) {
 		if (extendAttr.has(field)) {
 			String value = extendAttr.get(field).asText();
@@ -118,6 +136,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates PACIn1CFC to ensure it is a valid integer.
+	 */
 	private void validatePACIn1CFC(JsonNode extendAttr, List<String> errors) {
 		if (extendAttr.has("PACIn1CFC")) {
 			String value = extendAttr.get("PACIn1CFC").asText();
@@ -134,6 +155,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates SBU field within extended attributes.
+	 */
 	private void validateSBU(JsonNode extendAttr, List<String> errors) {
 		if (extendAttr.has(SBU)) {
 			String sbu = extendAttr.get(SBU).asText();
@@ -144,6 +168,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates that supplier (loginId) exists and belongs to WD designation.
+	 */
 	private void validateSupplier(ProductMetaData cdm, List<String> errors) {
 		UserService userService = (UserService) ServiceLocator.lookup(User.class);
 		if (cdm.getLoginid() == null) {
@@ -159,6 +186,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates product metadata against product details stored in DB.
+	 */
 	private void validateProductDetails(ProductMetaData cdm, List<String> errors) {
 		ProductDetailsService productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 		ProductDetails productDetails = productDetailsService.findByBatchCode(cdm.getBatchCode());
@@ -172,6 +202,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		if (!error.isEmpty()) errors.add(error);
 	}
 
+	/**
+	 * Validates mismatch between product details and extended metadata fields.
+	 */
 	private String validateMismatchProdDetails(ProductDetails productDetails, ProductMetaData cdm) {
 		JsonNode extAttr = cdm.getExtendedAttributes();
 		StringBuilder error = new StringBuilder();
@@ -188,6 +221,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		return error.toString();
 	}
 
+	/**
+	 * Checks if an individual extended attribute matches the expected product detail.
+	 */
 	private void validateMismatch(StringBuilder error, JsonNode extAttr, String key, String actualValue, String label) {
 		String extValue = getValue(extAttr, key);
 
@@ -196,6 +232,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		}
 	}
 
+	/**
+	 * Validates other required extended attributes to ensure they are not empty.
+	 */
 	private String validateOtherFields(ProductMetaData cdm) {
 		JsonNode extAttr = cdm.getExtendedAttributes();
 		StringBuilder error = new StringBuilder();
@@ -220,7 +259,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		return error.toString();
 	}
 
-
+	/**
+	 * Retrieves a value from extended attributes, treating "null" (string) as null.
+	 */
 	private String getValue(JsonNode extAttr, String key) {
 		if (extAttr.has(key) && extAttr.get(key).asText().equalsIgnoreCase("null")) {
 			return null;
@@ -228,6 +269,9 @@ public class VistaarProductMetadataValidator extends AbstractValidationRule<Prod
 		return extAttr.has(key) ? extAttr.get(key).asText() : null;
 	}
 
+	/**
+	 * Validates a string value against a regex pattern.
+	 */
 	public boolean validatePattern(String pattern, String value) {
 		RegexValidation regexValidation = new RegexValidation();
 		return regexValidation.match(pattern, value);

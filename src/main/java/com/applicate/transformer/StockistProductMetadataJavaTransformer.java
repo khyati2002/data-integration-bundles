@@ -4,7 +4,9 @@ import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.impl.ProductDetails;
+
 import static com.applicate.services.channelkart.models.enums.ActiveStatus.ACTIVE;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +15,7 @@ import java.util.*;
 
 /**
  * Transformer for Stockist Product Metadata (pure Java version of JOLT spec).
+ * Converts an input map into a normalized Product Metadata structure with extended attributes.
  */
 public class StockistProductMetadataJavaTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
@@ -21,6 +24,15 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 	private static final String SYS_SKU_CODE = "SysSkuCode";
 	private static final Logger logger = LoggerFactory.getLogger(StockistProductMetadataJavaTransformer.class);
 
+	/**
+	 * Transforms raw input map into enriched Product Metadata format.
+	 * - Validates presence of required SysSkuCode
+	 * - Pulls product details from DB
+	 * - Maps fields according to specification
+	 * - Constructs extendedAttributes block
+	 * - Performs business calculations (caseMrp)
+	 * - Returns list containing a single transformed record
+	 */
 	@Override
 	public List<Map<String, Object>> transform(Map<String, Object> input) {
 		List<Map<String, Object>> data = new ArrayList<>();
@@ -31,7 +43,6 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 				return data;
 			}
 
-			// Look up ProductDetailsService and fetch product details
 			ProductDetailsService productDetailsService =
 					(ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
 			ProductDetails productDetails = productDetailsService.findBySkuCode(input.get(SYS_SKU_CODE).toString());
@@ -39,7 +50,6 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			Map<String, Object> output = new LinkedHashMap<>();
 			Map<String, Object> extendedAttributes = new LinkedHashMap<>();
 
-			// --- Field mappings as per JOLT spec ---
 			putIfPresent(input, output, "MRP", "mrp");
 			putIfPresent(input, output, "Tax", "tax");
 			putIfPresent(input, output, "WDDEST", "supplier");
@@ -53,7 +63,7 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			if (input.containsKey(CFCPTR) && input.get(CFCPTR) != null) {
 				String cfcPtr = input.get(CFCPTR).toString();
 				output.put("casePtr", cfcPtr);
-				extendedAttributes.put("CFCPTR", cfcPtr);
+				extendedAttributes.put(CFCPTR, cfcPtr);
 				extendedAttributes.put("CFCPTS", cfcPtr);
 			}
 
@@ -61,11 +71,10 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			if (input.containsKey(PACPTR) && input.get(PACPTR) != null) {
 				String pacPtr = input.get(PACPTR).toString();
 				output.put("packPtr", pacPtr);
-				extendedAttributes.put("PACPTR", pacPtr);
+				extendedAttributes.put(PACPTR, pacPtr);
 				extendedAttributes.put("PACPTS", pacPtr);
 			}
 
-			// Extended Attributes from spec
 			putIfPresent(input, extendedAttributes, "SBU", "SBU");
 			putIfPresent(input, extendedAttributes, "UOM", "UOM");
 			putIfPresent(input, extendedAttributes, "CatCode", "CatCode");
@@ -79,10 +88,8 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			putIfPresent(input, extendedAttributes, "SubCatName", "SubCatName");
 			putIfPresent(input, extendedAttributes, "SysSkuName", "SysSkuName");
 
-			// #integration → extendedAttributes.source_key = "integration"
 			extendedAttributes.put("source_key", "integration");
 
-			// Business logic: caseMrp = MRP × caseToPieceQuantity
 			if (productDetails != null && input.containsKey("MRP")) {
 				BigDecimal caseToPieceQtyBD = productDetails.getCaseToPieceQuantity();
 				if (caseToPieceQtyBD != null) {
@@ -92,7 +99,6 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 				}
 			}
 
-			// Constant channel
 			output.put("channel", "All");
 			output.put("extendedAttributes", extendedAttributes);
 			output.put("activeStatus", ACTIVE);
