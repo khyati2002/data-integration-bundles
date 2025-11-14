@@ -19,12 +19,12 @@ import java.util.regex.Pattern;
 
 public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
 
-    GenericEntityRepository repository = (GenericEntityRepository) ServiceLocator.lookup(GenericEntity.class);
+    GenericEntityService genericEntityService;
 
     @Override
     public EnrichmentResult apply(ProductDetails cdm) {
 
-        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+        genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
         String authToken = SecurityContextUtils.getPrincipal();
         if (!"integration_user".equals(authToken)) {
@@ -72,7 +72,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
 
 
         if(!ObjectUtils.isEmpty(itemType)) {
-            List<GenericEntity> itemtypeMapping = repository.findByNameAndKey1AndKey2("productMapping", "1", itemType);
+            List<GenericEntity> itemtypeMapping = genericEntityService.findByNameAndKey1AndKey2("productMapping", "1", itemType);
             if(!itemtypeMapping.isEmpty()) {
                 String cc1 = itemtypeMapping.get(0).getKey3();
                 cdm.setItemType(cc1);
@@ -80,14 +80,14 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
         }
 
         if(!ObjectUtils.isEmpty(brandCode)){
-            List<GenericEntity> brancodemapping = repository.findByNameAndKey1AndKey2("productMapping","6", brandCode);
+            List<GenericEntity> brancodemapping = genericEntityService.findByNameAndKey1AndKey2("productMapping","6", brandCode);
             if(!brancodemapping.isEmpty()) {
                 String cc6 = brancodemapping.get(0).getKey3();
                 cdm.setBrandCode(cc6);
             }
         }
         if(!ObjectUtils.isEmpty(brand)){
-            List<GenericEntity> brandmapping = repository.findByNameAndKey1AndKey2("productMapping","2", brand);
+            List<GenericEntity> brandmapping = genericEntityService.findByNameAndKey1AndKey2("productMapping","2", brand);
             if(!brandmapping.isEmpty()){
                 String cc2 =  brandmapping.get(0).getKey3();
                 cdm.setBrand(cc2);
@@ -95,7 +95,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
         }
 
         if(!ObjectUtils.isEmpty(category)) {
-            List<GenericEntity> categorymapping = repository.findByNameAndKey1AndKey2("productMapping", "3", category);
+            List<GenericEntity> categorymapping = genericEntityService.findByNameAndKey1AndKey2("productMapping", "3", category);
             if(!categorymapping.isEmpty()) {
                 String cc3 = categorymapping.get(0).getKey3();
                 cdm.setCategory(cc3);
@@ -103,7 +103,7 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
         }
 
         if(!ObjectUtils.isEmpty(piecesizedesc)) {
-            List<GenericEntity> piecesizedescmap = repository.findByNameAndKey1AndKey2("productMapping", "5", piecesizedesc);
+            List<GenericEntity> piecesizedescmap = genericEntityService.findByNameAndKey1AndKey2("productMapping", "5", piecesizedesc);
             if(!piecesizedescmap.isEmpty()) {
                 String cc5 = piecesizedescmap.get(0).getKey3();
                 cdm.setPieceSizeDesc(cc5);

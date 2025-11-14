@@ -21,11 +21,12 @@ public class RouteTypeValidation extends AbstractValidationRule<User> {
 
 
     private static final String ROUTE_TYPE = "routetype";
+    GenericEntityService genericEntityService;
 
     @Override
     public OperationResult.StepResult apply(User user) {
 
-        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+        genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
 
 
         List<String> errors = new ArrayList<>();
