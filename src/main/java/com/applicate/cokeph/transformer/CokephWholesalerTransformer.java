@@ -43,8 +43,8 @@ public class CokephWholesalerTransformer extends AbstractTransformer<Map<String,
         String outletCode=extractRequiredAndPut(input,transformed,OUTLET_CODE_STRING);
 
         OutletDetails outletDetails= outletDetailsService.findByOutletCode(outletCode);
-        Optional<List<com.salescode.dim.jooq.impl.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
-        List<com.salescode.dim.jooq.impl.User> mobileOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
+        Optional<List<com.salescode.dim.jooq.generated.tables.pojos.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
+        List<com.salescode.dim.jooq.generated.tables.pojos.User> mobileOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
         if(mobileOutletDetails.size()>1) throw new DataTransformationService.TransformationException("Multiple outlets mapped with this mobileNumber");
 
 
@@ -108,7 +108,7 @@ public class CokephWholesalerTransformer extends AbstractTransformer<Map<String,
 
         }
     }
-    private void validateUniqueMobile(List<com.salescode.dim.jooq.impl.User> mobileOutletDetails,OutletDetails outletDetails,String contactNo)
+    private void validateUniqueMobile(List<com.salescode.dim.jooq.generated.tables.pojos.User> mobileOutletDetails,OutletDetails outletDetails,String contactNo)
     {
         if((outletDetails==null || outletDetails.getContactno()==null) && !mobileOutletDetails.isEmpty()){
             throw new DataTransformationService.TransformationException("Outlet mapped with mobile number already exists");
