@@ -7,7 +7,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.Obje
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.applicate.services.channelkart.utils.JSONUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -29,7 +29,7 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
     private static final String MAX_POINTS = "MAX_POINTS";
     private static final String LOGIN_ID = "loginId";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = JSONUtils.getObjectMapper();
     private static final Map<String, MonthsInfo> monthMap = createMonthMap();
 
     @Override
