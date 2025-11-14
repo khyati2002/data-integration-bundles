@@ -15,7 +15,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CokePhGeoDistributorTransfomer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
+public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
      public UserService userService;
     @Override
