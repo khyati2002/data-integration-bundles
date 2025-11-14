@@ -43,7 +43,6 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
 
     final OutletMetadataService outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
 
-    final UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
 
     private static final String OUTLET_CODE_STRING="outlet_code";
 
@@ -51,6 +50,9 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
 
     @Override
     public Map<String, Object> transform(Map<String, Object> stringObjectMap) {
+
+        UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
+        
         ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
 
