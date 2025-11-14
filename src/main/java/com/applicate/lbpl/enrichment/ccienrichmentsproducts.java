@@ -149,6 +149,9 @@ public class ccienrichmentsproducts extends AbstractEnrichment<ProductDetails> {
                 ((ObjectNode) extendedAttributes).put("categorycode7", cc7);
             }
         }
+
+
+        cdm.setPriority(0);
         // to set values for items in extended
 // this comment is to check if channelkart bundle is working or not .
         return new OperationResult.StepResult(OperationResult.Status.OK, "Product details enriched.");
