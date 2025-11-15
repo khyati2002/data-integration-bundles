@@ -86,7 +86,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutItems.setPieceQtyLeft(((Number) loadOutItemInput.get("pieceQtyLeft")).doubleValue());
             loadoutItems.setOtherQty(((Number) loadOutItemInput.get("otherQty")).doubleValue());
             loadoutItems.setOtherQtyLeft(((Number) loadOutItemInput.get("otherQtyLeft")).doubleValue());
-            loadoutItems.setAmount(NullUtils.isNotNull(loadOutItemInput.get("amount"))?(BigDecimal) ((Number) loadOutItemInput.get("amount")) :BigDecimal.ZERO);
+            loadoutItems.setAmount(NullUtils.isNotNull(loadOutItemInput.get("amount"))?BigDecimal.valueOf(((Number) loadOutItemInput.get("amount")).doubleValue()) :BigDecimal.ZERO);
             loadoutItems.setMrp(NullUtils.isNotNull(loadOutItemInput.get("mrp"))?((Number) loadOutItemInput.get("mrp")).doubleValue():0.0);
             if(loadOutDetailsId.length()<=255){
                 loadoutItems.setLoadOutDetailsId(loadOutDetailsId);
