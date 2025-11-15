@@ -33,6 +33,10 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setLoadOutStatus(DmsLoadoutLoadOutStatus.IN_DRAFT);
         dmsLoadout.setLoadOutType(DmsLoadoutLoadOutType.PRE_SELLER);
         dmsLoadout.setTotalAmount(BigDecimal.ZERO);
+        dmsLoadout.setTotalPieceLeftQty(0.0);
+        dmsLoadout.setTotalPieceQty(0.0);
+        dmsLoadout.setTotalOtherQty(0.0);
+        dmsLoadout.setTotalOtherLeftQty(0.0);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
