@@ -39,7 +39,7 @@ public class OutletCategoryEnrichment {
 
 
         if (!StringUtils.isEmpty(channel)) {
-            List<CategoryInfo> channelMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("8",channel, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> channelMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("8",channel, "outletMaster");
             if (!channelMapping.isEmpty()) {
                 String cc = channelMapping.get(0).getNewDescription();
                 cdm.setChannel(cc);
@@ -47,7 +47,7 @@ public class OutletCategoryEnrichment {
         }
 
         if (!StringUtils.isEmpty(outletCategory)) {
-            List<CategoryInfo> outletCategoryMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("2",outletCategory, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> outletCategoryMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("2",outletCategory, "outletMaster");
             if (!outletCategoryMapping.isEmpty()) {
                 String cc = outletCategoryMapping.get(0).getNewDescription();
                 cdm.setOutletCategory(cc);
@@ -55,7 +55,7 @@ public class OutletCategoryEnrichment {
         }
 
         if (!StringUtils.isEmpty(outletType)) {
-            List<CategoryInfo> outletTypeMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("4",outletType, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> outletTypeMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("4",outletType, "outletMaster");
             if (!outletTypeMapping.isEmpty()) {
                 String cc = outletTypeMapping.get(0).getNewDescription();
                 cdm.setOutletType(cc);
@@ -63,7 +63,7 @@ public class OutletCategoryEnrichment {
         }
 
         if (!StringUtils.isEmpty(outletClass)) {
-            List<CategoryInfo> outletClassMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("9",outletClass, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> outletClassMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("9",outletClass, "outletMaster");
             if (!outletClassMapping.isEmpty()) {
                 String cc = outletClassMapping.get(0).getNewDescription();
                 cdm.setOutletClass(cc);
@@ -71,7 +71,7 @@ public class OutletCategoryEnrichment {
         }
 
         if (!StringUtils.isEmpty(subChannel)) {
-            List<CategoryInfo> subChannelMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("6",subChannel, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> subChannelMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("6",subChannel, "outletMaster");
             if (!subChannelMapping.isEmpty()) {
                 String cc = subChannelMapping.get(0).getNewDescription();
                 cdm.setSubChannel(cc);
@@ -79,7 +79,7 @@ public class OutletCategoryEnrichment {
         }
 
         if (!StringUtils.isEmpty(marketId)) {
-            List<CategoryInfo> marketIdMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("5",marketId, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> marketIdMapping = repository.findByCategoryCodeAndCategoryValueAndFeature("5",marketId, "outletMaster");
             if (!marketIdMapping.isEmpty()) {
                 String cc = marketIdMapping.get(0).getNewDescription();
                 cdm.setMarketId(cc);
@@ -88,7 +88,7 @@ public class OutletCategoryEnrichment {
 
         if (extendedAttributes.has("trade_group")) {
             String cc_extended = extendedAttributes.get("trade_group").asText();
-            List<CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("3",cc_extended, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("3",cc_extended, "outletMaster");
             if(!cc_map.isEmpty()){
                 String code_3 = cc_map.get(0).getNewDescription();
                  extendedAttributes.put("trade_group", code_3);}
@@ -98,7 +98,7 @@ public class OutletCategoryEnrichment {
 
         if (extendedAttributes.has("business_complex_type")) {
             String cc_extended = extendedAttributes.get("business_complex_type").asText();
-            List<CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("7",cc_extended, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("7",cc_extended, "outletMaster");
             if (!cc_map.isEmpty()){
                 String code_3 = cc_map.get(0).getNewDescription();
                 extendedAttributes.put("business_complex_type", code_3);}
@@ -106,7 +106,7 @@ public class OutletCategoryEnrichment {
 
         if (extendedAttributes.has("categorycode10")) {
             String cc_extended = extendedAttributes.get("categorycode10").asText();
-            List<CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("10",cc_extended, "outletMaster");
+            List<com.salescode.dim.jooq.generated.tables.pojos.CategoryInfo> cc_map = repository.findByCategoryCodeAndCategoryValueAndFeature("10",cc_extended, "outletMaster");
             if (!cc_map.isEmpty()){
                 String code_3 = cc_map.get(0).getNewDescription();
                  extendedAttributes.put("categorycode10", code_3);
