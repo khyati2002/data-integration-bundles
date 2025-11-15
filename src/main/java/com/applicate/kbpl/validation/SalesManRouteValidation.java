@@ -18,11 +18,6 @@ import java.util.stream.Collectors;
 public class SalesManRouteValidation extends AbstractValidationRule<User> {
 
     public static final String ROUTE_TYPE = "routetype";
-    GenericEntityService genericEntityService;
-
-    public SalesManRouteValidation() {
-        this.genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
-    }
 
     @Override
     public OperationResult.StepResult apply(User user) {
@@ -57,7 +52,7 @@ public class SalesManRouteValidation extends AbstractValidationRule<User> {
 
     @NotNull
     private Set<String> getRouteSet(User user) {
-
+        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
         try {
             return genericEntityService.readModelsByName("RouteDetails").stream()
                     .filter(route -> user.getLoginid().equalsIgnoreCase(route.getLoginId())
