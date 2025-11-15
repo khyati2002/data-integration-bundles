@@ -35,7 +35,7 @@ public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<Str
         extractRequiredAndPut(input,transformed,"latitude");
         extractRequiredAndPut(input,transformed,"longitude");
         createExtended(extended,input);
-        transformed.put("extendedAttributes", JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class));
+        transformed.put("extendedAttributes", extended);
         createUser(transformed);
         transformed.put("distributionChannel", "supplier");
         return transformed;
