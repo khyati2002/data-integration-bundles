@@ -1,5 +1,6 @@
 package com.applicate.cokesa.transformer;
 
+import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.enums.*;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
@@ -35,6 +36,10 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setTotalOtherQty(0.0);
         dmsLoadout.setTotalOtherLeftQty(0.0);
         dmsLoadout.setLoadoutSource(DmsLoadoutLoadoutSource.INVOICE);
+        dmsLoadout.setCaseShortage(0.0);
+        dmsLoadout.setPieceShortage(0.0);
+        dmsLoadout.setOtherShortage(0.0);
+        dmsLoadout.setShortageUpdated((byte) 0);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
@@ -53,6 +58,15 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             String loadOutDetailsId=loadNumber+"_"+loadoutDetails.getInvoiceNumber();
             loadoutDetails.setLoadoutItems(buildLoadOutItemsList((List<Map<String, Object>>) loadOutDetailsInput.get("loadoutItems"),loadOutDetailsId));
 
+
+            loadoutDetails.setTotalPieceQty(0.0);
+            loadoutDetails.setTotalPieceLeftQty(0.0);
+            loadoutDetails.setTotalOtherQty(0.0);
+            loadoutDetails.setTotalOtherLeftQty(0.0);
+            loadoutDetails.setReturnCaseQty(0.0);
+            loadoutDetails.setReturnPieceQty(0.0);
+            loadoutDetails.setReturnOtherQty(0.0);
+            loadoutDetails.setTotalAmount(BigDecimal.ZERO);
             loadoutDetailsList.add(loadoutDetails);
         }
         return loadoutDetailsList;
@@ -68,6 +82,12 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutItems.setCaseQtyLeft(((Number) loadOutItemInput.get("caseQtyLeft")).doubleValue());
             loadoutItems.setItemType(DmsLoadoutItemsItemType.NORMAL);
 
+            loadoutItems.setPieceQty(((Number) loadOutItemInput.get("pieceQty")).doubleValue());
+            loadoutItems.setPieceQtyLeft(((Number) loadOutItemInput.get("pieceQtyLeft")).doubleValue());
+            loadoutItems.setOtherQty(((Number) loadOutItemInput.get("otherQty")).doubleValue());
+            loadoutItems.setOtherQtyLeft(((Number) loadOutItemInput.get("otherQtyLeft")).doubleValue());
+            loadoutItems.setAmount(NullUtils.isNotNull(loadOutItemInput.get("amount"))? (BigDecimal) loadOutItemInput.get("amount") :BigDecimal.ZERO);
+            loadoutItems.setMrp(NullUtils.isNotNull(loadOutItemInput.get("mrp"))?((Number) loadOutItemInput.get("mrp")).doubleValue():0.0);
             if(loadOutDetailsId.length()<=255){
                 loadoutItems.setLoadOutDetailsId(loadOutDetailsId);
             }
