@@ -1,10 +1,7 @@
 package com.applicate.cokesa.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import com.salescode.dim.jooq.generated.enums.DmsLoadoutDetailsLoadOutStatus;
-import com.salescode.dim.jooq.generated.enums.DmsLoadoutItemsItemType;
-import com.salescode.dim.jooq.generated.enums.DmsLoadoutLoadOutStatus;
-import com.salescode.dim.jooq.generated.enums.DmsLoadoutLoadOutType;
+import com.salescode.dim.jooq.generated.enums.*;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
 import com.salescode.dim.jooq.impl.LoadoutDetails;
 import com.salescode.dim.jooq.impl.LoadoutItems;
@@ -37,6 +34,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setTotalPieceQty(0.0);
         dmsLoadout.setTotalOtherQty(0.0);
         dmsLoadout.setTotalOtherLeftQty(0.0);
+        dmsLoadout.setLoadoutSource(DmsLoadoutLoadoutSource.INVOICE);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
