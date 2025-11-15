@@ -9,6 +9,7 @@ import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
 import com.salescode.dim.jooq.impl.LoadoutDetails;
 import com.salescode.dim.jooq.impl.LoadoutItems;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setTotalCaseLeftQty(((Number) dmsLoadoutInput.get("totalCaseLeftQty")).doubleValue());
         dmsLoadout.setLoadOutStatus(DmsLoadoutLoadOutStatus.IN_DRAFT);
         dmsLoadout.setLoadOutType(DmsLoadoutLoadOutType.PRE_SELLER);
+        dmsLoadout.setTotalAmount(BigDecimal.ZERO);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
