@@ -1,7 +1,6 @@
 package com.applicate.hccb.enrichment;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
-import com.applicate.services.channelkart.repository.ProductDetailsImpl;
 import com.applicate.services.channelkart.services.GenericObjectService;
 import com.applicate.services.channelkart.services.ProductDetailsService;
 import com.applicate.services.channelkart.utils.NullUtils;
@@ -18,6 +17,7 @@ import com.salescode.dim.jooq.impl.SchemeDefination;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -35,7 +35,7 @@ public class HCCBChannelEnrichment
 
     public HCCBChannelEnrichment() {
         genericObjectService = new GenericObjectService();
-        productDetailsService = new ProductDetailsService(new ProductDetailsImpl());
+        productDetailsService = new ProductDetailsService();
     }
 
     @Override
@@ -115,7 +115,9 @@ public class HCCBChannelEnrichment
             String eanCode = parts[0];
             BigDecimal targetMrpBd = new BigDecimal(parts[1]);
 
-            List<Productdetails> skuList = productDetailsService.findByEanCode(eanCode);
+            List<Productdetails> skuList = productDetailsService.findByEanCode(eanCode).stream()
+                                            .map(Productdetails.class::cast)
+                                            .collect(Collectors.toList());
             if (skuList == null || skuList.isEmpty()) {
                 log.error("No Product Details found for EAN Code {} | {}", eanCode, inputCode);
                 return Collections.emptyList();
