@@ -182,7 +182,7 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
             salesDetailsNode.put("initialPieceQuantity", item.get("itemquantity1").asText());
             salesDetailsNode.put("caseQuantity", item.get("itemquantity2").asText());
             salesDetailsNode.put("initialCaseQuantity", item.get("itemquantity2").asText());
-            salesDetailsNode.put("skuCode", skuCode);
+            salesDetailsNode.put("skucode", skuCode);
             salesDetailsNode.put("batchCode", skuCode);
             salesDetailsNode.put(NORMALIZED_QUANTITY, normalizedQuantity);
             salesDetailsNode.put("pieceQuantity", normalizedQuantity);
