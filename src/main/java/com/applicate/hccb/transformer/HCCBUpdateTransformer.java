@@ -7,10 +7,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -196,13 +192,7 @@ public class HCCBUpdateTransformer extends AbstractTransformer<Map<String, Objec
     private Map<String, Object> schemeDefinition(Map<String, Object> inputMap) {
         Map<String, Object> schemeDefinitionMap = new HashMap<>();
         schemeDefinitionMap.put(SCHEME_ID, inputMap.get(SCHEME_NO));
-        String endDateInput = inputMap.get("mer_wet").toString().trim();
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        ZonedDateTime enddateZoned = LocalDateTime.parse(endDateInput, formatter).atZone(ZoneOffset.UTC);
-        LocalDateTime enddateutc = enddateZoned.toLocalDateTime();
-        schemeDefinitionMap.put("endDate", enddateutc);
+        schemeDefinitionMap.put("endDate", inputMap.get("mer_wet"));
 
         ObjectNode extendedAttributes = new ObjectMapper().createObjectNode();
         extendedAttributes.put("onlyUpdate", true);

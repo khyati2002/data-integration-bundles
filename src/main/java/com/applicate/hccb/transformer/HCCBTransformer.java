@@ -7,8 +7,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.ObjectUtils;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
@@ -235,19 +233,8 @@ public class HCCBTransformer extends AbstractTransformer<Map<String, Object>, Ma
         Map<String, Object> schemeDefinitionMap = new HashMap<>();
         schemeDefinitionMap.put(SCHEME_ID, inputMap.get(SCHEME_NO));
         schemeDefinitionMap.put(CRITERIA, getSchemeCriteria(inputMap));
-        String startDateInput = inputMap.get("mer_wef").toString().trim();
-        String endDateInput = inputMap.get("mer_wet").toString().trim();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        try {
-            LocalDateTime startDate = LocalDateTime.parse(startDateInput, formatter);
-            LocalDateTime endDate = LocalDateTime.parse(endDateInput, formatter);
-
-            schemeDefinitionMap.put("startDate", startDate);
-            schemeDefinitionMap.put("endDate", endDate);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid scheme date format", e);
-        }
-
+        schemeDefinitionMap.put("startDate", inputMap.get("mer_wef"));
+        schemeDefinitionMap.put("endDate", inputMap.get("mer_wet"));
         schemeDefinitionMap.put("schemeDescription", inputMap.get("scheme_desc"));
 
         // Priority matrix handling
