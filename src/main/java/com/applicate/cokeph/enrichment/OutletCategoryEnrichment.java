@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.generated.tables.pojos.GenericObject;
 import com.salescode.dim.jooq.impl.CategoryInfo;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.ProductDetails;
@@ -19,15 +21,20 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 
-public class OutletCategoryEnrichment {
-    public EnrichmentResult apply(OutletDetails cdm) throws JsonProcessingException {
+public class OutletCategoryEnrichment extends AbstractEnrichment<OutletDetails>  {
+    public EnrichmentResult apply(OutletDetails cdm) {
 
         CategoryInfoService repository = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
 
         org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode shadedNode = cdm.getExtendedAttributes();
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode extendedAttributes = (ObjectNode) mapper.readTree(shadedNode.toString());
+        ObjectNode extendedAttributes = null;
+        try {
+            extendedAttributes = (ObjectNode) mapper.readTree(shadedNode.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         String channel = cdm.getChannel();
         String outletCategory = cdm.getOutletCategory();
