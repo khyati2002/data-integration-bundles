@@ -1,6 +1,5 @@
 package com.applicate.kbpl.transformer;
 
-import com.applicate.services.channelkart.utils.JSONUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -125,8 +124,8 @@ public class KGPLSalesTransformer extends AbstractTransformer<Map<String, Object
         sales.set(EXTENDED_ATTRIBUTES, extended1);
         sales.put("source", "KGPL");
 
-        //return (Map<String, Object>) sales;
-        return objectMapper.convertValue(sales, Map.class);
+        return (Map<String, Object>) sales;
+        //return objectMapper.convertValue(sales, Map.class);
     }
 
     private ObjectNode updateMap(JsonNode item, Map<String, JsonNode> skuMap) {
