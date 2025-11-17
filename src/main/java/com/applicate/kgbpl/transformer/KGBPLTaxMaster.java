@@ -51,9 +51,26 @@ public class KGBPLTaxMaster extends AbstractTransformer<Map<String, Object>, Map
 
     private Date convertToDate(Object dateValue) {
         try {
-            String dateStr = getString(Collections.singletonMap("effectivedate", dateValue), "effectivedate");
+            if (dateValue == null)
+                throw new IllegalArgumentException("effectiveDate is null");
+
+            // If numeric → treat as timestamp in millis
+            if (dateValue instanceof Number) {
+                long millis = ((Number) dateValue).longValue();
+                return new Date(millis);
+            }
+
+            String dateStr = dateValue.toString().trim();
+
+            // String numeric → millis
+            if (dateStr.matches("\\d+")) {
+                return new Date(Long.parseLong(dateStr));
+            }
+
+            // Otherwise parse ISO format: yyyy-MM-dd'T'HH:mm:ss'Z'
             LocalDateTime localDateTime = LocalDateTime.parse(dateStr, ISO_WITH_Z_FORMATTER);
             return Date.from(localDateTime.atZone(ZoneId.of("Asia/Kolkata")).toInstant());
+
         } catch (Exception e) {
             throw new DataTransformationService.TransformationException("Invalid format for effectiveDate: " + dateValue);
         }
