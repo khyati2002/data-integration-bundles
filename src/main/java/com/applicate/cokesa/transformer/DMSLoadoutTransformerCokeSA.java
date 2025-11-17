@@ -30,14 +30,14 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setVehicleId((String) dmsLoadoutInput.get("vehicleId"));
         dmsLoadout.setTotalCaseQty( ((Number) dmsLoadoutInput.get("totalCaseQty")).doubleValue());
         dmsLoadout.setTotalCaseLeftQty(((Number) dmsLoadoutInput.get("totalCaseLeftQty")).doubleValue());
-        dmsLoadout.setLoadOutStatus(DmsLoadoutLoadOutStatus.IN_DRAFT);
+        dmsLoadout.setLoadOutStatus(DmsLoadoutLoadOutStatus.IN_TRANSIT);
         dmsLoadout.setLoadOutType(DmsLoadoutLoadOutType.PRE_SELLER);
         dmsLoadout.setTotalAmount(BigDecimal.ZERO);
         dmsLoadout.setTotalPieceLeftQty(0.0);
         dmsLoadout.setTotalPieceQty(0.0);
         dmsLoadout.setTotalOtherQty(0.0);
         dmsLoadout.setTotalOtherLeftQty(0.0);
-        dmsLoadout.setLoadoutSource(DmsLoadoutLoadoutSource.INVOICE);
+        dmsLoadout.setLoadoutSource(DmsLoadoutLoadoutSource.ORDER);
         dmsLoadout.setCaseShortage(0.0);
         dmsLoadout.setPieceShortage(0.0);
         dmsLoadout.setOtherShortage(0.0);
@@ -57,7 +57,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setTotalCaseLeftQty(((Number) loadOutDetailsInput.get("totalCaseLeftQty")).doubleValue());
             loadoutDetails.setLoadNumber(loadNumber);
             loadoutDetails.setRouteCode(activityRoute);
-            loadoutDetails.setLoadOutStatus(DmsLoadoutDetailsLoadOutStatus.IN_DRAFT);
+            loadoutDetails.setLoadOutStatus(DmsLoadoutDetailsLoadOutStatus.IN_TRANSIT);
 
             String loadOutDetailsId=loadNumber+"_"+loadoutDetails.getInvoiceNumber();
             loadoutDetails.setLoadoutItems(buildLoadOutItemsList((List<Map<String, Object>>) loadOutDetailsInput.get("loadoutItems"),loadOutDetailsId));
