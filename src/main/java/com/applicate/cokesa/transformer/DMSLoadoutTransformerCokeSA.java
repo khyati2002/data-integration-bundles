@@ -1,5 +1,6 @@
 package com.applicate.cokesa.transformer;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.enums.*;
@@ -41,6 +42,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setPieceShortage(0.0);
         dmsLoadout.setOtherShortage(0.0);
         dmsLoadout.setShortageUpdated((byte) 0);
+        dmsLoadout.setActiveStatus(ActiveStatus.ACTIVE);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
@@ -70,6 +72,8 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setTotalAmount(BigDecimal.ZERO);
             SalesInfo salesInfo=new SalesInfo(BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,"OUT FOR DELIVERY");
             loadoutDetails.setSalesInfo(salesInfo);
+
+            loadoutDetails.setActiveStatus(ActiveStatus.ACTIVE);
             loadoutDetailsList.add(loadoutDetails);
         }
         return loadoutDetailsList;
@@ -94,6 +98,8 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             if(loadOutDetailsId.length()<=255){
                 loadoutItems.setLoadOutDetailsId(loadOutDetailsId);
             }
+
+            loadoutItems.setActiveStatus(ActiveStatus.ACTIVE);
 
             loadoutItemsList.add(loadoutItems);
         }
