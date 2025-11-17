@@ -1,14 +1,20 @@
 package com.applicate.cokeph.enrichment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.applicate.services.channelkart.services.TempMasterMappingService;
+//import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.EnrichmentResult;
+import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.OutletDetails;
+import com.salescode.dim.jooq.impl.OutletDetails;
+import com.salescode.dim.jooq.impl.TempMasterMapping;
 
 public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDetails> {
 
-    private final TempMasterMappingService masterMappingService = SpringContext.getBean(TempMasterMappingService.class);
+    private final TempMasterMappingService masterMappingService = (TempMasterMappingService) ServiceLocator.lookup(TempMasterMapping.class);
 
     @Override
     public EnrichmentResult apply(OutletDetails outletDetails) {
@@ -34,15 +40,15 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
                 tempMasterMapping.setUserLoginId(currentPreseller);
                 tempMasterMapping.setParent(currentDistributor);
                 extended.put("DistributorCode", currentDistributor);
-                extended.put("OutletCode", outletDetails.getOutletCode());
+                extended.put("OutletCode", outletDetails.getOutletcode());
                 extended.put("HierarchyUpdateCheck", 0);
             }
             // Set the extended attributes and save
-            tempMasterMapping.setExtendedAttributes(extended);
-            TempMasterMapping refreshedObject = masterMappingService.refresh(tempMasterMapping);
+            tempMasterMapping.setExtendedAttributes((JsonNode) extended);
+            TempMasterMapping refreshedObject = masterMappingService.addHash(tempMasterMapping);
             masterMappingService.save(refreshedObject);
         }
 
-        return EnrichmentResult.OK;
+        return new OperationResult.StepResult(OperationResult.Status.OK);
     }
 }
