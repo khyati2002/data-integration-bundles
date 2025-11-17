@@ -6,6 +6,7 @@ import com.salescode.dim.jooq.generated.enums.*;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
 import com.salescode.dim.jooq.impl.LoadoutDetails;
 import com.salescode.dim.jooq.impl.LoadoutItems;
+import com.salescode.dim.jooq.impl.SalesInfo;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -67,6 +68,8 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setReturnPieceQty(0.0);
             loadoutDetails.setReturnOtherQty(0.0);
             loadoutDetails.setTotalAmount(BigDecimal.ZERO);
+            SalesInfo salesInfo=new SalesInfo(BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,"OUT FOR DELIVERY");
+            loadoutDetails.setSalesInfo(salesInfo);
             loadoutDetailsList.add(loadoutDetails);
         }
         return loadoutDetailsList;
