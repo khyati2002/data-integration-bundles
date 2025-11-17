@@ -160,7 +160,8 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
             throw new DataTransformationService.TransformationException("This distributor does not exist as a part of our onboarding plan");
         }
         extended.put("DistributorCode", distributorCode);
-        JsonNode extendedAttributes = JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class);
+//        JsonNode extendedAttributes = JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class);
+        JsonNode extendedAttributes = extended;
         finalTransformedObj.put("extendedAttributes", extendedAttributes);
         if (distributorOutletMappings != null && !distributorOutletMappings.isEmpty()) {
             String supplierId =(String) firstMapping.get("distributor_code") ;
