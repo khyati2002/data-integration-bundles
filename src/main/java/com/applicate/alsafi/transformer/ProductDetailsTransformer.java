@@ -1,43 +1,71 @@
 package com.applicate.alsafi.transformer;
+
 import com.applicate.services.channelkart.transformers.impl.JoltTransformer;
+
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+
 public class ProductDetailsTransformer extends JoltTransformer {
+
     @Override
     public Object transform(Map<String, Object> input) {
         Map<String, Object> result = new HashMap<>();
 
-        result.put("skuCode", input.get("ItemNo"));
-        result.put("skuName", input.get("ItemNameE"));
-        result.put("skuDescription", input.get("ItemNameEDesc"));
-        result.put("batchCode", input.get("ItemNo"));
-        result.put("productCode", input.get("ProductCode"));
-        result.put("product", input.get("ProductName"));
-        result.put("category", input.get("Category"));
-        result.put("categoryCode", input.get("CategoryCode"));
-        result.put("subCategory", input.get("SubCategory"));
-        result.put("subCategoryCode", input.get("SubCategoryCode"));
-        result.put("brand", input.get("Brand"));
-        result.put("brandCode", input.get("BrandCode"));
-        result.put("subBrand", input.get("SubBrand"));
-        result.put("mrp", input.get("MRP"));
-        result.put("caseMrp", input.get("CaseMRP"));
-        result.put("otherUnitMrp", input.get("OtherUnitMRP"));
-        result.put("caseToPieceQuantity", input.get("CaseToPiece"));
-        result.put("caseToOtherUnitQuantity", input.get("CaseToOtherUnit"));
-        result.put("otherUnitToPieceQuantity", input.get("OtherUnitToPiece"));
-        result.put("pieceToOtherUnitQuantity", input.get("PieceToOtherUnit"));
-        result.put("otherUnitName", input.get("OtherUnitName"));
-        result.put("unitOfMeasurement", input.get("UOM"));
-        result.put("channel", input.get("Channel"));
-        result.put("size", input.get("Size"));
-        result.put("pieceSize", input.get("PieceSize"));
-        result.put("eanNumber", input.get("EANNumber"));
-        result.put("fileName", input.get("ImageFileName"));
-        result.put("blobKey", input.get("ImageURL"));
-        result.put("priority", input.get("Priority"));
-        result.put("display", input.get("Display"));
+        BigDecimal retailPrice = getBigDecimal(input, "RETAIL_PRICE");
+        BigDecimal caseToPiece = getBigDecimal(input, "CASE_TO_PIECE_FACTOR");
+        BigDecimal basePrice = getBigDecimal(input, "BASE_PRICE");
+        BigDecimal promoRetailPrice = getBigDecimal(input, "PROMO_RETAIL_PRICE");
+
+        BigDecimal caseMrp = (retailPrice != null && caseToPiece != null && caseToPiece.compareTo(BigDecimal.ZERO) != 0)
+                ? retailPrice.multiply(caseToPiece).setScale(2, BigDecimal.ROUND_HALF_UP)
+                : null;
+
+        result.put("skuCode", getString(input, "SKU_CODE"));
+        result.put("skuName", getString(input, "SKU_NAME"));
+        result.put("skuDescription", getString(input, "SKU_NAME"));
+        result.put("batchCode", getString(input, "SKU_CODE"));
+        result.put("productCode", getString(input, "SKU_CODE"));
+        result.put("product", getString(input, "SKU_NAME"));
+        result.put("category", getString(input, "CATEGORY"));
+        result.put("categoryCode", getString(input, "CATEGORY"));
+        result.put("subCategory", getString(input, "SUB_CATEGORY"));
+        result.put("subCategoryCode", getString(input, "SUB_CATEGORY"));
+        result.put("brand", getString(input, "BRAND"));
+        result.put("brandCode", getString(input, "BRAND_CODE"));
+//        result.put("subBrand", null);
+        result.put("mrp", retailPrice);
+        result.put("caseMrp", caseMrp);
+        result.put("basePrice", basePrice);
+        result.put("promoMrp", promoRetailPrice);
+        result.put("otherUnitMrp", null);
+        result.put("caseToPieceQuantity", caseToPiece);
+//        result.put("caseToOtherUnitQuantity", null);
+//        result.put("otherUnitToPieceQuantity", null);
+//        result.put("pieceToOtherUnitQuantity", null);
+        result.put("otherUnitName", null);
+        result.put("unitOfMeasurement", getString(input, "BASE_UOM"));
+        result.put("channel", "AlSafi");
+        result.put("size", getString(input, "PACK_SIZE"));
+        result.put("pieceSize", getString(input, "PACK_SIZE"));
+        result.put("priority", 1);
+        result.put("display", true);
 
         return result;
+    }
+
+    private String getString(Map<String, Object> map, String key) {
+        Object val = map.get(key);
+        return val != null ? val.toString().trim() : null;
+    }
+
+    private BigDecimal getBigDecimal(Map<String, Object> map, String key) {
+        Object val = map.get(key);
+        if (val == null) return null;
+        try {
+            return new BigDecimal(val.toString());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

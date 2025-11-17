@@ -5,24 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7e173ad5-aa94-496a-a42c-c7673d2a0176" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/ProductDetailsEnrichment.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/transformer/CategoryInfoTransformer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/transformer/ProductDetailsTransformer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/enrichment/OutletDetailsNameEnrichmentITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/OutletDetailsNameEnrichmentITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/enrichment/RetailerItclEnrichment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/RetailerItclEnrichment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/enrichment/UserDetailsEnrichmentITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/UserDetailsEnrichmentITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/enrichment/UserDuplicateMobileNumberEnrichmentITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/UserDuplicateMobileNumberEnrichmentITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/enrichment/UserEnrichmentItcl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/enrichment/UserEnrichmentItcl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/transformer/DSAbsentOutletActivityITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/transformer/DSAbsentOutletActivityITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/DuplicateMobileNumberValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/DuplicateMobileNumberValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/OutletActiveStatusValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/OutletActiveStatusValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/OutletDetailsNullValueValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/OutletDetailsNullValueValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/OutletDetailsValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/OutletDetailsValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/OutletValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/OutletValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/SupplierInfoValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/SupplierInfoValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/UserDuplicateMobileNumberValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/UserDuplicateMobileNumberValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/UserImmediateParentValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/UserImmediateParentValidatorITCL.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/applicate/unnati/validation/UserValidatorITCL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/applicate/alsafi/validation/UserValidatorITCL.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,16 +36,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "alsafi",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/salescode/data-integration-bundles"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;alsafi&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/salescode/data-integration-bundles&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="bundle" />
