@@ -1,12 +1,11 @@
 package com.applicate.kgbpl.transformer;
 
-
+import com.applicate.services.channelkart.converters.DateToClientTimeZoneStringConverter;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -16,7 +15,8 @@ public class KGBPLTaxMaster extends AbstractTransformer<Map<String, Object>, Map
             "skucode", "component", "hsn", "rate", "effectivedate"
     );
 
-    private static final DateTimeFormatter ISO_WITH_Z_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final DateTimeFormatter ISO_WITH_Z_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     @Override
     public Map<String, Object> transform(Map<String, Object> source) {
@@ -26,9 +26,9 @@ public class KGBPLTaxMaster extends AbstractTransformer<Map<String, Object>, Map
         result.put("skuCode", getString(source, "skucode"));
         result.put("batchCode", getString(source, "skucode"));
         result.put("taxType", getString(source, "component"));
-        result.put("taxGroup", getString(source, "hsn")+"-"+"kgpl");
+        result.put("taxGroup", getString(source, "hsn") + "-" + "kgpl");
         result.put("taxRate", getNumericValue(source.get("rate"), "rate"));
-        result.put("startDate", convertToDate(source.get("effectivedate")));
+        result.put("startDate", convertToClientTimezoneString(source.get("effectivedate")));
 
         return result;
     }
@@ -49,30 +49,27 @@ public class KGBPLTaxMaster extends AbstractTransformer<Map<String, Object>, Map
         }
     }
 
-    private Date convertToDate(Object dateValue) {
+    /**
+     * Updated method — exactly like DateToClientTimeZoneStringConverter logic
+     * OR directly calling it.
+     */
+    private String convertToClientTimezoneString(Object dateValue) {
         try {
-            if (dateValue == null)
-                throw new IllegalArgumentException("effectiveDate is null");
-
-            // If numeric → treat as timestamp in millis
-            if (dateValue instanceof Number) {
-                long millis = ((Number) dateValue).longValue();
-                return new Date(millis);
-            }
-
-            String dateStr = dateValue.toString().trim();
-
-            // String numeric → millis
-            if (dateStr.matches("\\d+")) {
-                return new Date(Long.parseLong(dateStr));
-            }
-
-            // Otherwise parse ISO format: yyyy-MM-dd'T'HH:mm:ss'Z'
+            String dateStr = getString(Collections.singletonMap("effectivedate", dateValue), "effectivedate");
             LocalDateTime localDateTime = LocalDateTime.parse(dateStr, ISO_WITH_Z_FORMATTER);
-            return Date.from(localDateTime.atZone(ZoneId.of("Asia/Kolkata")).toInstant());
+
+            Date inputDate = Date.from(localDateTime
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toInstant()
+            );
+
+            // DIRECT CALL to converter
+            return new DateToClientTimeZoneStringConverter().convert(inputDate);
 
         } catch (Exception e) {
-            throw new DataTransformationService.TransformationException("Invalid format for effectiveDate: " + dateValue);
+            throw new DataTransformationService.TransformationException(
+                    "Invalid format for effectiveDate: " + dateValue
+            );
         }
     }
 
