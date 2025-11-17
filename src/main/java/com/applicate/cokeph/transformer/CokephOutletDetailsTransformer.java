@@ -75,8 +75,8 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
             contactNo=validateMobile(stringObjectMap);
             finalTransformedObj.put("contactno", contactNo);
         }
-        Optional<List<com.salescode.dim.jooq.impl.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(contactNo,0,2);
-        List<com.salescode.dim.jooq.impl.User> contactOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
+        Optional<List<com.salescode.dim.jooq.generated.tables.pojos.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(contactNo,0,2);
+        List<com.salescode.dim.jooq.generated.tables.pojos.User> contactOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
         if(contactOutletDetails.size()>1) throw new DataTransformationService.TransformationException("Multiple outlets mapped with this mobileNumber");
 
         OutletDetails outletDetails=getIfOutletExists(outletCode,finalTransformedObj);
@@ -183,7 +183,7 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         return finalTransformedObj;
 
     }
-    private void validateUniqueContactMapped(OutletDetails outletDetails,List<com.salescode.dim.jooq.impl.User> contactOutletDetails,String contactNo)
+    private void validateUniqueContactMapped(OutletDetails outletDetails,List<com.salescode.dim.jooq.generated.tables.pojos.User> contactOutletDetails,String contactNo)
     {
         if((outletDetails==null || outletDetails.getContactno()==null) && !contactOutletDetails.isEmpty()){
             throw new DataTransformationService.TransformationException("Outlet mapped with mobile number already exists");

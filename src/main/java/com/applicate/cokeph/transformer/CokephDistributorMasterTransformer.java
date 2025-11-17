@@ -115,8 +115,8 @@ public class CokephDistributorMasterTransformer extends AbstractTransformer<Map<
     }
     private void validateUniqueUserMappedWithMobile(String mobile,User user)
     {
-        Optional<List<User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
-        List<User> contactOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
+        Optional<List<com.salescode.dim.jooq.generated.tables.pojos.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
+        List<com.salescode.dim.jooq.generated.tables.pojos.User> contactOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
         if(contactOutletDetails.size()>1) throw new DataTransformationService.TransformationException("Multiple outlets mapped with this mobileNumber");
         if(!contactOutletDetails.isEmpty()) {
             if((user==null || user.getMobile()==null) && !contactOutletDetails.isEmpty()){

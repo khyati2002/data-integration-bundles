@@ -19,11 +19,9 @@ import java.util.*;
 
 public class CokephWholesalerTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
-    final OutletDetailsService outletDetailsService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
-
-    final OutletMetadataService outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
-
-    final UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
+    public OutletDetailsService outletDetailsService ;
+    public OutletMetadataService outletMetadataService;
+    public UserService userService ;
     private static final String CONTACTNO_STRING="contactno";
     private static final String OUTLET_CODE_STRING="outletCode";
     private static final String WHOLESALER_STRING="wholesaler";
@@ -37,14 +35,17 @@ public class CokephWholesalerTransformer extends AbstractTransformer<Map<String,
 
     @Override
     public Map<String, Object> transform(Map<String, Object> input) {
+        outletDetailsService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
+        outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
+        userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
         ObjectNode extended = new ObjectMapper().createObjectNode();
         Map<String, Object> transformed = new HashMap<>();
         String mobile= extractRequiredAndPut(input,transformed,CONTACTNO_STRING);
         String outletCode=extractRequiredAndPut(input,transformed,OUTLET_CODE_STRING);
 
         OutletDetails outletDetails= outletDetailsService.findByOutletCode(outletCode);
-        Optional<List<com.salescode.dim.jooq.impl.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
-        List<com.salescode.dim.jooq.impl.User> mobileOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
+        Optional<List<com.salescode.dim.jooq.generated.tables.pojos.User>> contactOutletDetailsOptional=userService.findByMobileSafelyLimit(mobile,0,2);
+        List<com.salescode.dim.jooq.generated.tables.pojos.User> mobileOutletDetails= contactOutletDetailsOptional.orElseGet(ArrayList::new);
         if(mobileOutletDetails.size()>1) throw new DataTransformationService.TransformationException("Multiple outlets mapped with this mobileNumber");
 
 
@@ -108,7 +109,7 @@ public class CokephWholesalerTransformer extends AbstractTransformer<Map<String,
 
         }
     }
-    private void validateUniqueMobile(List<com.salescode.dim.jooq.impl.User> mobileOutletDetails,OutletDetails outletDetails,String contactNo)
+    private void validateUniqueMobile(List<com.salescode.dim.jooq.generated.tables.pojos.User> mobileOutletDetails,OutletDetails outletDetails,String contactNo)
     {
         if((outletDetails==null || outletDetails.getContactno()==null) && !mobileOutletDetails.isEmpty()){
             throw new DataTransformationService.TransformationException("Outlet mapped with mobile number already exists");

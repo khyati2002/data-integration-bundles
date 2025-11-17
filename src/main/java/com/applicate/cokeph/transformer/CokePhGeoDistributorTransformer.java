@@ -17,9 +17,10 @@ import java.util.Map;
 
 public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
-    private final UserService userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
+     public UserService userService;
     @Override
     public Map<String, Object> transform(Map<String, Object> input) {
+        userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
         ObjectNode extended = new ObjectMapper().createObjectNode();
         Map<String, Object> transformed = new HashMap<>();
         String outletCode= extractRequiredAndPut(input,transformed,"outletCode");
@@ -34,7 +35,7 @@ public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<Str
         extractRequiredAndPut(input,transformed,"latitude");
         extractRequiredAndPut(input,transformed,"longitude");
         createExtended(extended,input);
-        transformed.put("extendedAttributes", JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class));
+        transformed.put("extendedAttributes", extended);
         createUser(transformed);
         transformed.put("distributionChannel", "supplier");
         return transformed;
