@@ -3,7 +3,9 @@ package com.applicate.hccb.enrichment;
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.services.GenericObjectService;
 import com.applicate.services.channelkart.services.ProductDetailsService;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.NullUtils;
+import com.salescode.dim.jooq.impl.ProductDetails;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
@@ -34,8 +36,8 @@ public class HCCBChannelEnrichment
     Logger logger = LoggerFactory.getLogger(HCCBChannelEnrichment.class);
 
     public HCCBChannelEnrichment() {
-        genericObjectService = new GenericObjectService();
-        productDetailsService = new ProductDetailsService();
+        genericObjectService = (GenericObjectService) ServiceLocator.lookup(GenericObject.class);
+        productDetailsService = (ProductDetailsService) ServiceLocator.lookup(ProductDetails.class);
     }
 
     @Override
