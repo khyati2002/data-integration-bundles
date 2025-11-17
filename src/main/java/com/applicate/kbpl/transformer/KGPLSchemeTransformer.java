@@ -99,7 +99,7 @@ public class KGPLSchemeTransformer extends AbstractTransformer<Map<String, Objec
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inMap) {
-        ObjectNode schemeMap = JSONUtils.toObjectNode(inMap);
+        ObjectNode schemeMap = (ObjectNode) JSONUtils.toJsonNode(inMap);
         JsonNode promotionassignment;
 
         List<JsonNode> responseList = new ArrayList<>();
