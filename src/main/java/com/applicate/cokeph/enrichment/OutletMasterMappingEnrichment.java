@@ -12,6 +12,8 @@ import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.TempMasterMapping;
 
+
+
 public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDetails> {
 
     private final TempMasterMappingService masterMappingService = (TempMasterMappingService) ServiceLocator.lookup(TempMasterMapping.class);
@@ -45,7 +47,8 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
             }
             // Set the extended attributes and save
             tempMasterMapping.setExtendedAttributes((JsonNode) extended);
-            TempMasterMapping refreshedObject = masterMappingService.addHash(tempMasterMapping);
+            TempMasterMapping refreshedObject = masterMappingService.refreshUsingJooq(tempMasterMapping);
+
             masterMappingService.save(refreshedObject);
         }
 
