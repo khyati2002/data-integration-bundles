@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 
 public class OutletCategoryEnrichment extends AbstractEnrichment<OutletDetails>  {
+
+    @Override
     public EnrichmentResult apply(OutletDetails cdm) {
 
         CategoryInfoService repository = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
