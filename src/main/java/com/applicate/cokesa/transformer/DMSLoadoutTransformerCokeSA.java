@@ -23,7 +23,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         return responseList;
     }
 
-    private DmsLoadout buildDMSLoadout(Map<String,Object> dmsLoadoutInput){
+    private DmsLoadout buildDMSLoadout(Map<String,Object> dmsLoadoutInput,String supplier){
         DmsLoadout dmsLoadout=new DmsLoadout();
         dmsLoadout.setLoadNumber((String) dmsLoadoutInput.get("loadNumber"));
         dmsLoadout.setSalesmanId((String) dmsLoadoutInput.get("salesmanId"));
@@ -43,6 +43,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setOtherShortage(0.0);
         dmsLoadout.setShortageUpdated((byte) 0);
         dmsLoadout.setActiveStatus(ActiveStatus.ACTIVE);
+        dmsLoadout.setSupplier(supplier);
         return dmsLoadout;
     }
     private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
@@ -113,7 +114,8 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         String loadNumber= ((Map<String, Object>) inputMap.get("dmsLoadout")).get("loadNumber").toString();
         String[] parts=loadNumber.split("_");
         String activityRoute=parts[3];
-        response.put("dmsLoadout",buildDMSLoadout((Map<String, Object>) inputMap.get("dmsLoadout")));
+        String supplier=parts[1];
+        response.put("dmsLoadout",buildDMSLoadout((Map<String, Object>) inputMap.get("dmsLoadout"),supplier));
         response.put("loadoutDetailsList",buildLoadoutDetailsList(((List<Map<String, Object>>) inputMap.get("loadoutDetailsList")),loadNumber,activityRoute));
         return response;
     }
