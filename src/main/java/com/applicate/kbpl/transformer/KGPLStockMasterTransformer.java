@@ -42,6 +42,9 @@ public class KGPLStockMasterTransformer extends AbstractTransformer<Map<String, 
         ));
 
         output.put("batchPrice", 0);
+        output.put("initialStock", 0);
+        output.put("stockValue", 0);
+        output.put("price", 0);
 
         return output;
     }
