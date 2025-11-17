@@ -1,20 +1,21 @@
 package com.applicate.alsafi.enrichment;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
-import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.SecurityContextUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.ProductDetails;
+import com.salescode.dim.jooq.generated.tables.pojos.Productdetails;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
-public class ProductDetailsEnrichment extends AbstractEnrichment<ProductDetails> {
+public class ProductDetailsEnrichment extends AbstractEnrichment<Productdetails> {
 
     @Override
-    public OperationResult.StepResult apply(ProductDetails cdm) {
+    public OperationResult.StepResult apply(Productdetails cdm) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         if (cdm == null) {
@@ -38,31 +39,31 @@ public class ProductDetailsEnrichment extends AbstractEnrichment<ProductDetails>
         }
 
         if (cdm.getCaseToPieceQuantity() == null) {
-            cdm.setCaseToPieceQuantity(0.0f);
+            cdm.setCaseToPieceQuantity(BigDecimal.valueOf((0)));
         }
 
-        if (cdm.getCaseToOtherUnitQuantity() == 0) {
-            cdm.setCaseToOtherUnitQuantity(0.0f);
+        if (cdm.getCaseToOtherUnitQuantity() == BigDecimal.valueOf(0)) {
+            cdm.setCaseToOtherUnitQuantity(BigDecimal.valueOf(0));
         }
 
-        if (cdm.getOtherUnitToPieceQuantity() == 0) {
-            cdm.setOtherUnitToPieceQuantity(0.0f);
+        if (cdm.getOtherUnitToPieceQuantity() == BigDecimal.valueOf(0)) {
+            cdm.setOtherUnitToPieceQuantity(BigDecimal.valueOf(0));
         }
 
-        if (cdm.getPieceToOtherUnitQuantity() == 0) {
-            cdm.setPieceToOtherUnitQuantity(0.0f);
+        if (cdm.getPieceToOtherUnitQuantity() == BigDecimal.valueOf(0)) {
+            cdm.setPieceToOtherUnitQuantity(BigDecimal.valueOf(0));
         }
 
-        if (cdm.getMrp() == 0) {
-            cdm.setMrp(0.0f);
+        if (cdm.getMrp() == BigDecimal.valueOf(0)) {
+            cdm.setMrp(BigDecimal.valueOf(0));
         }
 
-        if (cdm.getCaseMrp() == 0) {
-            cdm.setCaseMrp(0.0f);
+        if (cdm.getCaseMrp() == BigDecimal.valueOf(0)) {
+            cdm.setCaseMrp(BigDecimal.valueOf(0));
         }
 
-        if (cdm.getOtherUnitMrp() == 0) {
-            cdm.setOtherUnitMrp(0.0f);
+        if (Objects.equals(cdm.getOtherUnitMrp(), BigDecimal.valueOf(0))) {
+            cdm.setOtherUnitMrp(BigDecimal.valueOf(0));
         }
 
         if (cdm.getPriority() == 0) {
