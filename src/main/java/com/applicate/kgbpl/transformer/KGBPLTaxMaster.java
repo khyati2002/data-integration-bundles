@@ -28,6 +28,7 @@ public class KGBPLTaxMaster extends AbstractTransformer<Map<String, Object>, Map
         result.put("taxType", getString(source, "component"));
         result.put("taxGroup", getString(source, "hsn") + "-" + "kgpl");
         result.put("taxRate", getNumericValue(source.get("rate"), "rate"));
+        result.put("priority", 1);
         result.put("startDate", convertToClientTimezoneString(source.get("effectivedate")));
 
         return result;
