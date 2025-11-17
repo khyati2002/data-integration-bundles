@@ -3,7 +3,7 @@ package com.applicate.unnati.enrichment;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.SupplierMetadata;
+import com.salescode.dim.jooq.impl.SupplierMetadata;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
