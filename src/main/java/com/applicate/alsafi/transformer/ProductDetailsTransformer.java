@@ -43,7 +43,7 @@ public class ProductDetailsTransformer extends JoltTransformer {
         result.put("pieceSize", getString(input, "PACK_SIZE"));
         result.put("priority", 1);
         result.put("display", true);
-
+        result.put("skuPieceWeight",0);
         return result;
     }
 
