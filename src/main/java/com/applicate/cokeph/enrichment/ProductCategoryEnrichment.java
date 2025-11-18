@@ -16,10 +16,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ProductCategoryEnrichment extends AbstractEnrichment<ProductDetails> {
-    CategoryInfoService repository = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
+    CategoryInfoService repository;
 
     @Override
     public EnrichmentResult apply(ProductDetails cdm){
+        repository = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
 
         String authToken = SecurityContextUtils.getPrincipal();
         if (!"integration_user".equals(authToken)) {
