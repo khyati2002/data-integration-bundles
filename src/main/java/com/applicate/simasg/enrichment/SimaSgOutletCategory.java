@@ -1,24 +1,23 @@
 package com.applicate.simasg.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.enrichments.Status;
-import com.applicate.services.channelkart.models.GenericEntity;
-import com.applicate.services.channelkart.models.Location;
-import com.applicate.services.channelkart.models.OutletDetails;
-import com.applicate.services.channelkart.models.enums.ActiveStatus;
-import com.applicate.services.channelkart.repository.GenericEntityRepository;
-import com.applicate.services.channelkart.services.SpringContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.salescode.dim.etl.EnrichmentResult;
+import com.applicate.services.channelkart.services.GenericEntityService;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.generated.tables.pojos.Location;
+import com.salescode.dim.jooq.generated.tables.pojos.OutletDetails;
+import com.salescode.dim.jooq.impl.GenericEntity;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 
 public class SimaSgOutletCategory extends AbstractEnrichment<OutletDetails>
 {
 
-    GenericEntityRepository repository = SpringContext.getBean(GenericEntityRepository.class);
+    GenericEntityRepository repository =
+            (GenericEntityRepository) ServiceLocator.lookup(GenericEntityRepository.class);
 
     @Override
     public EnrichmentResult apply(OutletDetails cdm)

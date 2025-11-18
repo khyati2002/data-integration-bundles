@@ -1,10 +1,12 @@
 package com.applicate.simasg.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.enrichments.Status;
-import com.applicate.services.channelkart.models.OutletDetails;
-import com.applicate.services.channelkart.security.SecurityContextUtils;
+
+import com.applicate.services.channelkart.utils.SecurityContextUtils;
+import com.salescode.dim.etl.EnrichmentResult;
+import com.salescode.dim.etl.OperationResult;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.generated.tables.pojos.OutletDetails;
+
 
 /**
  * If the phone number change is to be blocked, find the previous phone number from database
@@ -16,10 +18,10 @@ public class SimaSgOutletPhoneNumberEnrichment extends AbstractEnrichment<Outlet
     @Override
     public EnrichmentResult apply(OutletDetails outletDetails) {
         if(allowContactNumberChange(outletDetails)){
-            return new EnrichmentResult(Status.OK, "Data Enrichment skipped");
+            return new OperationResult.StepResult(OperationResult.Status.OK,"Data Enrichment skipped");
         }
         outletDetails.setContactno( ((OutletDetails) outletDetails.getOldModel()).getContactno() );
-        return new EnrichmentResult(Status.OK, "Data Enrichment successfully");
+        return new OperationResult.StepResult(OperationResult.Status.OK,"Data Enrichment skipped");
     }
 
     /**

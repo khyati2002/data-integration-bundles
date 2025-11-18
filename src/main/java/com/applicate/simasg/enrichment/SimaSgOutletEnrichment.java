@@ -1,14 +1,15 @@
 package com.applicate.simasg.enrichment;
 
-import com.applicate.services.channelkart.enrichments.AbstractEnrichment;
-import com.applicate.services.channelkart.enrichments.EnrichmentResult;
-import com.applicate.services.channelkart.enrichments.Status;
-import com.applicate.services.channelkart.models.User;
+
+import com.salescode.dim.etl.EnrichmentResult;
+import com.salescode.dim.etl.OperationResult;
+import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import com.salescode.dim.jooq.generated.tables.pojos.User;
 
 public class SimaSgOutletEnrichment extends AbstractEnrichment<User> {
     @Override
     public EnrichmentResult apply(User outletDetails) {
         outletDetails.setDialCode("65");
-        return new EnrichmentResult(Status.OK, "SimaSgOutletEnrichment Enriched Successful");
+        return new OperationResult.StepResult(OperationResult.Status.OK,"SimaSgOutletEnrichment Enriched Successful");
     }
 }
