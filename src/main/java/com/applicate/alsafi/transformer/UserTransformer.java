@@ -3,10 +3,7 @@ package com.applicate.alsafi.transformer;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class UserTransformer extends AbstractTransformer<Map<String,Object>, Map<String,Object>> {
     @Override
@@ -16,7 +13,9 @@ public class UserTransformer extends AbstractTransformer<Map<String,Object>, Map
         userMap.put("userAccountId", inputMap.get("loginId"));
         userMap.put("mobile","0000000000");
         userMap.put("name", inputMap.get("name"));
-        userMap.put("immediateParent", inputMap.get("parent"));
+        Map<String, Object> hierarchyMetadata = new HashMap<>();
+        hierarchyMetadata.put("immediateParent", inputMap.get("parent"));
+        userMap.put("immediateParent", List.of(hierarchyMetadata));
         Set<String> designation = new HashSet<>();
         designation.add(inputMap.get("designation").toString());
         userMap.put("designation", designation);
