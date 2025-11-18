@@ -6,7 +6,10 @@ import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.impl.*;
+import com.salescode.dim.jooq.impl.CategoryInfo;
+import com.salescode.dim.jooq.impl.Location;
+import com.salescode.dim.jooq.impl.OutletDetails;
+import com.salescode.dim.jooq.impl.User;
 
 import java.util.List;
 import java.util.Set;
@@ -24,65 +27,68 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
         // ---------------------------
         // Area enrichment
         // ---------------------------
-        List<CategoryInfo> areaList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getLocation().getArea(), "area"
-        );
-        if (!areaList.isEmpty()) {
-            String areaValue = areaList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(areaValue)) {
-                cdm.getLocation().setArea(areaValue);
+        Location location = cdm.getLocation();
+        if (location != null && location.getArea() != null) {
+            List<CategoryInfo> areaList = categoryInfoService.findByCategoryCodeAndFeature(location.getArea(), "area");
+            if (!areaList.isEmpty() && !StringUtils.isEmpty(areaList.get(0).getCategoryValue())) {
+                location.setArea(areaList.get(0).getCategoryValue());
             }
         }
 
+        // ---------------------------
         // Customer Category enrichment
-        List<CategoryInfo> customerCategoryList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getOutletCategory(), "customercategory"
-        );
-        if (!customerCategoryList.isEmpty()) {
-            String categoryValue = customerCategoryList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(categoryValue)) {
-                cdm.setOutletCategory(categoryValue);
+        // ---------------------------
+        if (cdm.getOutletCategory() != null) {
+            List<CategoryInfo> customerCategoryList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getOutletCategory(), "customercategory"
+            );
+            if (!customerCategoryList.isEmpty() && !StringUtils.isEmpty(customerCategoryList.get(0).getCategoryValue())) {
+                cdm.setOutletCategory(customerCategoryList.get(0).getCategoryValue());
             }
         }
 
+        // ---------------------------
         // VPO enrichment
-        List<CategoryInfo> vpoList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getOutletClass(), "VPO"
-        );
-        if (!vpoList.isEmpty()) {
-            String vpoValue = vpoList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(vpoValue)) {
-                cdm.setOutletClass(vpoValue);
+        // ---------------------------
+        if (cdm.getOutletClass() != null) {
+            List<CategoryInfo> vpoList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getOutletClass(), "VPO"
+            );
+            if (!vpoList.isEmpty() && !StringUtils.isEmpty(vpoList.get(0).getCategoryValue())) {
+                cdm.setOutletClass(vpoList.get(0).getCategoryValue());
             }
         }
 
+        // ---------------------------
         // SubChannel enrichment
-        List<CategoryInfo> subChannelList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getSubChannel(), "SubChannel"
-        );
-        if (!subChannelList.isEmpty()) {
-            String subChannelValue = subChannelList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(subChannelValue)) {
-                cdm.setSubChannel(subChannelValue);
+        // ---------------------------
+        if (cdm.getSubChannel() != null) {
+            List<CategoryInfo> subChannelList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getSubChannel(), "SubChannel"
+            );
+            if (!subChannelList.isEmpty() && !StringUtils.isEmpty(subChannelList.get(0).getCategoryValue())) {
+                cdm.setSubChannel(subChannelList.get(0).getCategoryValue());
             }
         }
 
+        // ---------------------------
         // Segment enrichment
-        List<CategoryInfo> segmentList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getSegment(), "businessSegment"
-        );
-        if (!segmentList.isEmpty()) {
-            String segmentValue = segmentList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(segmentValue)) {
-                cdm.setSegment(segmentValue);
+        // ---------------------------
+        if (cdm.getSegment() != null) {
+            List<CategoryInfo> segmentList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getSegment(), "businessSegment"
+            );
+            if (!segmentList.isEmpty() && !StringUtils.isEmpty(segmentList.get(0).getCategoryValue())) {
+                cdm.setSegment(segmentList.get(0).getCategoryValue());
             }
         }
 
         // ---------------------------
         // User creation for Distributor
         // ---------------------------
+        User user;
         if ("Distributor".equalsIgnoreCase(cdm.getOutletType())) {
-            User user = new User();
+            user = new User();
             user.setLoginId(cdm.getOutletcode());
             user.setSource(cdm.getSource());
             user.setUserAccountId(cdm.getOutletcode());
@@ -94,36 +100,38 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
             user.setDesignation(Set.of("supplier"));
             cdm.setUserName(user);
         } else {
-            User user = cdm.getUserName();
-            if (user != null) {
-                user.setSource(cdm.getSource());
-                cdm.setUserName(user);
+            user = cdm.getUserName();
+            if (user == null) {
+                user = new User();
             }
+            user.setSource(cdm.getSource());
+            cdm.setUserName(user);
         }
 
+        // ---------------------------
         // SubSegment enrichment
-        List<CategoryInfo> subSegmentList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getOutletDivision(), "subsegmentEntity"
-        );
-        if (!subSegmentList.isEmpty()) {
-            String subSegmentValue = subSegmentList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(subSegmentValue)) {
-                cdm.setOutletDivision(subSegmentValue);
-            }
-        }
-
-        // Channel enrichment
-        List<CategoryInfo> channelList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getChannel(), "channel"
-        );
-        if (!channelList.isEmpty()) {
-            String channelValue = channelList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(channelValue)) {
-                cdm.setChannel(channelValue);
+        // ---------------------------
+        if (cdm.getOutletDivision() != null) {
+            List<CategoryInfo> subSegmentList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getOutletDivision(), "subsegmentEntity"
+            );
+            if (!subSegmentList.isEmpty() && !StringUtils.isEmpty(subSegmentList.get(0).getCategoryValue())) {
+                cdm.setOutletDivision(subSegmentList.get(0).getCategoryValue());
             }
         }
 
         // ---------------------------
+        // Channel enrichment
+        // ---------------------------
+        if (cdm.getChannel() != null) {
+            List<CategoryInfo> channelList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getChannel(), "channel"
+            );
+            if (!channelList.isEmpty() && !StringUtils.isEmpty(channelList.get(0).getCategoryValue())) {
+                cdm.setChannel(channelList.get(0).getCategoryValue());
+            }
+        }
+// ---------------------------
         // AccountInfo enrichment block (commented)
         // ---------------------------
 //        AccountInfoService accountInfoService =
