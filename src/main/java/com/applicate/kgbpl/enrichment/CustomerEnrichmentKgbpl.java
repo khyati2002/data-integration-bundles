@@ -16,16 +16,6 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
 
-        // Ensure Location is not null
-        if (cdm.getLocation() == null) {
-            cdm.setLocation(new Location());
-        }
-
-        // Ensure User is not null for Distributor creation
-        if (cdm.getUserName() == null) {
-            cdm.setUserName(new User());
-        }
-
         CategoryInfoService categoryInfoService =
                 (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
 
@@ -92,10 +82,7 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
         // User creation for Distributor
         // ---------------------------
         if ("Distributor".equalsIgnoreCase(cdm.getOutletType())) {
-            User user = cdm.getUserName();
-            if (user == null) {
-                user = new User();
-            }
+            User user = new User();
             user.setLoginId(cdm.getOutletcode());
             user.setSource(cdm.getSource());
             user.setUserAccountId(cdm.getOutletcode());
@@ -135,6 +122,41 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
                 cdm.setChannel(channelValue);
             }
         }
+
+        // ---------------------------
+        // AccountInfo enrichment block (commented)
+        // ---------------------------
+//        AccountInfoService accountInfoService =
+//                (AccountInfoService) ServiceLocator.lookup(AccountInfo.class);
+//
+//        String loginId = cdm.getOutletcode();
+//        AccountInfo existingAccount = accountInfoService.findByLoginId(loginId);
+//
+//        AccountInfo decrypted;
+//        boolean isUpdated = false;
+//        boolean isNewAccount = false;
+//
+//        if (existingAccount != null) {
+//            decrypted = accountInfoService.decrypt(existingAccount);
+//        } else {
+//            decrypted = new AccountInfo();
+//            decrypted.setLoginId(loginId);
+//            isNewAccount = true;
+//        }
+//
+//        if (!StringUtils.isEmpty(cdm.getGstNo())) {
+//            decrypted.setGstin(cdm.getGstNo());
+//            isUpdated = true;
+//        }
+//
+//        if (!StringUtils.isEmpty(cdm.getOutletAttr4())) {
+//            decrypted.setPan(cdm.getOutletAttr4());
+//            isUpdated = true;
+//        }
+//
+//        if (isNewAccount || isUpdated) {
+//            accountInfoService.save(decrypted);
+//        }
 
         return new OperationResult.StepResult(OperationResult.Status.OK, "Customer enriched successfully");
     }
