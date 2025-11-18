@@ -4,7 +4,9 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class UserTransformer extends AbstractTransformer<Map<String,Object>, Map<String,Object>> {
     @Override
@@ -15,7 +17,9 @@ public class UserTransformer extends AbstractTransformer<Map<String,Object>, Map
         userMap.put("mobile","0000000000");
         userMap.put("name", inputMap.get("name"));
         userMap.put("immediateParent", inputMap.get("parent"));
-        userMap.put("designation", inputMap.get("designation"));
+        Set<String> designation = new HashSet<>();
+        designation.add(inputMap.get("designation").toString());
+        userMap.put("designation", designation);
         userMap.put("locationHierarchy", getLocationObject(inputMap));
         return userMap;
     }
