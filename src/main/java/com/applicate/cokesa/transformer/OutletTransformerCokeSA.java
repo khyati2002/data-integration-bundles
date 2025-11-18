@@ -5,6 +5,7 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

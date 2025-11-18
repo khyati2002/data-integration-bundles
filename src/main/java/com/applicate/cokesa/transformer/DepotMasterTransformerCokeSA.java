@@ -1,7 +1,6 @@
 package com.applicate.cokesa.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
-import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
@@ -18,7 +17,6 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
 
         List<Map<String, Object>> responseList = new ArrayList<>();
-//        responseList.add(createDepotUser(inputMap));
         responseList.add(createDepotOutlet(inputMap));
         return responseList;
 

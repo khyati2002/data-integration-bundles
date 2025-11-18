@@ -6,6 +6,7 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class ProductDetailsTransformerCokeSa extends AbstractTransformer<Map<Str
 
     private String checkActive(Object inputStatus){
         if(NullUtils.isNull(inputStatus)) return "active";
-        return "S".equalsIgnoreCase(inputStatus.toString()) ? ActiveStatus.INACTIVE : ActiveStatus.ACTIVE;
+        return String.valueOf("S".equalsIgnoreCase(inputStatus.toString()) ? ActiveStatus.INACTIVE : ActiveStatus.ACTIVE);
     }
 
     private JsonNode setArabicDescription(String arabicDesc){
