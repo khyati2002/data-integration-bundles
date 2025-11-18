@@ -22,6 +22,9 @@ public class NewOutletMappingEnrichment extends AbstractEnrichment<OutletDetails
         if(org.apache.commons.lang3.StringUtils.isNotEmpty(cdm.getOutletcode()) && !"auto_generated".equalsIgnoreCase(cdm.getOutletcode()) && !service.matchesSequencePattern(OUTLET_DETAILS, OUTLET_CODE, cdm.getOutletcode())){
             return new OperationResult.StepResult(OperationResult.Status.OK,"Data enrichment skipped due to already existing outletcode");
         }
+        if(cdm.getExtendedAttributes().get("designation").toString().equals("depot")) {
+            return new OperationResult.StepResult(OperationResult.Status.OK,"Data enrichment skipped due to already existing outletcode");
+        }
         int nextSequence = service.getSequenceNumber(OUTLET_DETAILS, OUTLET_CODE);
         String yearPattern = getYearPattern();
         String sequenceFormat="%05d";

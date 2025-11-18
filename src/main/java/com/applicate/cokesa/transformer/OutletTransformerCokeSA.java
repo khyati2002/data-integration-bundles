@@ -6,6 +6,7 @@ import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,24 +24,51 @@ public class OutletTransformerCokeSA extends AbstractTransformer<Map<String,Obje
     private Map<String, Object> createResponse(Map <String, Object> inputMap){
         Map<String, Object> response = new HashMap<>();
         if(NullUtils.isNull(inputMap.get("OM01_OUTNUM"))) throw new TransformationException("OutletCode cannot be null");
-        response.put("outletCode", inputMap.get("OM01_OUTNUM").toString().replaceAll("\\.0$", ""));
+        response.put("outletcode", inputMap.get("OM01_OUTNUM").toString().replaceAll("\\.0$", ""));
         response.put("outletName", inputMap.get("OM01_ADRLIN1").toString());
-        response.put("activeStatus", (NullUtils.isNull(inputMap.get("OM01_SPRCOD")) || !inputMap.get("OM01_SPRCOD").equals("S")) ? "active" : "inactive");
+        response.put("activeStatus", (NullUtils.isNull(inputMap.get("OM01_SPRCOD")) || !inputMap.get("OM01_SPRCOD").equals("S")) ? ActiveStatus.ACTIVE : ActiveStatus.INACTIVE);
         response.put("contactno", NullUtils.isNotNull(inputMap.get("OM01_TELNUM2")) ? inputMap.get("OM01_TELNUM2").toString() : "0000000000");
         response.put("channel", NullUtils.isNotNull(inputMap.get("OM01_TRDCHN")) ? inputMap.get("OM01_TRDCHN").toString() + "-OM01_TRDCHN" : null);
         response.put("outletClass", NullUtils.isNotNull(inputMap.get("OM01_GRADE")) ? inputMap.get("OM01_GRADE").toString() + "-OM01_GRADE" : null);
         response.put("distributionChannel", NullUtils.isNotNull(inputMap.get("OM01_SUBTRDCHN")) ? inputMap.get("OM01_SUBTRDCHN").toString() + "-OM01_SUBTRDCHN" : null);
-        response.put("latitude",NullUtils.isNotNull(inputMap.get("OM01_LATTUD")) ? inputMap.get("OM01_LATTUD").toString() : null);
-        response.put("longitude", NullUtils.isNotNull(inputMap.get("OM01_LNGTUD")) ? inputMap.get("OM01_LNGTUD").toString() : null);
-        response.put("email", NullUtils.isNotNull(inputMap.get("OM01_EMLADR")) ? inputMap.get("OM01_EMLADR").toString() : null);
-        response.put("priceListId", NullUtils.isNotNull(inputMap.get("OM01_PRILST1")) ? inputMap.get("OM01_PRILST1").toString() : null);
-        response.put("immediateParent", setClientHierarchy(inputMap.get("OM01_OUTLOC").toString()));
-        response.put("address", NullUtils.isNotNull(inputMap.get("OM01_ADRLIN2")) ? inputMap.get("OM01_ADRLIN2").toString() : null);
-        response.put("prodauthcode", NullUtils.isNotNull(inputMap.get("OM01_ATHARTGPL")) ? inputMap.get("OM01_ATHARTGPL").toString() : null);
-        response.put("outletAttr2", NullUtils.isNotNull(inputMap.get("OM01_EXCLUSIVITY")) ? inputMap.get("OM01_EXCLUSIVITY").toString()  + "-OM01_EXCLUSIVITY" : null);
-        response.put("outletAttr1", NullUtils.isNotNull(inputMap.get("OM01_OUTLOC")) ? inputMap.get("OM01_OUTLOC").toString() : null);
+        response.put(
+                "latitude",
+                NullUtils.isNotNull(inputMap.get("OM01_LATTUD"))
+                        ? (BigDecimal) inputMap.get("OM01_LATTUD")
+                        : null
+        );
+
+        response.put(
+                "longitude",
+                NullUtils.isNotNull(inputMap.get("OM01_LNGTUD"))
+                        ? (BigDecimal) inputMap.get("OM01_LNGTUD")
+                        : null
+        );
+        response.put("email", toStringOrNull(inputMap.get("OM01_EMLADR")));
+        response.put("priceListId", toStringOrNull(inputMap.get("OM01_PRILST1")));
+
+        response.put(
+                "immediateParent",
+                inputMap.get("OM01_OUTLOC") != null
+                        ? setClientHierarchy(inputMap.get("OM01_OUTLOC").toString())
+                        : null
+        );
+
+        response.put("address", toStringOrNull(inputMap.get("OM01_ADRLIN2")));
+        response.put("prodauthcode", toStringOrNull(inputMap.get("OM01_ATHARTGPL")));
+
+        response.put(
+                "outletAttr2",
+                inputMap.get("OM01_EXCLUSIVITY") != null
+                        ? inputMap.get("OM01_EXCLUSIVITY").toString() + "-OM01_EXCLUSIVITY"
+                        : null
+        );
+
+        response.put("outletAttr1", toStringOrNull(inputMap.get("OM01_OUTLOC")));
+
         response.put("locationHierarchy", setClientLocationHierarchy(inputMap));
-        response.put("beat",NullUtils.isNotNull(inputMap.get("OM01_SALRTE")) ? inputMap.get("OM01_SALRTE").toString() : null);
+
+        response.put("beat", toStringOrNull(inputMap.get("OM01_SALRTE")));
         response.put("extendedAttributes",createExtended(inputMap));
 
         return response;
@@ -174,4 +202,9 @@ public class OutletTransformerCokeSA extends AbstractTransformer<Map<String,Obje
         result.add(city);
         return result;
     }
+
+    private String toStringOrNull(Object value) {
+        return value != null ? value.toString() : null;
+    }
+
 }

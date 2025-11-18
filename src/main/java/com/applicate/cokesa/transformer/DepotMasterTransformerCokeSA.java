@@ -1,10 +1,12 @@
 package com.applicate.cokesa.transformer;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +18,7 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
 
         List<Map<String, Object>> responseList = new ArrayList<>();
-        responseList.add(createDepotUser(inputMap));
+//        responseList.add(createDepotUser(inputMap));
         responseList.add(createDepotOutlet(inputMap));
         return responseList;
 
@@ -27,56 +29,34 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
         Map<String, Object> response = new HashMap<>();
         if(NullUtils.isNull(inputMap.get("XI30_LOC"))) throw new DataTransformationService.TransformationException("Depot Code cannot be null");
 
-        response.put("outletCode",inputMap.get("XI30_LOC").toString());
-        response.put("activeStatus", "active");
-        response.put("contactno", "0000000000");
+        response.put("outletcode",inputMap.get("XI30_LOC").toString());
+        response.put("activeStatus", ActiveStatus.ACTIVE);
+        response.put("contactno", "00000");
         response.put("outletName", inputMap.get("XI30_LOCNAM").toString());
         response.put("locationHierarchy", getUserLocation());
-
-        Map<String, Object> extendedAttributes = new HashMap<>();
-        extendedAttributes.put("CRNumber", inputMap.get("XI30_NATCPYNUM"));
-
-        response.put("extendedAttributes", JSONUtils.toJsonNode(extendedAttributes));
-        return response;
-
-    }
-
-    private Map<String, Object> createDepotUser(Map<String, Object> inputMap) {
-
-        Map<String, Object> response = new HashMap<>();
-        if(NullUtils.isNull(inputMap.get("XI30_LOC"))) throw new DataTransformationService.TransformationException("Depot Code cannot be null");
-
-        response.put("loginId",inputMap.get("XI30_LOC").toString());
-        response.put("activeStatus", "active");
-        response.put("mobile", "0000000000");
-        response.put("userAccountId", inputMap.get("XI30_LOC").toString());
-        response.put("name", inputMap.get("XI30_LOCNAM").toString());
-        response.put("designation", "depot");
-        response.put("locationHierarchy", getUserLocation());
-        response.put("channel", "all");
-        response.put("outletClass", "all");
-        response.put("distributionChannel", "all");
-        response.put("latitude", "0");
-        response.put("longitude", "0");
+        response.put("channel", "ALL");
+        response.put("distributionChannel", "ALL");
+        response.put("outletClass", "ALL");
+        response.put("latitude", BigDecimal.ZERO);
+        response.put("longitude", BigDecimal.ZERO);
         response.put("email", "default");
         response.put("priceListId", null);
-        response.put("immediateParent", "admin@applicate.in");
         response.put("address", "default");
         response.put("prodauthcode", null);
 
         Map<String, Object> extendedAttributes = new HashMap<>();
         extendedAttributes.put("CRNumber", inputMap.get("XI30_NATCPYNUM"));
+        extendedAttributes.put("designation", "Depot");
 
-        response.put("extendedAttributes", JSONUtils.toJsonNode(extendedAttributes));
+        response.put("extendedAttributes", extendedAttributes);
         return response;
 
     }
 
-    private Map<String, Object> getUserLocation(){
+    private String getUserLocation(){
 
-        Map<String, Object> location = new HashMap<>();
-        location.put("country", "KSA");
-        return location;
+        StringBuilder location = new StringBuilder();
+        return location.length() > 0 ? location.toString() : "KSA";
 
     }
 

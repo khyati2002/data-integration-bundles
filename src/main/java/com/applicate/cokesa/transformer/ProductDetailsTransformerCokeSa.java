@@ -75,7 +75,7 @@ public class ProductDetailsTransformerCokeSa extends AbstractTransformer<Map<Str
 
     private String checkActive(Object inputStatus){
         if(NullUtils.isNull(inputStatus)) return "active";
-        return "S".equalsIgnoreCase(inputStatus.toString()) ? "inactive" : "active";
+        return "S".equalsIgnoreCase(inputStatus.toString()) ? ActiveStatus.INACTIVE : ActiveStatus.ACTIVE;
     }
 
     private JsonNode setArabicDescription(String arabicDesc){
