@@ -25,7 +25,9 @@ public class OutletTransformer extends AbstractTransformer<Map<String,Object>, M
         outletMap.put("outletType", inputMap.get("OUTLETTYPE"));
         outletMap.put("beat", inputMap.get("ROUTECODE"));
         outletMap.put("beatName", inputMap.get("ROUTENAME"));
-        outletMap.put("userName", inputMap.get("ROUTECODE"));
+        Map<String, Object> user = new HashMap<>();
+        user.put("loginId", inputMap.get("ROUTECODE"));
+        outletMap.put("userName", user);
         Map<String, Object> extendedAttributes = new HashMap<>();
         extendedAttributes.put("channelCode", inputMap.get("CHANNELCODE"));
         extendedAttributes.put("distributor",inputMap.get("DISTRIBUTORCODE"));
