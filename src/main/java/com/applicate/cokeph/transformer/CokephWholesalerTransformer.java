@@ -73,7 +73,7 @@ public class CokephWholesalerTransformer extends AbstractTransformer<Map<String,
         transformed.put("location", createLocation(input));
         createExtended(extended,input);
         transformed.put("distributionChannel", WHOLESALER_STRING);
-        transformed.put("extendedAttributes", JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class));
+        transformed.put("extendedAttributes", extended);
 
         createUser(transformed);
         return transformed;
