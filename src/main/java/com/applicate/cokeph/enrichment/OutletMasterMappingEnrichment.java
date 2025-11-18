@@ -16,13 +16,11 @@ import com.salescode.dim.jooq.impl.TempMasterMapping;
 
 public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDetails> {
 
-    private TempMasterMappingService masterMappingService;
-
     @Override
     public EnrichmentResult apply(OutletDetails outletDetails) {
 
-        masterMappingService = (TempMasterMappingService) ServiceLocator.lookup(TempMasterMapping.class);
-        
+        TempMasterMappingService masterMappingService = (TempMasterMappingService) ServiceLocator.lookup(TempMasterMapping.class);
+
         boolean isRetailer=outletDetails.getUserName()==null || ( outletDetails.getUserName().getDesignation()!=null && outletDetails.getUserName().getDesignation().contains("retailer"));
         if(isRetailer) {
             ObjectNode extended = new ObjectMapper().createObjectNode();
