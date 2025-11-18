@@ -81,6 +81,7 @@ public class CokephProductMasterTransformer extends AbstractTransformer <Map<Str
         }
 
         finalTransformedObj.put("itemClass", itemTypeCode);
+        finalTransformedObj.put("priority",0);
         return finalTransformedObj;
     }
 
