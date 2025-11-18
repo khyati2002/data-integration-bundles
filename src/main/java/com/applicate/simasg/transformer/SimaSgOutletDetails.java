@@ -10,7 +10,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
-
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -25,7 +24,7 @@ public class SimaSgOutletDetails extends AbstractTransformer<Map<String, Object>
 
 
     @Override
-    public Object transform(Map<String, Object> stringObjectMap) {
+    public Map<String, Object> transform(Map<String, Object> stringObjectMap) {
         ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
         Object primaryAddress1 = stringObjectMap.get("PrimaryAddress");
