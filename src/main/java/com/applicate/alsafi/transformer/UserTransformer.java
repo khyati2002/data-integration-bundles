@@ -12,6 +12,11 @@ public class UserTransformer extends AbstractTransformer<Map<String,Object>, Map
         userMap.put("loginId", inputMap.get("loginId"));
         userMap.put("userAccountId", inputMap.get("loginId"));
         userMap.put("mobile","0000000000");
+        if(inputMap.containsKey("routeid")){
+            Map<String, Object> extendedAttributes = new HashMap<>();
+            extendedAttributes.put("routeId", inputMap.containsKey("routeid"));
+            userMap.put("extendedAttributes", extendedAttributes);
+        }
         userMap.put("name", inputMap.get("name"));
         Map<String, Object> hierarchyMetadata = new HashMap<>();
         hierarchyMetadata.put("immediateParent", inputMap.get("parent"));
