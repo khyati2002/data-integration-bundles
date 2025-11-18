@@ -46,7 +46,7 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
                 extended.put("HierarchyUpdateCheck", 0);
             }
             // Set the extended attributes and save
-            tempMasterMapping.setExtendedAttributes((JsonNode) extended);
+            tempMasterMapping.setExtendedAttributes(extended);
             TempMasterMapping refreshedObject = masterMappingService.refreshUsingJooq(tempMasterMapping);
 
             masterMappingService.save(refreshedObject);
