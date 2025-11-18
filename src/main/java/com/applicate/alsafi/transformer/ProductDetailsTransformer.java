@@ -3,6 +3,7 @@ package com.applicate.alsafi.transformer;
 import com.applicate.services.channelkart.transformers.impl.JoltTransformer;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class ProductDetailsTransformer extends JoltTransformer {
         result.put("priority", 1);
         result.put("display", true);
         result.put("skuPieceWeight",0);
+        result.put("productMetaData", new ArrayList<>());
         return result;
     }
 
