@@ -1,36 +1,33 @@
 package com.applicate.simamy.transformer;
 
-import com.applicate.services.channelkart.exceptions.TransformationException;
-import com.applicate.services.channelkart.schemes.services.calculation.SchemeConfigHandler;
-import com.applicate.services.channelkart.services.SpringContext;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
+import com.applicate.services.channelkart.services.ServiceLocator;
+import com.applicate.services.channelkart.utils.JSONUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.etl.transformation.service.DataTransformationService;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record2;
+import org.jooq.Result;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static com.salescode.dim.jooq.generated.Tables.*;
 
 public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     private static final Logger logger = LoggerFactory.getLogger(BudgetStatusTransformer.class);
     private final double BUDGET_PERCENTAGE = Double.parseDouble(SpringContext.getBean(SchemeConfigHandler.class).getBudgetPercentageValue());
-
-    private static final String UPDATE_QUERY_TEMPLATE =
-            "UPDATE ck_scheme_outlet_bifurcations SET active_status = 'inactive', last_modified_time = NOW() WHERE scheme_id = '%s' AND login_id = '%s'";
-
-    private static final String FETCH_PROMO_TYPE_QUERY =
-            "SELECT scheme_type FROM ck_scheme_calculation WHERE scheme_id = ?";
-
-    private static final String UPDATE_FOC_QUERY_TEMPLATE =
-            "UPDATE ck_scheme_freeproductinfo " +
-                    "SET extended_attributes = JSON_SET(COALESCE(extended_attributes, '{}'), '$.COST_PRC', ?) " +
-                    "WHERE batch_code = ?;";
+    private final DSLContext dsl = ServiceLocator.getDslContext();
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
@@ -65,12 +62,15 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
         } else {
             // Check if balance is less than given % of budget
             if (balance < (BUDGET_PERCENTAGE / 100) * budget) {
-                String updateQuery = String.format(UPDATE_QUERY_TEMPLATE, promoCode, supplier);
-                JdbcTemplate jdbcTemplate = SpringContext.getBean(JdbcTemplate.class);
-                int rowsUpdated = jdbcTemplate.update(updateQuery);
+                int rowsUpdated = dsl.update(CK_SCHEME_OUTLET_BIFURCATIONS)
+                        .set(CK_SCHEME_OUTLET_BIFURCATIONS.ACTIVE_STATUS, ActiveStatus.INACTIVE)
+                        .set(CK_SCHEME_OUTLET_BIFURCATIONS.LAST_MODIFIED_TIME, DSL.currentLocalDateTime())
+                        .where(CK_SCHEME_OUTLET_BIFURCATIONS.SCHEME_ID.eq(promoCode))
+                        .and(CK_SCHEME_OUTLET_BIFURCATIONS.LOGIN_ID.eq(supplier))
+                        .execute();
 
                 if (rowsUpdated == 0) {
-                    throw new TransformationException("No records found to update for promo code '" + promoCode + "' and supplier '" + supplier + "'.");
+                    throw new DataTransformationService.TransformationException("No records found to update for promo code '" + promoCode + "' and supplier '" + supplier + "'.");
                 }
                 logger.info("Updated {} rows to inactive status for promo code {} and supplier {}.", rowsUpdated, promoCode, supplier);
             } else {
@@ -85,30 +85,24 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
     }
 
     private void handleItemPromoType(String promoCode, String supplier, double budget, double balance, Map<String, Object> inputMap) {
-        JdbcTemplate jdbcTemplate = SpringContext.getBean(JdbcTemplate.class);
-
-        // Get the batch code to cost price mapping using the method from BudgetFOCTransformer
+        // Get the batch code to cost price mapping
         Map<String, String> priceMap = mapBatchCodeToCostPrice(inputMap);
 
-        // Convert the batch codes to a format suitable for the SQL query
-        String batchCodes = priceMap.keySet().stream()
-                .map(code -> "'" + code + "'") // Enclose each code in single quotes
-                .collect(Collectors.joining(",")); // Join codes with commas
-
-        // Create the query to fetch batchCode and qty for the provided supplier
-        String stockQuery = String.format(
-                "SELECT batch_code, qty FROM ck_stock WHERE batch_code IN (%s) AND supplier = ?",
-                batchCodes
-        );
+        // Convert the batch codes to a list for the SQL query
+        List<String> batchCodes = new ArrayList<>(priceMap.keySet());
 
         // Fetch batchCode and qty from ck_stock table
-        List<Map<String, Object>> stockResults = jdbcTemplate.queryForList(stockQuery, supplier);
+        Result<Record2<String, Double>> stockResults = dsl.select(CK_STOCK.BATCH_CODE, CK_STOCK.QTY)
+                .from(CK_STOCK)
+                .where(CK_STOCK.BATCH_CODE.in(batchCodes))
+                .and(CK_STOCK.SUPPLIER.eq(supplier))
+                .fetch();
 
         // Create a map of batchCode -> qty
         Map<String, Float> batchCodeToQtyMap = new HashMap<>();
-        for (Map<String, Object> row : stockResults) {
-            String batchCode = (String) row.get("batch_code");
-            Float qty = (Float) row.get("qty");
+        for (Record row : stockResults) {
+            String batchCode = row.get(CK_STOCK.BATCH_CODE);
+            Float qty = row.get(CK_STOCK.QTY).floatValue();
             batchCodeToQtyMap.put(batchCode, qty);
         }
 
@@ -127,13 +121,13 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
         }
 
         if (selectedBatchCode == null) {
-            throw new TransformationException("No batch code with non-zero quantity found.");
+            throw new DataTransformationService.TransformationException("No batch code with non-zero quantity found.");
         }
 
         // Get the price of the selected batch code
         String selectedBatchCodePrice = priceMap.get(selectedBatchCode);
         if (selectedBatchCodePrice == null) {
-            throw new TransformationException("Price not found for batch code: " + selectedBatchCode);
+            throw new DataTransformationService.TransformationException("Price not found for batch code: " + selectedBatchCode);
         }
 
         double price = Double.parseDouble(selectedBatchCodePrice);
@@ -141,13 +135,16 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
         // Perform the final calculation
         double budgetPercentage = BUDGET_PERCENTAGE / 100.0;
         double thresholdQuantity = budget * budgetPercentage;
-        if (balance / price < thresholdQuantity / price ) {
-            String updateQuery = String.format(UPDATE_QUERY_TEMPLATE, promoCode, supplier);
-
-            int rowsUpdated = jdbcTemplate.update(updateQuery);
+        if (balance / price < thresholdQuantity / price) {
+            int rowsUpdated = dsl.update(CK_SCHEME_OUTLET_BIFURCATIONS)
+                    .set(CK_SCHEME_OUTLET_BIFURCATIONS.ACTIVE_STATUS, "inactive")
+                    .set(CK_SCHEME_OUTLET_BIFURCATIONS.LAST_MODIFIED_TIME, DSL.currentLocalDateTime())
+                    .where(CK_SCHEME_OUTLET_BIFURCATIONS.SCHEME_ID.eq(promoCode))
+                    .and(CK_SCHEME_OUTLET_BIFURCATIONS.LOGIN_ID.eq(supplier))
+                    .execute();
 
             if (rowsUpdated == 0) {
-                throw new TransformationException("No records found to update for promo code '" + promoCode + "' and supplier '" + supplier + "'.");
+                throw new DataTransformationService.TransformationException("No records found to update for promo code '" + promoCode + "' and supplier '" + supplier + "'.");
             } else {
                 logger.info("Updated {} rows to inactive status for promo code {} and supplier {}.", rowsUpdated, promoCode, supplier);
             }
@@ -156,25 +153,22 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
         }
     }
 
-    
     private Map<String, String> mapBatchCodeToCostPrice(Map<String, Object> payload) {
-        JdbcTemplate jdbcTemplate = SpringContext.getBean(JdbcTemplate.class);
-
         // Extract promo code from the payload
         String promoCode = (String) payload.get("promo_code");
 
-        // Fetch the batch codes and extended attributes (which contains costPrice) for the given promoCode
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(
-                "SELECT batch_code, extended_attributes FROM ck_scheme_freeproductinfo WHERE scheme_id = ?",
-                promoCode
-        );
+        // Fetch the batch codes and extended attributes for the given promoCode
+        Result<Record2<String, org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode>> results = dsl.select(CK_SCHEME_FREEPRODUCTINFO.BATCH_CODE, CK_SCHEME_FREEPRODUCTINFO.EXTENDED_ATTRIBUTES)
+                .from(CK_SCHEME_FREEPRODUCTINFO)
+                .where(CK_SCHEME_FREEPRODUCTINFO.SCHEME_ID.eq(promoCode))
+                .fetch();
 
         Map<String, String> batchCodeToCostPriceMap = new HashMap<>();
 
         // Iterate over results and extract batchCode and costPrice from extended_attributes
-        for (Map<String, Object> result : results) {
-            String batchCode = (String) result.get("batch_code");
-            String extendedAttributesJson = (String) result.get("extended_attributes");
+        for (Record result : results) {
+            String batchCode = result.get(CK_SCHEME_FREEPRODUCTINFO.BATCH_CODE);
+            String extendedAttributesJson = result.get(CK_SCHEME_FREEPRODUCTINFO.EXTENDED_ATTRIBUTES, String.class);
 
             // Parse the extended_attributes JSON to extract cost price
             String costPrice = extractCostPriceFromJson(extendedAttributesJson);
@@ -203,17 +197,33 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
     }
 
     private void processFOCScheme(String batchCode, String costPrice) {
-        JdbcTemplate jdbcTemplate = SpringContext.getBean(JdbcTemplate.class);
+        // Fetch existing extended_attributes
+        ObjectNode existingAttributes = dsl.select(CK_SCHEME_FREEPRODUCTINFO.EXTENDED_ATTRIBUTES)
+                .from(CK_SCHEME_FREEPRODUCTINFO)
+                .where(CK_SCHEME_FREEPRODUCTINFO.BATCH_CODE.eq(batchCode))
+                .fetchOneInto(ObjectNode.class);
 
-        // Update the cost price directly in extended_attributes for the given batch code
-        int rowsUpdated = jdbcTemplate.update(UPDATE_FOC_QUERY_TEMPLATE, costPrice, batchCode);
+        // Create or update the ObjectNode
+        ObjectNode extendedAttributes;
+        if (existingAttributes != null && existingAttributes.isObject()) {
+            extendedAttributes = existingAttributes;
+        } else {
+            extendedAttributes = JSONUtils.getObjectMapper().convertValue(new HashMap<>(),ObjectNode.class);
+        }
+        extendedAttributes.put("COST_PRC", costPrice);
+
+        // Update the extended_attributes for the given batch code
+        int rowsUpdated = dsl.update(CK_SCHEME_FREEPRODUCTINFO)
+                .set(CK_SCHEME_FREEPRODUCTINFO.EXTENDED_ATTRIBUTES, extendedAttributes)
+                .where(CK_SCHEME_FREEPRODUCTINFO.BATCH_CODE.eq(batchCode))
+                .execute();
 
         logger.info("Updated batch code '{}' with cost price '{}'.", batchCode, costPrice);
     }
 
     private String validateField(Object fieldValue, String fieldName) {
         if (fieldValue == null || String.valueOf(fieldValue).trim().isEmpty()) {
-            throw new TransformationException(
+            throw new DataTransformationService.TransformationException(
                     "Field '" + fieldName + "' is required and cannot be empty.");
         }
         return String.valueOf(fieldValue);
@@ -223,21 +233,21 @@ public class BudgetStatusTransformer extends AbstractTransformer<Map<String, Obj
         try {
             return Double.parseDouble(String.valueOf(fieldValue));
         } catch (NumberFormatException e) {
-            throw new TransformationException("Field '" + fieldName + "' must be a valid number.");
+            throw new DataTransformationService.TransformationException("Field '" + fieldName + "' must be a valid number.");
         }
     }
 
     private String getPromoType(String promoCode) {
-        JdbcTemplate jdbcTemplate = SpringContext.getBean(JdbcTemplate.class);
-
         // Run a query to fetch the promo type from the database
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(FETCH_PROMO_TYPE_QUERY, promoCode);
+        String schemeType = dsl.select(CK_SCHEME_CALCULATION.SCHEME_TYPE)
+                .from(CK_SCHEME_CALCULATION)
+                .where(CK_SCHEME_CALCULATION.SCHEME_ID.eq(promoCode))
+                .fetchOneInto(String.class);
 
-        if (!result.isEmpty()) {
-            return (String) result.get(0).get("scheme_type");
+        if (schemeType != null) {
+            return schemeType;
         } else {
-            throw new TransformationException("Promo type not found for promo code: " + promoCode);
+            throw new DataTransformationService.TransformationException("Promo type not found for promo code: " + promoCode);
         }
     }
 }
-
