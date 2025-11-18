@@ -2,7 +2,6 @@ package com.applicate.kgbpl.enrichment;
 
 import com.applicate.services.channelkart.services.CategoryInfoService;
 import com.applicate.services.channelkart.services.ServiceLocator;
-import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
@@ -19,18 +18,19 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
         CategoryInfoService categoryInfoService =
                 (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
 
-        UserService userService = (UserService) ServiceLocator.lookup(User.class);
 
         // ---------------------------
         // Area enrichment
         // ---------------------------
-        List<CategoryInfo> areaList = categoryInfoService.findByCategoryCodeAndFeature(
-                cdm.getLocation().getArea(), "area"
-        );
-        if (!areaList.isEmpty()) {
-            String areaValue = areaList.get(0).getCategoryValue();
-            if (!StringUtils.isEmpty(areaValue)) {
-                cdm.getLocation().setArea(areaValue);
+        if (cdm.getLocation() != null && !StringUtils.isEmpty(cdm.getLocation().getArea())) {
+            List<CategoryInfo> areaList = categoryInfoService.findByCategoryCodeAndFeature(
+                    cdm.getLocation().getArea(), "area"
+            );
+            if (!areaList.isEmpty()) {
+                String areaValue = areaList.get(0).getCategoryValue();
+                if (!StringUtils.isEmpty(areaValue)) {
+                    cdm.getLocation().setArea(areaValue);
+                }
             }
         }
 
@@ -122,8 +122,7 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
                 cdm.setChannel(channelValue);
             }
         }
-
-        // ---------------------------
+// ---------------------------
         // AccountInfo enrichment block (commented)
         // ---------------------------
 //        AccountInfoService accountInfoService =
@@ -157,7 +156,6 @@ public class CustomerEnrichmentKgbpl extends AbstractEnrichment<OutletDetails> {
 //        if (isNewAccount || isUpdated) {
 //            accountInfoService.save(decrypted);
 //        }
-
         return new OperationResult.StepResult(OperationResult.Status.OK, "Customer enriched successfully");
     }
 }
