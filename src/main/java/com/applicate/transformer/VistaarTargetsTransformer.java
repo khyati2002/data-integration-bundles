@@ -48,6 +48,7 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         String maxPoints = getOptionalString(convertedMap, MAX_POINTS);
 
         targetMap.put("targetName", parameter);
+        targetMap.put("activeStatus", "active");
 
         try {
             targetMap.put("target", new BigDecimal(targetValue));
@@ -62,8 +63,10 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         targetMap.put("userValue", arrayNode);
         targetMap.put("userValueStr", userValue);
 
+        String generatedTargetId = null;
         try{
-            targetMap.put("targetId", createTargetId(userValue, parameter, month, year));
+            generatedTargetId = createTargetId(userValue, parameter, month, year);
+            targetMap.put("targetId", generatedTargetId);
         }catch (Exception e){
             logger.error(e.getMessage());
         }
@@ -86,11 +89,11 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         }
 
         targetMap.put("extendedAttributes", createExtendedAttributes(year, month, achPerStr, achFloat, userValue, focusDesc, maxPoints));
-        targetMap.put("targetResults", createTargetResults(achFloat, userValue));
+        targetMap.put("targetResults", createTargetResults(achFloat, userValue, generatedTargetId));
 
         if(!StringUtils.isEmpty(month) && !StringUtils.isEmpty(year)){
             List<LocalDateTime> dateList = getDates(month, year);
-            if (dateList != null) {
+            if (dateList != null && !dateList.isEmpty()) {
                 targetMap.put("startDate", dateList.get(0));
                 targetMap.put("endDate", dateList.get(1));
             }
@@ -129,13 +132,19 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
     }
 
     /** Helper to create the targetResults JSON object list */
-    private List<ObjectNode> createTargetResults(Float achFloat, String userValue) {
+    private List<ObjectNode> createTargetResults(Float achFloat, String userValue, String targetId) {
         ObjectNode targetRes = mapper.createObjectNode();
+
+        if (targetId != null) {
+            targetRes.put("id", targetId);
+            targetRes.put("targetId", targetId);
+        }
+
         targetRes.put("activeStatus", "active");
         targetRes.put("achieved", achFloat);
         targetRes.put("hierarchy", "admin@applicate.in");
         targetRes.put("locationHierarchy", "India");
-        targetRes.put(LOGIN_ID, userValue); // Use userValue (RCSID)
+        targetRes.put(LOGIN_ID, userValue);
         return Collections.singletonList(targetRes);
     }
 
