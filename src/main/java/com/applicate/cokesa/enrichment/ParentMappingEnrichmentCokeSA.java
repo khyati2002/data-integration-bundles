@@ -24,7 +24,7 @@ public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
         try {
             String userDesignation = user.getDesignation().toString();
             if(StringUtils.isEqual(userDesignation, "[salesrep]", true) || StringUtils.isEqual(userDesignation, "[vanseller]", true) || StringUtils.isEqual(userDesignation, "[driver]", true) || StringUtils.isEqual(userDesignation, "[merchandiser]", true)){
-                List<String> routeCode = getRouteCodeWithDepot(user.getLoginId());
+                List<String> routeCode = getRouteCodeWithDepot(user.getLoginid());
                 if(NullUtils.isNull(routeCode) || routeCode.isEmpty() || routeCode.get(0).isEmpty()){
                     return new OperationResult.StepResult(OperationResult.Status.OK, "No route found for user");
                 }
