@@ -108,7 +108,7 @@ public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
     private List<String> getRouteCodeWithDepot(String loginId){
         List<String> routeCode = new ArrayList<>();
         final String query = "SELECT CONCAT(COALESCE(key6,''), COALESCE(key2,'')) AS depot_route FROM ck_generic_object WHERE name = 'OM16_Route' and key3 = '"+ loginId +"';";
-        List<Map<String, String>> dataByQuery = (List<Map<String, String>>) EntityUtils.getInstance().fetchDataByQuery(Map.class, query);
+        List<Map<String, String>> dataByQuery = (List<Map<String, String>>) EntityUtils.getInstance().findDataByQuery(Map.class, query, true);
 
         dataByQuery.forEach(currId ->{
             String depotRouteCode = currId.get("depot_route");
@@ -119,7 +119,7 @@ public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
     private List<String> getSupervisor(String route){
         List<String> supervisor = new ArrayList<>();
         final String query = "SELECT loginid FROM ck_user WHERE JSON_CONTAINS(extended_attributes->'$.routeCode', JSON_QUOTE('" +route+"')) = 1;";
-        List<Map<String, String>> dataByQuery = (List<Map<String, String>>) EntityUtils.getInstance().fetchDataByQuery(Map.class, query);
+        List<Map<String, String>> dataByQuery = (List<Map<String, String>>) EntityUtils.getInstance().findDataByQuery(Map.class, query, true);
 
         dataByQuery.forEach(currId ->{
             String depotRouteCode = currId.get("loginid");
