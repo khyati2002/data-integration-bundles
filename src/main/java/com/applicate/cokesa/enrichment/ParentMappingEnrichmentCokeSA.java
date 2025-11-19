@@ -32,7 +32,7 @@ public class ParentMappingEnrichmentCokeSA extends AbstractEnrichment<User> {
                 if(NullUtils.isNull(supervisor) || supervisor.isEmpty() || supervisor.get(0).isEmpty()){
                     return new OperationResult.StepResult(OperationResult.Status.OK, "No supervisor found for user");
                 }
-                user.setUserParents(List.of(supervisor.get(0)));
+                user.setUserParents(new ArrayList<>(Arrays.asList(supervisor.get(0))));
                 return new OperationResult.StepResult(OperationResult.Status.OK, "Immediate parent successfully set to supervisor");
             }
             if(StringUtils.isEqual(userDesignation, "[depot]", true)){
