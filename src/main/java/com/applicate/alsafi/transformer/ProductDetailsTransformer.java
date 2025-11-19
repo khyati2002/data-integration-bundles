@@ -13,16 +13,11 @@ public class ProductDetailsTransformer extends JoltTransformer {
     public Object transform(Map<String, Object> input) {
         Map<String, Object> result = new HashMap<>();
 
-        BigDecimal retailPrice = getBigDecimal(input, "RETAIL_PRICE");
         BigDecimal caseToPiece = getBigDecimal(input, "CASE_TO_PIECE_FACTOR");
         BigDecimal basePrice = getBigDecimal(input, "BASE_PRICE");
 
-        BigDecimal caseMrp = (retailPrice != null && caseToPiece != null && caseToPiece.compareTo(BigDecimal.ZERO) != 0)
-                ? retailPrice.divide(caseToPiece).setScale(2, BigDecimal.ROUND_HALF_UP)
-                : null;
-
         result.put("skuCode", getString(input, "SKU_CODE"));
-        result.put("skuName", getString(input, "SKU_NAME"));
+        result.put("skuName", getString(input, "skuName"));
         result.put("skuDescription", getString(input, "SKU_NAME"));
         result.put("batchCode", getString(input, "SKU_CODE"));
         result.put("productCode", getString(input, "SKU_CODE"));
@@ -33,8 +28,8 @@ public class ProductDetailsTransformer extends JoltTransformer {
         result.put("subCategoryCode", getString(input, "SUB_CATEGORY"));
         result.put("brand", getString(input, "BRAND"));
         result.put("brandCode", getString(input, "BRAND_CODE"));
-        result.put("mrp", retailPrice);
-        result.put("caseMrp", caseMrp);
+        result.put("mrp", basePrice);
+        result.put("caseMrp", basePrice.multiply(caseToPiece));
         result.put("basePrice", basePrice);
         result.put("caseToPieceQuantity", BigDecimal.valueOf(1).divide(caseToPiece));
         result.put("otherUnitName", null);
@@ -46,6 +41,7 @@ public class ProductDetailsTransformer extends JoltTransformer {
         result.put("display", true);
         result.put("skuPieceWeight",0);
         result.put("productMetaData", new ArrayList<>());
+        result.put("productDescription", getString(input, "productDescription"));
         return result;
     }
 
