@@ -21,14 +21,18 @@ public class ProductDetailsEnrichmentITCL extends AbstractEnrichment<ProductDeta
 	}
 
 	/**
-	 * Format MRP value: round to max 5 decimal places and remove trailing zeros
-	 * Examples: 12.050000 -> 12.05, 12.0502899 -> 12.05029, 12.0 -> 12
+	 * Format MRP value: round to max 5 decimal places, remove trailing zeros, but keep at least 1 decimal place
+	 * Examples: 12.050000 -> 12.05, 12.0502899 -> 12.05029, 12.0 -> 12.0
 	 */
 	private String formatMrp(BigDecimal mrp) {
 		if (mrp == null) {
 			return "0";
 		}
 		BigDecimal rounded = mrp.setScale(5, RoundingMode.HALF_UP);
-		return rounded.stripTrailingZeros().toPlainString();
+		rounded = rounded.stripTrailingZeros();
+		if (rounded.scale() < 1) {
+			rounded = rounded.setScale(1, RoundingMode.UNNECESSARY);
+		}
+		return rounded.toPlainString();
 	}
 }
