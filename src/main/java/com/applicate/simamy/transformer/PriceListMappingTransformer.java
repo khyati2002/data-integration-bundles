@@ -34,8 +34,6 @@ public class PriceListMappingTransformer extends AbstractTransformer<Map<String,
                 outletPricingList.put("key1", outletCode);
                 outletPricingList.put("key2", priceListId);
                 return outletPricingList;
-
-
             }
         }
         return null;
