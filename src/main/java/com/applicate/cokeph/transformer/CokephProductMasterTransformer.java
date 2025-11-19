@@ -68,7 +68,7 @@ public class CokephProductMasterTransformer extends AbstractTransformer <Map<Str
         extended.put("uom_1",uomV1alue != null && !ObjectUtils.isEmpty(uomV1alue.toString()) ? uomV1alue.toString() : "NA");
         Object UnitOfMeasureValue = stringObjectMap.get("units_of_measure");
         extended.put("units_of_measure",UnitOfMeasureValue != null && !ObjectUtils.isEmpty(UnitOfMeasureValue.toString()) ? UnitOfMeasureValue.toString() : "NA");
-        finalTransformedObj.put("extendedAttributes", extended);
+        finalTransformedObj.put("extendedAttributes", extended.toString());
         Object rawValue = stringObjectMap.get(ITEM_CLASS);
         String itemTypeCodeRaw = rawValue != null ? rawValue.toString().trim() : null;
         Integer itemTypeCode;
