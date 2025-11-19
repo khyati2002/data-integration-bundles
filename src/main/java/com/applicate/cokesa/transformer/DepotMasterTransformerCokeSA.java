@@ -28,6 +28,7 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
         if(NullUtils.isNull(inputMap.get("XI30_LOC"))) throw new DataTransformationService.TransformationException("Depot Code cannot be null");
 
         response.put("outletcode",inputMap.get("XI30_LOC").toString());
+        response.put("loginid", inputMap.get("XI30_LOC").toString());
         response.put("activeStatus", ActiveStatus.ACTIVE);
         response.put("contactno", "00000");
         response.put("outletName", inputMap.get("XI30_LOCNAM").toString());
