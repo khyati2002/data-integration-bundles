@@ -9,6 +9,8 @@ import com.salescode.dim.jooq.impl.CategoryInfo;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 public class UserEnrichment extends AbstractEnrichment<User> {
 
     @Override
@@ -21,13 +23,13 @@ public class UserEnrichment extends AbstractEnrichment<User> {
 
         if (StringUtils.isNotBlank(currentLoginId)) {
 
-            CategoryInfo categoryInfo = categoryInfoService.findByCategoryCodeAndFeature(currentLoginId, "loginIdSwap");
+            List<CategoryInfo> categoryInfo = categoryInfoService.findByCategoryCodeAndFeature(currentLoginId, "loginIdSwap");
 
-            if (categoryInfo != null && StringUtils.isNotBlank(categoryInfo.getCategoryValue())) {
+            if (categoryInfo != null && !categoryInfo.isEmpty() && StringUtils.isNotBlank(categoryInfo.get(0).getCategoryValue())) {
 
                 cdm.setExtendedAttributes(
                         JSONUtils.getObjectMapper().createObjectNode().put("employeeId", currentLoginId));
-                cdm.setLoginid(categoryInfo.getCategoryValue());
+                cdm.setLoginid(categoryInfo.get(0).getCategoryValue());
             }
         }
 
