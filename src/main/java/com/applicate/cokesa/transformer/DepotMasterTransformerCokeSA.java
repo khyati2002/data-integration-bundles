@@ -1,12 +1,9 @@
 package com.applicate.cokesa.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
-import com.applicate.services.channelkart.services.ServiceLocator;
-import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
-import com.salescode.dim.jooq.impl.User;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,17 +16,15 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
 
-        UserService userService=(UserService) ServiceLocator.lookup(User.class);
         List<Map<String, Object>> responseList = new ArrayList<>();
-        responseList.add(createDepotOutlet(inputMap, userService));
+        responseList.add(createDepotOutlet(inputMap));
         return responseList;
 
     }
 
-    private Map<String, Object> createDepotOutlet(Map<String, Object> inputMap, UserService userService) {
+    private Map<String, Object> createDepotOutlet(Map<String, Object> inputMap) {
 
         Map<String, Object> response = new HashMap<>();
-        User depotUser=setUserDetails(inputMap, userService);
         if(NullUtils.isNull(inputMap.get("XI30_LOC"))) throw new DataTransformationService.TransformationException("Depot Code cannot be null");
 
         response.put("outletcode",inputMap.get("XI30_LOC").toString());
@@ -46,7 +41,6 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
         response.put("priceListId", null);
         response.put("address", "default");
         response.put("prodauthcode", null);
-        response.put("userName", depotUser);
 
         Map<String, Object> extendedAttributes = new HashMap<>();
         extendedAttributes.put("CRNumber", inputMap.get("XI30_NATCPYNUM"));
@@ -62,14 +56,6 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
         StringBuilder location = new StringBuilder();
         return location.length() > 0 ? location.toString() : "KSA";
 
-    }
-
-    private User setUserDetails(Map<String, Object> inputMap, UserService userService) {
-
-        User user = userService.findByLoginId(inputMap.get("XI30_LOC").toString());
-        if(user!=null)
-            return user;
-        else return null;
     }
 
 }
