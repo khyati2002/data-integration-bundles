@@ -13,7 +13,8 @@ public class CokephPriceMasterTransformer extends AbstractTransformer<Map<String
     @Override
     public Map<String, Object> transform(Map<String, Object> stringObjectMap) {
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
-        ObjectNode extended = new ObjectMapper().createObjectNode();
+//        ObjectNode extended = new ObjectMapper().createObjectNode();
+        Map<String, Object> extended = new HashMap<>();
         String effectiveDate = stringObjectMap.get("effective_date") != null ? stringObjectMap.get("effective_date").toString() : "";
         if (effectiveDate == null || effectiveDate.isEmpty()) {
             effectiveDate = "2021-01-01 00:00:00";

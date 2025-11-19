@@ -48,9 +48,10 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
             }
             // Set the extended attributes and save
             tempMasterMapping.setExtendedAttributes((JsonNode) extended);
-            TempMasterMapping refreshedObject = masterMappingService.refreshUsingJooq(tempMasterMapping);
+//            TempMasterMapping refreshedObject = masterMappingService.refreshUsingJooq(tempMasterMapping);
+//            TempMasterMapping refreshedObject = masterMappingService.refresh(tempMasterMapping);
 
-            masterMappingService.save(refreshedObject);
+            masterMappingService.save(tempMasterMapping);
         }
 
         return new OperationResult.StepResult(OperationResult.Status.OK);
