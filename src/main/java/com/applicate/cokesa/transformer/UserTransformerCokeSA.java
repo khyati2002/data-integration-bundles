@@ -1,5 +1,6 @@
 package com.applicate.cokesa.transformer;
 
+import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
@@ -21,12 +22,12 @@ public class UserTransformerCokeSA extends AbstractTransformer<Map<String,Object
         Map<String, Object> response = new HashMap<>();
         String loginId = inputMap.get("RS02_LOCATION02").toString() + inputMap.get("RS02_PERSONNEL2").toString();
         response.put("loginId", loginId);
-        response.put("activeStatus", inputMap.get("RS02_PERAVIAL").toString().equals("1") ? "active" : "inactive");
+        response.put("activeStatus", inputMap.get("RS02_PERAVIAL").toString().equals("1") ? ActiveStatus.ACTIVE : ActiveStatus.INACTIVE);
         response.put("mobile","0000000000");
         response.put("userAccountId", loginId);
         response.put("name", inputMap.get("RS02_PERSNAME").toString());
         response.put("designation", getClientDesignation(inputMap.get("RS02_DRVHLPCD").toString()));
-        response.put("locationHierarchy", getClientLocation(inputMap));
+        response.put("locationHierarchy", getClientLocation());
         response.put("extendedAttributes",createExtended(inputMap));
         return response;
     }
@@ -41,7 +42,7 @@ public class UserTransformerCokeSA extends AbstractTransformer<Map<String,Object
         return JSONUtils.toJsonNode(extended);
     }
 
-    private Map<String, Object> getClientLocation(Map<String, Object> inputMap){
+    private Map<String, Object> getClientLocation(){
         Map<String, Object> location = new HashMap<>();
         location.put("country", "KSA");
         return location;
