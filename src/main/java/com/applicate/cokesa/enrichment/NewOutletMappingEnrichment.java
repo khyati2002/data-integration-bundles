@@ -15,22 +15,26 @@ public class NewOutletMappingEnrichment extends AbstractEnrichment<OutletDetails
     private static final String OUTLET_DETAILS= "OutletDetails";
     private static final String OUTLET_CODE= "outletCode";
 
-    private final SequenceInfoService service= (SequenceInfoService) ServiceLocator.lookup(SequenceInfo.class);
 
     @Override
     public OperationResult.StepResult apply(OutletDetails cdm) {
-        if(org.apache.commons.lang3.StringUtils.isNotEmpty(cdm.getOutletcode()) && !"auto_generated".equalsIgnoreCase(cdm.getOutletcode()) && !service.matchesSequencePattern(OUTLET_DETAILS, OUTLET_CODE, cdm.getOutletcode())){
+
+        SequenceInfoService service= (SequenceInfoService) ServiceLocator.lookup(SequenceInfo.class);
+
+        if(!cdm.getExtendedAttributes().get("designation").toString().contains("Depot")) {
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(cdm.getOutletcode()) && !"auto_generated".equalsIgnoreCase(cdm.getOutletcode()) && !service.matchesSequencePattern(OUTLET_DETAILS, OUTLET_CODE, cdm.getOutletcode())) {
+                return new OperationResult.StepResult(OperationResult.Status.OK, "Data enrichment skipped due to already existing outletcode");
+            }
+            int nextSequence = service.getSequenceNumber(OUTLET_DETAILS, OUTLET_CODE);
+            String yearPattern = getYearPattern();
+            String sequenceFormat = "%05d";
+            String generatedCode = yearPattern + "COKESA" + String.format(sequenceFormat, nextSequence);
+            cdm.setOutletCode(generatedCode);
+            return new OperationResult.StepResult(OperationResult.Status.OK, "Data enriched successfully");
+        }
+        else {
             return new OperationResult.StepResult(OperationResult.Status.OK,"Data enrichment skipped due to already existing outletcode");
         }
-        if(cdm.getExtendedAttributes().get("designation").toString().equals("depot")) {
-            return new OperationResult.StepResult(OperationResult.Status.OK,"Data enrichment skipped due to already existing outletcode");
-        }
-        int nextSequence = service.getSequenceNumber(OUTLET_DETAILS, OUTLET_CODE);
-        String yearPattern = getYearPattern();
-        String sequenceFormat="%05d";
-        String generatedCode = yearPattern + "COKESA"+ String.format(sequenceFormat, nextSequence);
-        cdm.setOutletCode(generatedCode);
-        return new OperationResult.StepResult(OperationResult.Status.OK,"Data enriched successfully");
     }
 
     private String getYearPattern(){
