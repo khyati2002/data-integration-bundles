@@ -2,12 +2,15 @@ package com.applicate.cokesa.transformer;
 
 import com.applicate.services.channelkart.models.enums.ActiveStatus;
 import com.applicate.services.channelkart.utils.NullUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.jooq.generated.enums.*;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
 import com.salescode.dim.jooq.impl.LoadoutDetails;
 import com.salescode.dim.jooq.impl.LoadoutItems;
 import com.salescode.dim.jooq.impl.SalesInfo;
+import org.jooq.JSON;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,8 +22,12 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
         List<Map<String, Object>> responseList = new ArrayList<>();
-        responseList.add(createResponse(inputMap));
-        return responseList;
+        try{
+            responseList.add(createResponse(inputMap));
+            return responseList;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private DmsLoadout buildDMSLoadout(Map<String,Object> dmsLoadoutInput,String supplier){
@@ -46,7 +53,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setSupplier(supplier);
         return dmsLoadout;
     }
-    private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute){
+    private List<LoadoutDetails> buildLoadoutDetailsList(List<Map<String,Object>> loadOutDetailsListInput,String loadNumber,String activityRoute) throws JsonProcessingException {
         List<LoadoutDetails> loadoutDetailsList=new ArrayList<>();
         for(Map<String,Object> loadOutDetailsInput:loadOutDetailsListInput){
             LoadoutDetails loadoutDetails=new LoadoutDetails();
@@ -72,7 +79,12 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setReturnOtherQty(0.0);
             loadoutDetails.setTotalAmount(BigDecimal.ZERO);
             SalesInfo salesInfo=new SalesInfo(BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,"OUT FOR DELIVERY");
-            loadoutDetails.setSalesInfo(salesInfo);
+            ObjectMapper mapper=new ObjectMapper();
+            JSON salesInfoJson = (JSON) mapper.readValue(
+                    mapper.writeValueAsString(salesInfo),
+                    JSON.class
+            );
+            loadoutDetails.setSalesInfo(salesInfoJson);
 
             loadoutDetails.setActiveStatus(ActiveStatus.ACTIVE);
             loadoutDetailsList.add(loadoutDetails);
@@ -109,7 +121,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
 
 
 
-    private Map<String, Object> createResponse(Map<String, Object> inputMap) {
+    private Map<String, Object> createResponse(Map<String, Object> inputMap) throws JsonProcessingException {
         Map<String,Object> response=new HashMap<>();
         String loadNumber= ((Map<String, Object>) inputMap.get("dmsLoadout")).get("loadNumber").toString();
         String[] parts=loadNumber.split("_");
