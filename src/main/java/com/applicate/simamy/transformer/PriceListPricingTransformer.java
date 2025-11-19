@@ -1,14 +1,13 @@
 package com.applicate.simamy.transformer;
-import com.applicate.services.channelkart.models.GenericEntity;
-import com.applicate.services.channelkart.repository.GenericEntityRepository;
 import com.applicate.services.channelkart.services.GenericEntityService;
-import com.applicate.services.channelkart.services.SpringContext;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
+import com.applicate.services.channelkart.services.ServiceLocator;
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.impl.GenericEntity;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +22,9 @@ public class PriceListPricingTransformer extends AbstractTransformer<Map<String,
     static final String START_DATE = "startDate";
     static final String END_DATE = "endDate";
 
-    final GenericEntityRepository genericEntityRepository = SpringContext.getBean(GenericEntityRepository.class);
+    final GenericEntityService genericEntityRepository = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
     @Override
-    public Object transform(Map<String, Object> inputMap) {
+    public Map<String,Object> transform(Map<String, Object> inputMap) {
         Map<String, Object> distPricingList = new HashMap<>();
 
 
@@ -51,9 +50,8 @@ public class PriceListPricingTransformer extends AbstractTransformer<Map<String,
                     payload = new ObjectMapper().createObjectNode();
                 }
                 payload.set(skuCode, priceValidity);
-                entity.setPayload(payload);
-                SpringContext.getBean(GenericEntityService.class).refresh(entity);
-                return JSONUtils.convert(entity,Map.class);
+                entity.setPayload(JSONUtils.getObjectMapper().convertValue(payload,JsonNode.class));
+                return JSONUtils.getObjectMapper().convertValue(entity,Map.class);
 
             } else {
                 ObjectNode payload = new ObjectMapper().createObjectNode();

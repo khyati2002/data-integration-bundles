@@ -1,15 +1,14 @@
 package com.applicate.simamy.transformer;
 
 
-import com.applicate.services.channelkart.models.*;
 import com.applicate.services.channelkart.services.*;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
-import com.applicate.services.channelkart.transformers.TransformerInfo;
 import com.applicate.services.channelkart.utils.*;
 import com.bazaarvoice.jolt.*;
 import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.tables.pojos.TransformerInfo;
 import org.slf4j.*;
 
 import java.util.ArrayList;
@@ -31,25 +30,25 @@ public class OrderSimaGetTransformer extends AbstractTransformer<Map<String, Obj
     public static final String FEATURES = "features";
 
     public Map<String,Object>  transform(Map<String, Object> dataMap) {
-        transformerInfo= this.getTransformerInfo();
-        ArrayNode code_node= transformerInfo.getCode();
+        transformerInfo= getTransformerInfo();
+        ArrayNode code_node= JSONUtils.getObjectMapper().convertValue(transformerInfo.getCode(),ArrayNode.class);
         if(NullUtils.isNotNull(code_node) && NullUtils.isNotNull(dataMap)) {
             try {
                 Map<String,Object>transformedDataMap = transformOrderBody(dataMap);
                 Object spec = JsonUtils.jsonToObject(String.valueOf(code_node));
                 Chainr chainr = Chainr.fromSpec(spec);
                 Object transformedOutput = chainr.transform(transformedDataMap);
-                Map<String, Object> result = JSONUtils.getObjectMapper().readValue(JsonUtils.toPrettyJsonString(transformedOutput), new TypeReference<Map<String, Object>>() {});
-                JsonNode features = JSONUtils.toJsonNode(result).get(FEATURES);
+                Map<String, Object> result = JSONUtils.getObjectMapper().convertValue(JsonUtils.toPrettyJsonString(transformedOutput), Map.class);
+                org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode features = JSONUtils.getObjectMapper().convertValue(result.get(FEATURES),org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode.class);
                 if(NullUtils.isNotNull(features)){
                     features.forEach( feature->{
-                        JsonNode discountInfo = feature.get(DISCOUNT_INFO);
-                        JsonNode orderDetails = feature.get(ORDER_DETAILS);
-                        ArrayNode couponInfo =JSONUtils.getObjectMapper().createArrayNode();
+                        org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode discountInfo = feature.get(DISCOUNT_INFO);
+                        org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode orderDetails = feature.get(ORDER_DETAILS);
+                        org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode couponInfo =JSONUtils.getObjectMapper().createArrayNode();
                         if(NullUtils.isNotNull(discountInfo)&& discountInfo.size()>0){
                             discountInfo.forEach(s->{
                                 if(s.get("discountType").asText().equalsIgnoreCase("value")){
-                                    ObjectNode node = JSONUtils.getObjectMapper().createObjectNode();
+                                    org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode node = JSONUtils.getObjectMapper().createObjectNode();
                                     node.set("couponNumber",s.get("discountId"));
                                     node.set(DISCOUNT,s.get(DISCOUNT));
                                     node.set("couponAmount",s.get(DISCOUNT));
@@ -102,7 +101,7 @@ public class OrderSimaGetTransformer extends AbstractTransformer<Map<String, Obj
                 if(NullUtils.isNotNull(orderDetail.get(DISCOUNT_INFO))){
                     orderDetail.get(DISCOUNT_INFO).forEach(discountMap->{
                         String discountCode =getDiscountCode(discountMap);
-                        if(StringUtils.isNotNull(discountMap.get(discountCode))){
+                        if(discountMap.get(discountCode)!=null){
                             ArrayNode orderItemArray = orderItemMap.getOrDefault(discountMap.get(discountCode).asText(),JSONUtils.getObjectMapper().createArrayNode());
                             orderItemArray.add(discountMap);
                             orderItemMap.put(discountMap.get(discountCode).asText(),orderItemArray);
@@ -121,7 +120,7 @@ public class OrderSimaGetTransformer extends AbstractTransformer<Map<String, Obj
         Map<String,Object> transformerdDataMap = new HashMap<>();
         ArrayList<Map<String,Object>> list= new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
-        ArrayList<OrderDetails>tempOrderDetailsList = new ArrayList<>();
+        ArrayList<Order>tempOrderDetailsList = new ArrayList<>();
         ArrayList<Map<String,Object>> features = mapper.convertValue(dataMap.get(FEATURES),new TypeReference <ArrayList<Map<String,Object>>>() {});
         features.forEach(feature->{
             Order order = mapper.convertValue(feature, Order.class);

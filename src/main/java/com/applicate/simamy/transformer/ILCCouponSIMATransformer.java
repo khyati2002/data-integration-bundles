@@ -1,10 +1,10 @@
 package com.applicate.simamy.transformer;
-import com.applicate.services.channelkart.transformers.AbstractTransformer;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.util.ObjectUtils;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,7 +32,7 @@ public class ILCCouponSIMATransformer extends AbstractTransformer<Map<String, Ob
 
 
     @Override
-    public Object transform(Map<String, Object> inputMap) {
+    public Map<String, Object> transform(Map<String, Object> inputMap) {
         Map<String, Object> schemeData = schemeDefinition(inputMap);
         schemeData.put("schemeCalculation",calculationTransformer(inputMap));
         schemeData.put("schemeProductBifurcationsList", schemeProductTransformer(inputMap));
