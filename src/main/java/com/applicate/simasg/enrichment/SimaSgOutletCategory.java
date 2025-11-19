@@ -6,8 +6,8 @@ import com.applicate.services.channelkart.services.ServiceLocator;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.Location;
 import com.salescode.dim.jooq.impl.GenericEntity;
+import com.salescode.dim.jooq.impl.Location;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
@@ -47,7 +47,7 @@ public class SimaSgOutletCategory extends AbstractEnrichment<OutletDetails>
 
         //cc2 Region
 
-        Location location = cdm.getLocationHierarchy();
+        Location location = cdm.getLocationHierarchyAsLocation();
         String cc2 = location.getRegion();
         if (!ObjectUtils.isEmpty(cc2)) {
             List<GenericEntity> cc2map = repository.findByNameAndKey1AndKey2("Outletcategory", "2", cc2);
