@@ -30,6 +30,7 @@ public class DepotUserEnrichment extends AbstractEnrichment<OutletDetails> {
             user.setAddress(outlet.getAddress());
             user.setName(StringUtils.isEmpty(outlet.getOutletName()) ? outlet.getOutletcode() : outlet.getOutletName());
             outlet.setUserName(user);
+            userService.save(user);
         }
         return new OperationResult.StepResult(OperationResult.Status.OK);
     }
