@@ -25,7 +25,7 @@ public class CokephProductMasterTransformer extends AbstractTransformer <Map<Str
     @Override
     public Map<String, Object> transform(Map<String, Object> stringObjectMap) {
 
-        ObjectNode extended = new ObjectMapper().createObjectNode();
+//        ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
 
         if (stringObjectMap.containsKey("item_code") && NullUtils.isNotNull(stringObjectMap.get("item_code").toString()) && StringUtils.isNotEmpty(stringObjectMap.get("item_code").toString())) {
@@ -62,13 +62,14 @@ public class CokephProductMasterTransformer extends AbstractTransformer <Map<Str
         finalTransformedObj.put("category", categoryVal!= null && !ObjectUtils.isEmpty(categoryVal) ? categoryVal : "NA") ;
 
         //adding mapping in extended attributes
+        Map<String,Object> input = new HashMap<>();
         Object taxGroupCodeValue = stringObjectMap.get("tax_group_code");
-        extended.put("tax_group_code",taxGroupCodeValue != null && !ObjectUtils.isEmpty(taxGroupCodeValue.toString()) ? taxGroupCodeValue.toString() : "NA");
+        input.put("tax_group_code",taxGroupCodeValue != null && !ObjectUtils.isEmpty(taxGroupCodeValue.toString()) ? taxGroupCodeValue.toString() : "NA");
         Object uomV1alue = stringObjectMap.get("uom_1");
-        extended.put("uom_1",uomV1alue != null && !ObjectUtils.isEmpty(uomV1alue.toString()) ? uomV1alue.toString() : "NA");
+        input.put("uom_1",uomV1alue != null && !ObjectUtils.isEmpty(uomV1alue.toString()) ? uomV1alue.toString() : "NA");
         Object UnitOfMeasureValue = stringObjectMap.get("units_of_measure");
-        extended.put("units_of_measure",UnitOfMeasureValue != null && !ObjectUtils.isEmpty(UnitOfMeasureValue.toString()) ? UnitOfMeasureValue.toString() : "NA");
-        finalTransformedObj.put("extendedAttributes", extended.toString());
+        input.put("units_of_measure",UnitOfMeasureValue != null && !ObjectUtils.isEmpty(UnitOfMeasureValue.toString()) ? UnitOfMeasureValue.toString() : "NA");
+        finalTransformedObj.put("extendedAttributes", input);
         Object rawValue = stringObjectMap.get(ITEM_CLASS);
         String itemTypeCodeRaw = rawValue != null ? rawValue.toString().trim() : null;
         Integer itemTypeCode;
