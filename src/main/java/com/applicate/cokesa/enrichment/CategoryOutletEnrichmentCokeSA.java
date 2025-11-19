@@ -19,7 +19,7 @@ public class CategoryOutletEnrichmentCokeSA extends AbstractEnrichment<OutletDet
     @Override
     public OperationResult.StepResult apply(OutletDetails outlet) {
         String authToken = SecurityContextUtils.getPrincipal();
-        if ("integration_user".equals(authToken)) {
+        if ("integration_user".equals(authToken) && !outlet.getExtendedAttributes().get("designation").toString().contains("Depot")) {
             CategoryInfoService categoryInfoService = (CategoryInfoService) ServiceLocator.lookup(CategoryInfo.class);
             try {
                 List<String> distributionChannel = splitByHyphen(outlet.getDistributionChannel());
