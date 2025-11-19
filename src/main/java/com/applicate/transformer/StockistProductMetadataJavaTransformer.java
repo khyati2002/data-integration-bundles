@@ -102,6 +102,7 @@ public class StockistProductMetadataJavaTransformer extends AbstractTransformer<
 			output.put("channel", "All");
 			output.put("extendedAttributes", extendedAttributes);
 			output.put("activeStatus", ACTIVE);
+			output.put("loginId",input.get("WDDEST").toString());
 			data.add(output);
 
 		} catch (Exception ex) {
