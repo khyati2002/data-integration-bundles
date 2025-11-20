@@ -5,6 +5,10 @@ import com.applicate.services.channelkart.utils.DateUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 
 public class PricingTransformerCokeSA
@@ -22,8 +26,8 @@ public class PricingTransformerCokeSA
         response.put("priceList", requireNonNullValue(inputMap,"AM25_PRILST"));
         response.put("batchCode", requireNonNullValue(inputMap, "AM25_ARTNUM").replaceAll("\\.0$", ""));
         response.put("skuCode", requireNonNullValue(inputMap, "AM25_ARTNUM").replaceAll("\\.0$", ""));
-        response.put("toDate", convertCustomStringToDate(requireNonNullValue(inputMap, "AM25_EFTDAT"), false));
-        response.put("fromDate", convertCustomStringToDate(requireNonNullValue(inputMap, "AM25_EFRDAT"), true));
+        response.put("toDate", convertCustomStringToLocalDateTime(requireNonNullValue(inputMap, "AM25_EFTDAT"), false));
+        response.put("fromDate", convertCustomStringToLocalDateTime(requireNonNullValue(inputMap, "AM25_EFRDAT"), true));
         response.put("casePtr", requireNonNullValue(inputMap,"AM25_PRI"));
         return response;
     }
@@ -47,6 +51,18 @@ public class PricingTransformerCokeSA
         String time = isEndOfDay ? "23:59:59" : "00:00:00";
         String fullDateStr = year + "-" + month + "-" + day + " " + time;
         return DateUtils.parse(fullDateStr);
+    }
+
+    public static LocalDateTime convertCustomStringToLocalDateTime(String customDateStr, boolean isEndOfDay) {
+        Date date = convertCustomStringToDate(customDateStr, isEndOfDay);
+
+        if (date == null) {
+            return null;   // or LocalDateTime.MAX → your choice
+        }
+
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 
 }
