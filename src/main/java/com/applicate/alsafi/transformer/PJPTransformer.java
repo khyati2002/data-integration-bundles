@@ -2,6 +2,7 @@ package com.applicate.alsafi.transformer;
 
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -48,9 +49,13 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
 
         extendedAttributes.put("dayToVisit", String.join(",", weekDayVisits));
         pjpMap.put("extendedAttributes", extendedAttributes);
-
+        try {
+            String dFString = JSONUtils.getObjectMapper().writeValueAsString(dayAndFrequency);
+            pjpMap.put("dayAndFrequency", dFString);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         populateDayAndFrequency(weekDayNameSet, dayAndFrequency);
-        pjpMap.put("dayAndFrequency", dayAndFrequency);
         pjpMap.put("month", LocalDate.now().getMonth().toString());
         pjpMap.put("year", LocalDate.now().getYear());
 
