@@ -49,7 +49,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
         dmsLoadout.setPieceShortage(0.0);
         dmsLoadout.setOtherShortage(0.0);
         dmsLoadout.setShortageUpdated((byte) 0);
-        dmsLoadout.setActiveStatus(ActiveStatus.ACTIVE);
+        dmsLoadout.setActiveStatus(DmsLoadoutActiveStatus.ACTIVE);
         dmsLoadout.setSupplier(supplier);
         return dmsLoadout;
     }
@@ -86,7 +86,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             );
             loadoutDetails.setSalesInfo(salesInfoJson);
 
-            loadoutDetails.setActiveStatus(ActiveStatus.ACTIVE);
+            loadoutDetails.setActiveStatus(DmsLoadoutDetailsActiveStatus.ACTIVE);
             loadoutDetailsList.add(loadoutDetails);
         }
         return loadoutDetailsList;
@@ -112,7 +112,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
                 loadoutItems.setLoadOutDetailsId(loadOutDetailsId);
             }
 
-            loadoutItems.setActiveStatus(ActiveStatus.ACTIVE);
+            loadoutItems.setActiveStatus(DmsLoadoutItemsActiveStatus.ACTIVE);
 
             loadoutItemsList.add(loadoutItems);
         }
