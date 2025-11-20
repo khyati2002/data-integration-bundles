@@ -26,6 +26,7 @@ public class DepotUserEnrichment extends AbstractEnrichment<OutletDetails> {
             user.setUserAccountId(outlet.getOutletcode());
             user.setActiveStatus(outlet.getActiveStatus());
             user.setLocationHierarchy(outlet.getLocationHierarchy());
+            user.setLocationHierarchy(outlet.getLocation());
             user.setMobile(outlet.getContactno());
             user.setAddress(outlet.getAddress());
             user.setName(StringUtils.isEmpty(outlet.getOutletName()) ? outlet.getOutletcode() : outlet.getOutletName());
