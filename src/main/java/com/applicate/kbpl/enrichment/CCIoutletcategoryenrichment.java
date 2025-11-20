@@ -27,11 +27,13 @@ public class CCIoutletcategoryenrichment extends AbstractEnrichment<OutletDetail
     public static final String OUTLETCATEGORY = "Outletcategory";
     public static final String NA = "NA";
     public static final String HIERARCHY_CODE_MAPPING = "HierarchyCodeMapping";
-    GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
-    RoleService roleService = (RoleService) ServiceLocator.lookup(AuthRole.class);
+    GenericEntityService genericEntityService ;
+    RoleService roleService ;
 
     @Override
     public EnrichmentResult apply(OutletDetails cdm) {
+        genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+        roleService = (RoleService) ServiceLocator.lookup(AuthRole.class);
         Map<String, Map<String, String>> outletCategoryMap = genericEntityService.readModelsByName(OUTLETCATEGORY).stream()
                 .filter(entity -> StringUtils.isNotEmpty(entity.getKey1()) && StringUtils.isNotEmpty(entity.getKey2()) && StringUtils.isNotEmpty(entity.getKey3()))
                 .collect(Collectors.groupingBy(
