@@ -17,10 +17,13 @@ import java.util.List;
 
 public class SimaSgOutletCategory extends AbstractEnrichment<OutletDetails>
 {
-    GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);    @Override
-public EnrichmentResult apply(OutletDetails cdm)
-{
+    GenericEntityService genericEntityService ;
 
+    @Override
+    public EnrichmentResult apply(OutletDetails cdm)
+
+{
+    genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
     JsonNode extendedAttributes = cdm.getExtendedAttributes();
 
 
