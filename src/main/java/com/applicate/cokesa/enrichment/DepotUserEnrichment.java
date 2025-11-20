@@ -32,6 +32,10 @@ public class DepotUserEnrichment extends AbstractEnrichment<OutletDetails> {
             outlet.setUserName(user);
             userService.save(user);
         }
+        else {
+            user = outlet.getUserName();
+            outlet.setUserName(user);
+        }
         return new OperationResult.StepResult(OperationResult.Status.OK);
     }
 }
