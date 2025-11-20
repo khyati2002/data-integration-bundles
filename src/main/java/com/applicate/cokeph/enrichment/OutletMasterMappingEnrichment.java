@@ -12,6 +12,8 @@ import com.salescode.dim.etl.enrichment.AbstractEnrichment;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.TempMasterMapping;
 
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDetails> {
@@ -23,7 +25,8 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
 
         boolean isRetailer=outletDetails.getUserName()==null || ( outletDetails.getUserName().getDesignation()!=null && outletDetails.getUserName().getDesignation().contains("retailer"));
         if(isRetailer) {
-            ObjectNode extended = new ObjectMapper().createObjectNode();
+//            ObjectNode extended = new ObjectMapper().createObjectNode();
+            Map<String, Object> extended = new HashMap<>();
 
             // Extract current preseller and distributor from the extended attributes
             String currentPreseller = outletDetails.getExtendedAttributes().hasNonNull("preseller")
