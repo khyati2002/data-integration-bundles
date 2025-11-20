@@ -1,28 +1,36 @@
 package com.applicate.cokearg.enrichment;
 
-import com.applicate.services.channelkart.services.ServiceLocator;
+import com.applicate.services.channelkart.models.CommonDataModel;
+import com.applicate.services.channelkart.services.AbstractCDMService;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 
 import java.util.List;
-import java.util.Map;
 
-public class CokeArgKpiDataEnrichment extends AbstractEnrichment<Map<String, Object>> {
+import static com.salescode.dim.jooq.generated.tables.CkUser.CK_USER;
+import static com.salescode.dim.jooq.generated.tables.CkUserParent.CK_USER_PARENT;
 
-    private static final String USER_PARENT_QUERY = "select loginid from ck_user where extended_attributes->>'$[0].ruta'=?";
-    private static final String USER_PARENT_QUERY_FOR_OUTLET = "select up.parent as loginid from ck_user_parent up inner join ck_userdesignation ud on ud.login_id=up.parent and designation='preseller' and userloginid=?";
+public class CokeArgKpiDataEnrichment extends AbstractEnrichment<CommonDataModel> {
 
     @Override
-    public OperationResult.StepResult apply(Map<String, Object> kpiDataMap) {
+    public OperationResult.StepResult apply(CommonDataModel kpiData) {
         try {
-            String name = (String) kpiDataMap.get("name");
+            JsonNode extendedAttributes = kpiData.getExtendedAttributes();
+            if (extendedAttributes == null) {
+                 return new OperationResult.StepResult(OperationResult.Status.OK, "Skipping enrichment: extendedAttributes is null");
+            }
+
+            String name = extendedAttributes.has("name") ? extendedAttributes.get("name").asText() : null;
             if (name == null) {
                  return new OperationResult.StepResult(OperationResult.Status.OK, "Skipping enrichment: name is null");
             }
 
-            DSLContext dsl = (DSLContext) ServiceLocator.lookup(DSLContext.class);
+            DSLContext dsl = AbstractCDMService.getDslContext();
 
             if(List.of("kpi_ratio_adherencia_ruta",
                     "kpi_cliente_compradores_ruta",
@@ -30,30 +38,47 @@ public class CokeArgKpiDataEnrichment extends AbstractEnrichment<Map<String, Obj
                     "kpi_share_of_reference_ruta","kpi_recuperacion_ruta","kpi_convivencia_ruta",
                     "kpi_cliente_compradores_ruta"
             ).contains(name)) {
-                String value = (String) kpiDataMap.get("value");
+                String value = extendedAttributes.has("value") ? extendedAttributes.get("value").asText() : null;
                 if (value != null) {
-                    Record result = dsl.fetchOne(USER_PARENT_QUERY, value);
+                    // select loginid from ck_user where extended_attributes->>'$[0].ruta'=?
+                    Record result = dsl.select(CK_USER.LOGINID)
+                            .from(CK_USER)
+                            .where(DSL.field("extended_attributes->>'$[0].ruta'").eq(value))
+                            .fetchOne();
+
                     if(result == null) {
                         return new OperationResult.StepResult(OperationResult.Status.ERROR,"No salesrep found for the given Ruta "+value);
                     }
-                    Object loginid = result.get("loginid");
+                    String loginid = result.get(CK_USER.LOGINID);
                     if (loginid != null) {
-                        kpiDataMap.put("loginId", loginid.toString());
+                        if (extendedAttributes instanceof ObjectNode) {
+                            ((ObjectNode) extendedAttributes).put("loginId", loginid);
+                        }
                     }
                 }
             }
             
             if(List.of("kpi_ratio_adherencia_cliente",
                     "kpi_ratio_adherencia_cliente","kpi_share_of_reference_cliente").contains(name)) {
-                String outletcode = (String) kpiDataMap.get("outletCode");
+                String outletcode = extendedAttributes.has("outletCode") ? extendedAttributes.get("outletCode").asText() : null;
                 if (outletcode != null) {
-                    Record result = dsl.fetchOne(USER_PARENT_QUERY_FOR_OUTLET, outletcode);
+                    // select up.parent as loginid from ck_user_parent up inner join ck_userdesignation ud on ud.login_id=up.parent and designation='preseller' and userloginid=?
+                    Record result = dsl.select(CK_USER_PARENT.PARENT.as("loginid"))
+                            .from(CK_USER_PARENT)
+                            .innerJoin(DSL.table("ck_userdesignation").as("ud"))
+                            .on(DSL.field("ud.login_id").eq(CK_USER_PARENT.PARENT))
+                            .and(DSL.field("designation").eq("preseller"))
+                            .and(CK_USER_PARENT.USERLOGINID.eq(outletcode))
+                            .fetchOne();
+
                     if(result == null) {
                         return new OperationResult.StepResult(OperationResult.Status.ERROR,"No salesrep found for the given outletCode "+outletcode);
                     }
                     Object loginid = result.get("loginid");
                     if (loginid != null) {
-                        kpiDataMap.put("loginId", loginid.toString());
+                        if (extendedAttributes instanceof ObjectNode) {
+                            ((ObjectNode) extendedAttributes).put("loginId", loginid.toString());
+                        }
                     }
                 }
             }
