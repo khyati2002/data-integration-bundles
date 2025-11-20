@@ -2,8 +2,6 @@ package com.applicate.alsafi.transformer;
 
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.time.*;
@@ -33,7 +31,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
 
         List<Map<String,Object>> pjpMapList = new ArrayList<>();
 
-        visitDates.forEach(date -> pjpMapList.add(getPjp(input, )));
+        visitDates.forEach(date -> pjpMapList.add(getPjp(input,date)));
 
         return pjpMapList;
     }
@@ -55,6 +53,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
         pjpMap.put("pjpDate", date);
         pjpMap.put("month", LocalDate.now().getMonthValue());
         pjpMap.put("year", LocalDate.now().getYear());
+        return pjpMap;
     }
     private List<String> computeVisitDates(String anchorDateStr,
                                            Set<DayOfWeek> visitDays,
