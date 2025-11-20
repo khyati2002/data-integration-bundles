@@ -6,24 +6,44 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessin
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.time.LocalDate;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
-
-    private static final String FREQUENCY = "frequency";
+public class PJPTransformer extends AbstractTransformer<Map<String, Object>, List<Map<String, Object>>> {
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> input) {
+    public List<Map<String, Object>> transform(Map<String, Object> input) {
+
+        int frequency = getInteger(input, "Frequency", 7);
+        String anchorDateStr = getString(input, "StartingWeekAnchorDate");
+        ObjectNode extendedAttributes = JSONUtils.getObjectMapper().createObjectNode();
+        Set<String> weekDayVisits = input.keySet().stream()
+                .filter(key -> key.startsWith("Visit") && isTrue(input.get(key)))
+                .collect(Collectors.toSet());
+        extendedAttributes.put("visits", weekDayVisits.stream().collect(Collectors.joining(",")));
+
+        Set<DayOfWeek> visitDays = weekDayVisits.stream()
+                .map(k -> k.replace("Visit", "").toUpperCase())
+                .map(DayOfWeek::valueOf)
+                .collect(Collectors.toSet());
+
+        List<String> visitDates = computeVisitDates(anchorDateStr, visitDays, frequency);
+
+        List<Map<String,Object>> pjpMapList = new ArrayList<>();
+
+        visitDates.forEach(date -> pjpMapList.add(getPjp(input, )));
+
+        return pjpMapList;
+    }
+
+
+    private Map<String, Object> getPjp(Map<String, Object> input, String date){
         Map<String, Object> pjpMap = new HashMap<>();
 
-        pjpMap.put("outletcode",getString(input, "CustomerId"));
-        pjpMap.put("id",getString(input, "CustomerId"));
-
+        pjpMap.put("outletcode", getString(input, "CustomerId"));
+        pjpMap.put("id", getString(input, "CustomerId")+date);
 
         String activeStatus = "inactive";
         if ("1".equals(getString(input, "Active")) || "true".equalsIgnoreCase(getString(input, "Active"))) {
@@ -32,84 +52,44 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
         pjpMap.put("activeStatus", activeStatus);
         pjpMap.put("beat", getString(input, "RouteId"));
         pjpMap.put("loginid", getString(input, "RouteId"));
-
-        int frequency = getInteger(input, "Frequency", 7);
-        ArrayNode dayAndFrequency = JSONUtils.getObjectMapper().createArrayNode();
-        Map<String, Object> extendedAttributes = new HashMap<>();
-        extendedAttributes.put("sequence", getString(input, "Sequence"));
-        extendedAttributes.put("startingWeekAnchorDate", getString(input, "StartingWeekAnchorDate"));
-        extendedAttributes.put(FREQUENCY, frequency);
-        extendedAttributes.put("scheduleTypeId", getString(input, "ScheduleTypeId"));
-
-        Set<String> weekDayVisits = input.keySet().stream()
-                .filter(key -> key.startsWith("Visit") && isTrue(input.get(key)))
-                .collect(Collectors.toSet());
-
-        Set<String> weekDayNameSet = weekDayVisits.stream()
-                .map(key -> key.replace("Visit", "").toLowerCase())
-                .collect(Collectors.toSet());
-
-        extendedAttributes.put("dayToVisit", String.join(",", weekDayVisits));
-        pjpMap.put("extendedAttributes", extendedAttributes);
-        try {
-            String dFString = JSONUtils.getObjectMapper().writeValueAsString(dayAndFrequency);
-            pjpMap.put("dayAndFrequency", dFString);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        populateDayAndFrequency(weekDayNameSet, dayAndFrequency);
-        pjpMap.put("month", LocalDate.now().getMonth().toString());
+        pjpMap.put("pjpDate", date);
+        pjpMap.put("month", LocalDate.now().getMonthValue());
         pjpMap.put("year", LocalDate.now().getYear());
+    }
+    private List<String> computeVisitDates(String anchorDateStr,
+                                           Set<DayOfWeek> visitDays,
+                                           int frequencyDays) {
 
-        return pjpMap;
+        List<String> result = new ArrayList<>();
+        if (anchorDateStr == null || visitDays.isEmpty()) return result;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDate anchor = LocalDate.parse(anchorDateStr, formatter);
+
+        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
+        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+        for (DayOfWeek day : visitDays) {
+            LocalDate firstOccurrence = findFirstMatchingDate(anchor, day);
+            while (firstOccurrence.isBefore(monthStart)) {
+                firstOccurrence = firstOccurrence.plusDays(frequencyDays);
+            }
+            LocalDate dt = firstOccurrence;
+            while (!dt.isAfter(monthEnd)) {
+                result.add(dt.toString());
+                dt = dt.plusDays(frequencyDays);
+            }
+        }
+
+        Collections.sort(result);
+        return result;
     }
 
-    private void populateDayAndFrequency(Set<String> weekDayNameSet, ArrayNode dayAndFrequencyList) {
-        weekDayNameSet.forEach(weekDay -> {
-            int week = 1;
-            while (week <= 6) {
-                ObjectNode dayFrequency = JSONUtils.getObjectMapper().createObjectNode();
-                dayFrequency.put("day", weekDay);
-                dayFrequency.put(FREQUENCY, week);
-                dayAndFrequencyList.add(dayFrequency);
-                week = week + 1;
-            }
-        });
-    }
-
-    private void populateDayAndFrequency14(Set<String> weekDayNameSet, List<Map<String, Object>> dayAndFrequencyList,
-                                           String startAnchorDate, int frequency) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate currDate = LocalDate.now();
-
-        weekDayNameSet.forEach(dayOfWeek -> {
-            LocalDate firstDayOfMonth = currDate.withDayOfMonth(1);
-            LocalDate anchorDate = LocalDate.parse(startAnchorDate, formatter);
-
-            while (!dayOfWeek.equalsIgnoreCase(anchorDate.getDayOfWeek().toString())) {
-                anchorDate = anchorDate.plusDays(1);
-            }
-
-            long period = ChronoUnit.DAYS.between(anchorDate, firstDayOfMonth);
-            long daysToAdd = period % frequency;
-            if (daysToAdd != 0) {
-                daysToAdd = frequency - daysToAdd;
-            }
-
-            WeekFields weekFields = WeekFields.of(Locale.getDefault());
-            int weekNumberOfFirstDay = firstDayOfMonth.get(weekFields.weekOfWeekBasedYear());
-            LocalDate firstVisit = firstDayOfMonth.plusDays(daysToAdd);
-            int weekNumberForFirstVisit = firstVisit.get(weekFields.weekOfWeekBasedYear());
-            int weekNumber = weekNumberForFirstVisit - weekNumberOfFirstDay + 1;
-
-            while (weekNumber <= 6) {
-                Map<String, Object> dayFrequency = new HashMap<>();
-                dayFrequency.put("day", dayOfWeek);
-                dayFrequency.put(FREQUENCY, weekNumber);
-                dayAndFrequencyList.add(dayFrequency);
-                weekNumber = weekNumber + (frequency / 7);
-            }
-        });
+    private LocalDate findFirstMatchingDate(LocalDate anchor, DayOfWeek targetDay) {
+        LocalDate date = anchor;
+        while (date.getDayOfWeek() != targetDay) {
+            date = date.plusDays(1);
+        }
+        return date;
     }
 
     private String getString(Map<String, Object> map, String key) {
@@ -129,7 +109,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
 
     private boolean isTrue(Object val) {
         if (val == null) return false;
-        String strVal = val.toString().trim();
-        return "1".equals(strVal) || "true".equalsIgnoreCase(strVal);
+        String s = val.toString().trim();
+        return "1".equals(s) || "true".equalsIgnoreCase(s);
     }
 }
