@@ -27,17 +27,17 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
                 .map(DayOfWeek::valueOf)
                 .collect(Collectors.toSet());
 
-        List<String> visitDates = computeVisitDates(anchorDateStr, visitDays, frequency);
+        List<LocalDateTime> visitDates = computeVisitDates(anchorDateStr, visitDays, frequency);
 
         List<Map<String,Object>> pjpMapList = new ArrayList<>();
 
-        visitDates.forEach(date -> pjpMapList.add(getPjp(input,date)));
+        visitDates.forEach(date -> pjpMapList.add(getPjp(input, date)));
 
         return pjpMapList;
     }
 
 
-    private Map<String, Object> getPjp(Map<String, Object> input, String date){
+    private Map<String, Object> getPjp(Map<String, Object> input, LocalDateTime date){
         Map<String, Object> pjpMap = new HashMap<>();
 
         pjpMap.put("outletcode", getString(input, "CustomerId"));
@@ -55,26 +55,27 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
         pjpMap.put("year", LocalDate.now().getYear());
         return pjpMap;
     }
-    private List<String> computeVisitDates(String anchorDateStr,
+    private List<LocalDateTime> computeVisitDates(String anchorDateStr,
                                            Set<DayOfWeek> visitDays,
                                            int frequencyDays) {
 
-        List<String> result = new ArrayList<>();
+        List<LocalDateTime> result = new ArrayList<>();
         if (anchorDateStr == null || visitDays.isEmpty()) return result;
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDate anchor = LocalDate.parse(anchorDateStr, formatter);
+        LocalDateTime anchor = LocalDateTime.parse(anchorDateStr, formatter);
 
-        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
-        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+        LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1);
+        LocalDate monthStart1 = LocalDate.now().withDayOfMonth(1);
+        LocalDateTime monthEnd = monthStart.withDayOfMonth(monthStart1.lengthOfMonth());
         for (DayOfWeek day : visitDays) {
-            LocalDate firstOccurrence = findFirstMatchingDate(anchor, day);
+            LocalDateTime firstOccurrence = findFirstMatchingDate(anchor, day);
             while (firstOccurrence.isBefore(monthStart)) {
                 firstOccurrence = firstOccurrence.plusDays(frequencyDays);
             }
-            LocalDate dt = firstOccurrence;
+            LocalDateTime dt = firstOccurrence;
             while (!dt.isAfter(monthEnd)) {
-                result.add(dt.toString());
+                result.add(dt);
                 dt = dt.plusDays(frequencyDays);
             }
         }
@@ -83,8 +84,8 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
         return result;
     }
 
-    private LocalDate findFirstMatchingDate(LocalDate anchor, DayOfWeek targetDay) {
-        LocalDate date = anchor;
+    private LocalDateTime findFirstMatchingDate(LocalDateTime anchor, DayOfWeek targetDay) {
+        LocalDateTime date = anchor;
         while (date.getDayOfWeek() != targetDay) {
             date = date.plusDays(1);
         }
