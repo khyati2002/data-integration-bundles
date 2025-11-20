@@ -6,10 +6,7 @@ import com.salescode.dim.etl.transformation.AbstractTransformer;
 import com.salescode.dim.etl.transformation.service.DataTransformationService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String,Object>, List<Map<String, Object>>> {
 
@@ -33,6 +30,11 @@ public class DepotMasterTransformerCokeSA extends AbstractTransformer<Map<String
         response.put("contactno", "00000");
         response.put("outletName", inputMap.get("XI30_LOCNAM").toString());
         response.put("locationHierarchy", getUserLocation());
+
+        Map<String, Object> location = new LinkedHashMap<>();
+        location.put("country", "KSA");
+        response.put("location", location);
+
         response.put("channel", "ALL");
         response.put("distributionChannel", "ALL");
         response.put("outletClass", "ALL");
