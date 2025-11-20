@@ -1,10 +1,10 @@
 package com.applicate.alsafi.transformer;
 
-import com.applicate.services.channelkart.exceptions.CustomRuntimeException;
 import com.applicate.services.channelkart.transformers.impl.JoltTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,15 +13,15 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PJPTransformer extends JoltTransformer {
+public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map<String, Object>> {
 
     private static final String FREQUENCY = "frequency";
 
     @Override
-    public Object transform(Map<String, Object> input) {
+    public Map<String, Object> transform(Map<String, Object> input) {
         Map<String, Object> pjpMap = new HashMap<>();
 
-        pjpMap.put("outletCode", "00" + getString(input, "CustomerId"));
+        pjpMap.put("outletCode",getString(input, "CustomerId"));
 
         String activeStatus = "inactive";
         if ("1".equals(getString(input, "Active")) || "true".equalsIgnoreCase(getString(input, "Active"))) {
@@ -29,10 +29,11 @@ public class PJPTransformer extends JoltTransformer {
         }
         pjpMap.put("activeStatus", activeStatus);
         pjpMap.put("beat", getString(input, "RouteId"));
+        pjpMap.put("loginId", getString(input, "RouteId"));
 
         int frequency = getInteger(input, "Frequency", 7);
 
-        ObjectNode extendedAttributes = JSONUtils.getObjectMapper().createObjectNode();
+        Map<String, Object> extendedAttributes = new HashMap<>();
         extendedAttributes.put("sequence", getString(input, "Sequence"));
         extendedAttributes.put("startingWeekAnchorDate", getString(input, "StartingWeekAnchorDate"));
         extendedAttributes.put(FREQUENCY, frequency);
@@ -49,17 +50,8 @@ public class PJPTransformer extends JoltTransformer {
         extendedAttributes.put("dayToVisit", String.join(",", weekDayVisits));
         pjpMap.put("extendedAttributes", extendedAttributes);
 
-        ArrayNode dayAndFrequency = JSONUtils.getObjectMapper().createArrayNode();
-
-        if (frequency == 7) {
-            populateDayAndFrequency(weekDayNameSet, dayAndFrequency);
-        } else if (frequency % 7 == 0) {
-            populateDayAndFrequency14(weekDayNameSet, dayAndFrequency,
-                    getString(input, "StartingWeekAnchorDate"), frequency);
-        } else {
-            throw new CustomRuntimeException("Currently this frequency is not supported: " + frequency);
-        }
-
+        List<Map<String, Object>> dayAndFrequency = new ArrayList<>();
+        populateDayAndFrequency(weekDayNameSet, dayAndFrequency);
         pjpMap.put("dayAndFrequency", dayAndFrequency);
         pjpMap.put("month", LocalDate.now().getMonth().toString());
         pjpMap.put("year", LocalDate.now().getYear());
@@ -67,11 +59,11 @@ public class PJPTransformer extends JoltTransformer {
         return pjpMap;
     }
 
-    private void populateDayAndFrequency(Set<String> weekDayNameSet, ArrayNode dayAndFrequencyList) {
+    private void populateDayAndFrequency(Set<String> weekDayNameSet, List<Map<String, Object>> dayAndFrequencyList) {
         weekDayNameSet.forEach(weekDay -> {
             int week = 1;
             while (week <= 6) {
-                ObjectNode dayFrequency = JSONUtils.getObjectMapper().createObjectNode();
+                Map<String, Object> dayFrequency = new HashMap<>();
                 dayFrequency.put("day", weekDay);
                 dayFrequency.put(FREQUENCY, week);
                 dayAndFrequencyList.add(dayFrequency);
@@ -80,7 +72,7 @@ public class PJPTransformer extends JoltTransformer {
         });
     }
 
-    private void populateDayAndFrequency14(Set<String> weekDayNameSet, ArrayNode dayAndFrequencyList,
+    private void populateDayAndFrequency14(Set<String> weekDayNameSet, List<Map<String, Object>> dayAndFrequencyList,
                                            String startAnchorDate, int frequency) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate currDate = LocalDate.now();
@@ -106,7 +98,7 @@ public class PJPTransformer extends JoltTransformer {
             int weekNumber = weekNumberForFirstVisit - weekNumberOfFirstDay + 1;
 
             while (weekNumber <= 6) {
-                ObjectNode dayFrequency = JSONUtils.getObjectMapper().createObjectNode();
+                Map<String, Object> dayFrequency = new HashMap<>();
                 dayFrequency.put("day", dayOfWeek);
                 dayFrequency.put(FREQUENCY, weekNumber);
                 dayAndFrequencyList.add(dayFrequency);
