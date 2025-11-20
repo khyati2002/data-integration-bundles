@@ -21,7 +21,7 @@ public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<Str
         List<GenericEntity> taxes = genericEntityService.readModelsByName("TaxDefined");
         taxes.stream()
                 .filter(tax -> {
-                    org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode payload = tax.getPayload();
+                    JsonNode payload = tax.getPayload();
                     return payload.has("taxProgram") && "EXCISE".equalsIgnoreCase(payload.get("taxProgram").asText());
                 })
                 .forEach(tax -> responseList.add(createResponse(inputMap, tax)));

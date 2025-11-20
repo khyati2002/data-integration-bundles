@@ -5,10 +5,10 @@ import com.applicate.services.channelkart.utils.DateUtils;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
 
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class PricingTransformerCokeSA
@@ -26,9 +26,20 @@ public class PricingTransformerCokeSA
         response.put("priceList", requireNonNullValue(inputMap,"AM25_PRILST"));
         response.put("batchCode", requireNonNullValue(inputMap, "AM25_ARTNUM").replaceAll("\\.0$", ""));
         response.put("skuCode", requireNonNullValue(inputMap, "AM25_ARTNUM").replaceAll("\\.0$", ""));
-        response.put("toDate", convertCustomStringToLocalDateTime(requireNonNullValue(inputMap, "AM25_EFTDAT"), false));
-        response.put("fromDate", convertCustomStringToLocalDateTime(requireNonNullValue(inputMap, "AM25_EFRDAT"), true));
-        response.put("casePtr", requireNonNullValue(inputMap,"AM25_PRI"));
+        response.put("toDate", convertCustomStringToFormatted(requireNonNullValue(inputMap, "AM25_EFTDAT"), false));
+        response.put("fromDate", convertCustomStringToFormatted(requireNonNullValue(inputMap, "AM25_EFRDAT"), true));
+        Object val = requireNonNullValue(inputMap, "AM25_PRI");
+        BigDecimal bd;
+
+        if (val instanceof BigDecimal) {
+            bd = (BigDecimal) val;
+        } else if (val instanceof Number) {
+            bd = BigDecimal.valueOf(((Number) val).doubleValue());
+        } else {
+            bd = new BigDecimal(val.toString());
+        }
+
+        response.put("casePtr", bd);
         return response;
     }
 
@@ -53,16 +64,15 @@ public class PricingTransformerCokeSA
         return DateUtils.parse(fullDateStr);
     }
 
-    public static LocalDateTime convertCustomStringToLocalDateTime(String customDateStr, boolean isEndOfDay) {
+    public static String convertCustomStringToFormatted(String customDateStr, boolean isEndOfDay) {
         Date date = convertCustomStringToDate(customDateStr, isEndOfDay);
 
-        if (date == null) {
-            return null;   // or LocalDateTime.MAX → your choice
-        }
+        Instant instant = date.toInstant();
 
-        return date.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss'T'HH:mm:ss'Z'")
+                .withZone(ZoneId.of("UTC"));
+
+        return formatter.format(instant);
     }
 
 }
