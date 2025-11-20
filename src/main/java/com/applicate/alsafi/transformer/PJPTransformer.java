@@ -1,10 +1,9 @@
 package com.applicate.alsafi.transformer;
 
-import com.applicate.services.channelkart.transformers.impl.JoltTransformer;
 import com.applicate.services.channelkart.utils.JSONUtils;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +31,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
         pjpMap.put("loginid", getString(input, "RouteId"));
 
         int frequency = getInteger(input, "Frequency", 7);
-
+        ArrayNode dayAndFrequency = JSONUtils.getObjectMapper().createArrayNode();
         Map<String, Object> extendedAttributes = new HashMap<>();
         extendedAttributes.put("sequence", getString(input, "Sequence"));
         extendedAttributes.put("startingWeekAnchorDate", getString(input, "StartingWeekAnchorDate"));
@@ -50,7 +49,6 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
         extendedAttributes.put("dayToVisit", String.join(",", weekDayVisits));
         pjpMap.put("extendedAttributes", extendedAttributes);
 
-        List<Map<String, Object>> dayAndFrequency = new ArrayList<>();
         populateDayAndFrequency(weekDayNameSet, dayAndFrequency);
         pjpMap.put("dayAndFrequency", dayAndFrequency);
         pjpMap.put("month", LocalDate.now().getMonth().toString());
@@ -59,11 +57,11 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
         return pjpMap;
     }
 
-    private void populateDayAndFrequency(Set<String> weekDayNameSet, List<Map<String, Object>> dayAndFrequencyList) {
+    private void populateDayAndFrequency(Set<String> weekDayNameSet, ArrayNode dayAndFrequencyList) {
         weekDayNameSet.forEach(weekDay -> {
             int week = 1;
             while (week <= 6) {
-                Map<String, Object> dayFrequency = new HashMap<>();
+                ObjectNode dayFrequency = JSONUtils.getObjectMapper().createObjectNode();
                 dayFrequency.put("day", weekDay);
                 dayFrequency.put(FREQUENCY, week);
                 dayAndFrequencyList.add(dayFrequency);
