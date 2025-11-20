@@ -53,6 +53,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
         pjpMap.put("pjpDate", date);
         pjpMap.put("month", LocalDate.now().getMonthValue());
         pjpMap.put("year", LocalDate.now().getYear());
+        pjpMap.put("sequence", input.get("Sequence"));
         return pjpMap;
     }
     private List<String> computeVisitDates(String anchorDateStr,
