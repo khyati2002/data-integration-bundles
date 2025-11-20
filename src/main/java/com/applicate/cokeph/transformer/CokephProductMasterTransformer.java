@@ -83,6 +83,14 @@ public class CokephProductMasterTransformer extends AbstractTransformer <Map<Str
 
         finalTransformedObj.put("itemClass", itemTypeCode);
         finalTransformedObj.put("priority",0);
+        finalTransformedObj.put("caseMrp",0.00);
+        finalTransformedObj.put("mrp",0.00);
+        finalTransformedObj.put("otherUnitMrp",0.00);
+        finalTransformedObj.put("otherUnitToPieceQuantity",0.00);
+        finalTransformedObj.put("pieceToVolume",0.00);
+        finalTransformedObj.put("skuPieceWeight",0);
+        finalTransformedObj.put("skuOtherWeightUom",0);
+        finalTransformedObj.put("skuCaseWeight",0);
         return finalTransformedObj;
     }
 
