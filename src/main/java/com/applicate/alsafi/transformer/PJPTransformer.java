@@ -29,7 +29,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
         }
         pjpMap.put("activeStatus", activeStatus);
         pjpMap.put("beat", getString(input, "RouteId"));
-        pjpMap.put("loginId", getString(input, "RouteId"));
+        pjpMap.put("loginid", getString(input, "RouteId"));
 
         int frequency = getInteger(input, "Frequency", 7);
 
