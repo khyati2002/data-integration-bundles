@@ -9,7 +9,8 @@ import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.User;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 
 public class DepotUserEnrichment extends AbstractEnrichment<OutletDetails> {
@@ -18,28 +19,43 @@ public class DepotUserEnrichment extends AbstractEnrichment<OutletDetails> {
     public OperationResult.StepResult apply(OutletDetails outlet) {
 
         String authToken = SecurityContextUtils.getPrincipal();
+
         if ("integration_user".equals(authToken)) {
+
             UserService userService = (UserService) ServiceLocator.lookup(User.class);
-            User user = userService.findByLoginId(outlet.getLoginid());
-            if (user != null) {
+
+            User user = new User();
+
+            if (outlet.getUserName() == null) {
+                user = userService.findByLoginId(outlet.getLoginid());
+
+                if (user == null) {
+                    user = new User();
+                    user.setLoginId(outlet.getOutletcode());
+                    user.setUserAccountId(outlet.getOutletcode());
+                }
+
                 outlet.setUserName(user);
-                user.setDesignation(Set.of("Depot"));
-                user.setUserParents(List.of("admin@applicate.in"));
-                user.setLoginId(outlet.getOutletcode());
-                user.setUserAccountId(outlet.getOutletcode());
-                user.setActiveStatus(outlet.getActiveStatus());
-                user.setLocationHierarchy(outlet.getLocationHierarchy());
-                user.setLocationHierarchy(outlet.getLocation());
-                user.setMobile(outlet.getContactno());
-                user.setAddress(outlet.getAddress());
-                user.setName(StringUtils.isEmpty(outlet.getOutletName()) ? outlet.getOutletcode() : outlet.getOutletName());
-                outlet.setUserName(user);
-                userService.save(user);
+
             } else {
                 user = outlet.getUserName();
-                outlet.setUserName(user);
             }
+
+            user.setDesignation(Set.of("Depot"));
+            user.setUserParents(new ArrayList<>(Arrays.asList("admin@applicate.in")));
+            user.setActiveStatus(outlet.getActiveStatus());
+            user.setLocationHierarchy(outlet.getLocationHierarchy());
+            user.setMobile(outlet.getContactno());
+            user.setAddress(outlet.getAddress());
+            user.setName(
+                    StringUtils.isEmpty(outlet.getOutletName())
+                            ? outlet.getOutletcode()
+                            : outlet.getOutletName()
+            );
+
+            userService.save(user);
         }
+
         return new OperationResult.StepResult(OperationResult.Status.OK);
     }
 }
