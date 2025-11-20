@@ -27,7 +27,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
                 .map(DayOfWeek::valueOf)
                 .collect(Collectors.toSet());
 
-        List<LocalDateTime> visitDates = computeVisitDates(anchorDateStr, visitDays, frequency);
+        List<String> visitDates = computeVisitDates(anchorDateStr, visitDays, frequency);
 
         List<Map<String,Object>> pjpMapList = new ArrayList<>();
 
@@ -37,7 +37,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
     }
 
 
-    private Map<String, Object> getPjp(Map<String, Object> input, LocalDateTime date){
+    private Map<String, Object> getPjp(Map<String, Object> input, String date){
         Map<String, Object> pjpMap = new HashMap<>();
 
         pjpMap.put("outletcode", getString(input, "CustomerId"));
@@ -55,11 +55,11 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
         pjpMap.put("year", LocalDate.now().getYear());
         return pjpMap;
     }
-    private List<LocalDateTime> computeVisitDates(String anchorDateStr,
+    private List<String> computeVisitDates(String anchorDateStr,
                                            Set<DayOfWeek> visitDays,
                                            int frequencyDays) {
 
-        List<LocalDateTime> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         if (anchorDateStr == null || visitDays.isEmpty()) return result;
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -75,7 +75,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Lis
             }
             LocalDateTime dt = firstOccurrence;
             while (!dt.isAfter(monthEnd)) {
-                result.add(dt);
+                result.add(formatter.format(dt));
                 dt = dt.plusDays(frequencyDays);
             }
         }
