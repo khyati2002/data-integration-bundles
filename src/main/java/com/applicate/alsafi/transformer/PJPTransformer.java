@@ -21,7 +21,7 @@ public class PJPTransformer extends AbstractTransformer<Map<String, Object>, Map
     public Map<String, Object> transform(Map<String, Object> input) {
         Map<String, Object> pjpMap = new HashMap<>();
 
-        pjpMap.put("outletCode",getString(input, "CustomerId"));
+        pjpMap.put("outletcode",getString(input, "CustomerId"));
 
         String activeStatus = "inactive";
         if ("1".equals(getString(input, "Active")) || "true".equalsIgnoreCase(getString(input, "Active"))) {
