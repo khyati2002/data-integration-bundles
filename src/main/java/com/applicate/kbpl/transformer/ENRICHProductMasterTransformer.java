@@ -49,9 +49,7 @@ public class ENRICHProductMasterTransformer extends AbstractTransformer<Map<Stri
                 inputMap.get("lastmodifieddatetime")
         ));
 
-        if (!output.containsKey("priority") || output.get("priority") == null) {
-            output.put("priority", 0);
-        }
+        output.put("priority", 0);
 
         return output;
     }

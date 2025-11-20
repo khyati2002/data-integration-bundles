@@ -52,9 +52,7 @@ public class KBPLProductMasterTransformer extends AbstractTransformer<Map<String
                 inputMap.get("lastmodifieddatetime")
         ));
 
-        if (!output.containsKey("priority") || output.get("priority") == null) {
-            output.put("priority", 0);
-        }
+        output.put("priority", 0);
 
         return output;
     }
