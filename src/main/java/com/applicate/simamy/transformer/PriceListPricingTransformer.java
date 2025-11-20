@@ -70,8 +70,8 @@ public class PriceListPricingTransformer extends AbstractTransformer<Map<String,
     }
 
     private List<GenericEntity> getExistingDetails(String priceListID ) {
-        if(!(genericEntityRepository.findByNameAndKey1(NAME,priceListID ).isEmpty()))
-            return genericEntityRepository.findByNameAndKey1(NAME,priceListID );
+        if(!(genericEntityRepository.findByNameAndKeys(NAME,priceListID ).isEmpty()))
+            return genericEntityRepository.findByNameAndKeys(NAME,priceListID );
         return new ArrayList<>();
     }
 }

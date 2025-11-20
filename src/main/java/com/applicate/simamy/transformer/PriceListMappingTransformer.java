@@ -39,8 +39,8 @@ public class PriceListMappingTransformer extends AbstractTransformer<Map<String,
         return null;
     }
     private List<GenericEntity> getExistingDetails(String outletCode ) {
-        if(!(genericEntityRepository.findByNameAndKey1(NAME,outletCode ).isEmpty()))
-            return genericEntityRepository.findByNameAndKey1(NAME,outletCode);
+        if(!(genericEntityRepository.findByNameAndKeys(NAME,outletCode ).isEmpty()))
+            return genericEntityRepository.findByNameAndKeys(NAME,outletCode);
         return new ArrayList<>();
     }
 }
