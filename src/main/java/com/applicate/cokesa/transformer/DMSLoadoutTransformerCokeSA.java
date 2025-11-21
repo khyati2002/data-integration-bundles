@@ -79,7 +79,7 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setTotalAmount(BigDecimal.ZERO);
             SalesInfo salesInfo=new SalesInfo(BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,"OUT FOR DELIVERY");
             ObjectMapper mapper=new ObjectMapper();
-            JSON salesInfoJson = (JSON) mapper.readValue(
+            JSON salesInfoJson =  mapper.readValue(
                     mapper.writeValueAsString(salesInfo),
                     JSON.class
             );
