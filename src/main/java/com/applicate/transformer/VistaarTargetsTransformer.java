@@ -51,7 +51,11 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         targetMap.put("activeStatus", "active");
 
         try {
-            targetMap.put("target", new BigDecimal(targetValue));
+            if (StringUtils.isEmpty(targetValue)) {
+                targetMap.put("target", BigDecimal.ZERO);
+            } else {
+                targetMap.put("target", new BigDecimal(targetValue));
+            }
         } catch (Exception e) {
             logger.warn("Could not parse 'TARGET' value: {}. Defaulting to 0.", targetValue);
             targetMap.put("target", BigDecimal.ZERO);
@@ -123,7 +127,13 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put("year", year);
         jsonNode.put("month", month);
-        jsonNode.put("ach_per", achPerStr);
+
+        if (achPerStr == null) {
+            jsonNode.putNull("ach_per");
+        } else {
+            jsonNode.put("ach_per", achPerStr);
+        }
+
         jsonNode.put("achieved", achFloat);
         jsonNode.put(LOGIN_ID, userValue);
         jsonNode.put("focusDesc", focusDesc);
