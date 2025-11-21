@@ -20,6 +20,7 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
 
     private static final String PARAMETER = "PARAMETER";
     private static final String TARGET = "TARGET";
+    private static final String TARGET_FIELD = "target";
     private static final String MONTH = "MONTH";
     private static final String YEAR = "YEAR";
     private static final String RCSID = "RCSID";
@@ -51,14 +52,14 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
         targetMap.put("activeStatus", "active");
 
         try {
-            if (StringUtils.isEmpty(targetValue)) {
-                targetMap.put("target", BigDecimal.ZERO);
+            if (StringUtils.isEmpty(targetValue) || "null".equalsIgnoreCase(targetValue)) {
+                targetMap.put(TARGET_FIELD, BigDecimal.ZERO);
             } else {
-                targetMap.put("target", new BigDecimal(targetValue));
+                targetMap.put(TARGET_FIELD, new BigDecimal(targetValue));
             }
         } catch (Exception e) {
             logger.warn("Could not parse 'TARGET' value: {}. Defaulting to 0.", targetValue);
-            targetMap.put("target", BigDecimal.ZERO);
+            targetMap.put(TARGET_FIELD, BigDecimal.ZERO);
         }
 
         List<String> list = new ArrayList<>();
@@ -77,7 +78,9 @@ public class VistaarTargetsTransformer extends AbstractTransformer<Map<String,Ob
 
         Float achFloat = 0F;
         try {
-            if(ach != null) achFloat = Float.parseFloat(ach);
+            if(ach != null && !"null".equalsIgnoreCase(ach)) {
+                achFloat = Float.parseFloat(ach);
+            }
         } catch (NumberFormatException e) {
             logger.warn("Could not parse 'ACH' value: {}", ach);
         }
