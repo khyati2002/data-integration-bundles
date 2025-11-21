@@ -21,7 +21,8 @@ public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<Str
     @Override
     public Map<String, Object> transform(Map<String, Object> input) {
         userService = (UserService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.User.class);
-        ObjectNode extended = new ObjectMapper().createObjectNode();
+//        ObjectNode extended = new ObjectMapper().createObjectNode();
+        Map<String, Object> extended = new HashMap<>();
         Map<String, Object> transformed = new HashMap<>();
         String outletCode= extractRequiredAndPut(input,transformed,"outletCode");
         User user=userService.findByLoginId(outletCode);
@@ -49,12 +50,12 @@ public class CokePhGeoDistributorTransformer extends AbstractTransformer<Map<Str
         userMap.put("designation", "supplier");
         finalTransformedObject.put("userName",userMap);
     }
-    private void createExtended(ObjectNode extended,Map<String,Object> stringObjectMap)
+    private void createExtended(Map<String, Object> extended ,Map<String,Object> stringObjectMap)
     {
         String servingRadiusInMeters=getIfPropertyExists(stringObjectMap,"servingRadius");
         setServingRadius(servingRadiusInMeters,extended);
     }
-    private void setServingRadius(String servingRadius,ObjectNode objectNode)
+    private void setServingRadius(String servingRadius,Map<String, Object> objectNode )
     {
         try{
             long servingRadiusInMeters=Long.parseLong(servingRadius)*1000;
