@@ -29,10 +29,13 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
         dmsVanLoadout.setRouteCode(Collections.singletonList(vanLoadoutInput.get("routeCode").toString()));
         dmsVanLoadout.setTotalCaseQty(((Number)vanLoadoutInput.get("totalCaseQty")).doubleValue());
         dmsVanLoadout.setTotalCaseLeftQty(((Number)vanLoadoutInput.get("totalCaseLeftQty")).doubleValue());
+        dmsVanLoadout.setTotalSuggestedCaseQty(((Number)vanLoadoutInput.get("totalCaseLeftQty")).doubleValue());
         dmsVanLoadout.setTotalPieceQty(0.0);
         dmsVanLoadout.setTotalPieceLeftQty(0.0);
+        dmsVanLoadout.setTotalSuggestedPieceQty(0.0);
         dmsVanLoadout.setTotalOtherQty(0.0);
         dmsVanLoadout.setTotalOtherLeftQty(0.0);
+        dmsVanLoadout.setTotalSuggestedOtherQty(0.0);
         dmsVanLoadout.setLoadOutStatus(DmsVanLoadoutLoadOutStatus.IN_TRANSIT);
         dmsVanLoadout.setActiveStatus(DmsVanLoadoutActiveStatus.ACTIVE);
         dmsVanLoadout.setTotalAmount(BigDecimal.ZERO);
