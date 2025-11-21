@@ -38,7 +38,7 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
         return dmsVanLoadout;
     }
 
-    public List<VanItems> buildVanItems(List<Map<String,Object>> vanItemsInputList,String loadNumber){
+    private List<VanItems> buildVanItems(List<Map<String,Object>> vanItemsInputList,String loadNumber){
         List<VanItems> vanItemsList=new ArrayList<>();
 
         for(Map<String,Object> vanItemInput:vanItemsInputList){
@@ -62,12 +62,12 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
 
 
 
-    Map<String,Object> createResponse(Map<String,Object> inputMap){
+    private Map<String,Object> createResponse(Map<String,Object> inputMap){
         Map<String,Object> response=new LinkedHashMap<>();
-        String loadNumber= ((Map<String, Object>) inputMap.get("dmsLoadout")).get("loadNumber").toString();
+        String loadNumber= ((Map<String, Object>) inputMap.get("dmsVanLoadout")).get("loadNumber").toString();
 
         response.put("dmsVanLoadout",buildDMSVanLoadout((Map<String, Object>) inputMap.get("dmsVanLoadout")));
-        response.put("vanItemsList",buildVanItems((List<Map<String, Object>>) inputMap.get("dmsLoadoutItems"),loadNumber));
+        response.put("vanItemsList",buildVanItems((List<Map<String, Object>>) inputMap.get("vanItemsList"),loadNumber));
 
         return response;
     }
