@@ -17,6 +17,9 @@ public class PricingElementTransformerCokeSA extends AbstractTransformer<Map<Str
 
     @Override
     public List<Map<String, Object>> transform(Map<String, Object> inputMap) {
+
+        GenericEntityService genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
+        
         List<Map<String, Object>> responseList = new ArrayList<>();
         List<GenericEntity> taxes = genericEntityService.readModelsByName("TaxDefined");
         taxes.stream()
