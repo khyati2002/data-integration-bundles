@@ -29,7 +29,7 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
         dmsVanLoadout.setRouteCode(Collections.singletonList(vanLoadoutInput.get("routeCode").toString()));
         dmsVanLoadout.setTotalCaseQty(((Number)vanLoadoutInput.get("totalCaseQty")).doubleValue());
         dmsVanLoadout.setTotalCaseLeftQty(((Number)vanLoadoutInput.get("totalCaseLeftQty")).doubleValue());
-        dmsVanLoadout.setTotalSuggestedCaseQty(((Number)vanLoadoutInput.get("totalCaseLeftQty")).doubleValue());
+        dmsVanLoadout.setTotalSuggestedCaseQty(0.0);
         dmsVanLoadout.setTotalAcceptedCaseQty(0.0);
         dmsVanLoadout.setTotalPieceQty(0.0);
         dmsVanLoadout.setTotalPieceLeftQty(0.0);
@@ -52,12 +52,19 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
         for(Map<String,Object> vanItemInput:vanItemsInputList){
             VanItems vanItems=new VanItems();
             vanItems.setSkuCode(vanItemInput.get("skuCode").toString());
+            vanItems.setBatchCode(vanItemInput.get("skuCode").toString());
             vanItems.setCaseQty(((Number)vanItemInput.get("caseQty")).doubleValue());
             vanItems.setCaseQtyLeft(((Number)vanItemInput.get("caseQtyLeft")).doubleValue());
+            vanItems.setSuggestedCaseQty(0.0);
+            vanItems.setAcceptedCaseQty(0.0);
             vanItems.setPieceQty(0.0);
             vanItems.setPieceQtyLeft(0.0);
+            vanItems.setAcceptedPieceQty(0.0);
+            vanItems.setSuggestedPieceQty(0.0);
             vanItems.setOtherQty(0.0);
             vanItems.setOtherQtyLeft(0.0);
+            vanItems.setAcceptedOtherQty(0.0);
+            vanItems.setSuggestedOtherQty(0.0);
             vanItems.setItemType(DmsVanItemsItemType.NORMAL);
             vanItems.setLoadNumber(loadNumber);
             vanItems.setActiveStatus(DmsVanItemsActiveStatus.ACTIVE);
