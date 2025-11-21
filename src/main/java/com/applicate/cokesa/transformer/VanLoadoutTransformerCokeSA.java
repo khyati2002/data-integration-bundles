@@ -8,6 +8,7 @@ import com.salescode.dim.jooq.generated.enums.DmsVanLoadoutLoadOutStatus;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsVanLoadout;
 import com.salescode.dim.jooq.impl.VanItems;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String,Object>>> {
@@ -34,6 +35,7 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
         dmsVanLoadout.setTotalOtherLeftQty(0.0);
         dmsVanLoadout.setLoadOutStatus(DmsVanLoadoutLoadOutStatus.IN_TRANSIT);
         dmsVanLoadout.setActiveStatus(DmsVanLoadoutActiveStatus.ACTIVE);
+        dmsVanLoadout.setTotalAmount(BigDecimal.ZERO);
 
         return dmsVanLoadout;
     }
