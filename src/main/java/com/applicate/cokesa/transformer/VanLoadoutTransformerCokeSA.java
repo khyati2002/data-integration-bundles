@@ -65,6 +65,8 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
             vanItems.setOtherQtyLeft(0.0);
             vanItems.setAcceptedOtherQty(0.0);
             vanItems.setSuggestedOtherQty(0.0);
+            vanItems.setMrp(0.0);
+            vanItems.setBasePrice(0.0);
             vanItems.setItemType(DmsVanItemsItemType.NORMAL);
             vanItems.setLoadNumber(loadNumber);
             vanItems.setActiveStatus(DmsVanItemsActiveStatus.ACTIVE);
