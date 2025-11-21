@@ -25,7 +25,7 @@ public class HistoricalOrderTransformer extends AbstractTransformer<Map<String, 
     private static final SimpleDateFormat OUTPUT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public Object transform(Map<String, Object> inputMap) {
+    public Map<String, Object> transform(Map<String, Object> inputMap) {{
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
