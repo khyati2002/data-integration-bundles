@@ -1,6 +1,7 @@
 package com.applicate.cokesa.transformer;
 
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.generated.enums.DmsVanItemsActiveStatus;
 import com.salescode.dim.jooq.generated.enums.DmsVanItemsItemType;
 import com.salescode.dim.jooq.generated.enums.DmsVanLoadoutActiveStatus;
 import com.salescode.dim.jooq.generated.enums.DmsVanLoadoutLoadOutStatus;
@@ -51,6 +52,7 @@ public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,
             vanItems.setOtherQtyLeft(0.0);
             vanItems.setItemType(DmsVanItemsItemType.NORMAL);
             vanItems.setLoadNumber(loadNumber);
+            vanItems.setActiveStatus(DmsVanItemsActiveStatus.ACTIVE);
 
 
             vanItemsList.add(vanItems);
