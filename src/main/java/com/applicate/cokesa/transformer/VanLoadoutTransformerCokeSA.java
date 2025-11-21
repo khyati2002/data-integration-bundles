@@ -9,7 +9,7 @@ import com.salescode.dim.jooq.impl.VanItems;
 
 import java.util.*;
 
-public class DMSVanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String,Object>>> {
+public class VanLoadoutTransformerCokeSA extends AbstractTransformer<Map<String,Object>,List<Map<String,Object>>> {
     @Override
     public List<Map<String,Object>> transform(Map<String,Object> inputMap) {
         List<Map<String,Object>> responseList=new ArrayList<>();
@@ -66,7 +66,7 @@ public class DMSVanLoadoutTransformerCokeSA extends AbstractTransformer<Map<Stri
 
         response.put("dmsVanLoadout",buildDMSVanLoadout((Map<String, Object>) inputMap.get("dmsVanLoadout")));
         response.put("vanItemsList",buildVanItems((List<Map<String, Object>>) inputMap.get("dmsLoadoutItems"),loadNumber));
-        
+
         return response;
     }
 
