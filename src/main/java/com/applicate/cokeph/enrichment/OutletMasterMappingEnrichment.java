@@ -43,7 +43,7 @@ public class OutletMasterMappingEnrichment extends AbstractEnrichment<OutletDeta
             // Handle feature setting based on presence of preseller and outletDivision
             if (currentPreseller != null) {
                 tempMasterMapping.setFeature("UserMaster");
-                tempMasterMapping.setUserLoginId(currentPreseller);
+                tempMasterMapping.setUserloginid(currentPreseller);
                 tempMasterMapping.setParent(currentDistributor);
                 extended.put("DistributorCode", currentDistributor);
                 extended.put("OutletCode", outletDetails.getOutletcode());
