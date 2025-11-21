@@ -31,7 +31,7 @@ public class CokephDistributorMasterTransformer extends AbstractTransformer<Map<
         this.userService = (UserService) ServiceLocator.lookup(User.class);
         this.outletMetadataService = (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
 
-//        ObjectNode extended = new ObjectMapper().createObjectNode();
+        ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
         finalTransformedObj.put("loginId", stringObjectMap.get("distributor_code").toString());
         User user=userService.findByLoginId(stringObjectMap.get("distributor_code").toString());

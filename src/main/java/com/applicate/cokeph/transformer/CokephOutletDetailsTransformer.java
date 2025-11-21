@@ -53,8 +53,7 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         outletDetailsService= (OutletDetailsService) ServiceLocator.lookup(com.salescode.dim.jooq.impl.OutletDetails.class);
         outletMetadataService= (OutletMetadataService) ServiceLocator.lookup(OutletMetadata.class);
 
-//        ObjectNode extended = new ObjectMapper().createObjectNode();
-        Map<String, Object> extended = new HashMap<>();
+        ObjectNode extended = new ObjectMapper().createObjectNode();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
 
         List<Map<String, Object>> distributorOutletMappings = (List<Map<String, Object>>) stringObjectMap.get("distributor_outlet_mapping");
@@ -162,7 +161,7 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         }
         extended.put("DistributorCode", distributorCode);
 //        JsonNode extendedAttributes = JSONUtils.getObjectMapper().convertValue(extended, JsonNode.class);
-        Map<String, Object> extendedAttributes = extended;
+        JsonNode extendedAttributes = extended;
         finalTransformedObj.put("extendedAttributes", extendedAttributes);
         if (distributorOutletMappings != null && !distributorOutletMappings.isEmpty()) {
             String supplierId =(String) firstMapping.get("distributor_code") ;
