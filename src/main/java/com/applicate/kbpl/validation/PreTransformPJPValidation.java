@@ -8,7 +8,7 @@ import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
-import com.salescode.dim.jooq.generated.tables.pojos.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPjp;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.TempMasterMapping;
 import com.salescode.dim.jooq.impl.User;

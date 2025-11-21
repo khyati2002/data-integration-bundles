@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.generated.tables.pojos.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPjp;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jooq.JSON;
 
