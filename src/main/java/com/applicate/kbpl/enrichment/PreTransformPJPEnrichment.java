@@ -8,7 +8,7 @@ import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.JSONUtils;
 import com.applicate.services.channelkart.utils.NullUtils;
 import com.applicate.services.channelkart.utils.StringUtils;
-import com.salescode.dim.jooq.impl.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPJP;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPjp> {
+public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPJP> {
 
     private static final String TENANT_CODE = "tenantcode";
     private static final String NAME = "RouteDetails";
@@ -33,10 +33,10 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPjp> {
 
 
     @Override
-    public EnrichmentResult apply(DeliveryPjp deliveryPJP) {
+    public EnrichmentResult apply(DeliveryPJP deliveryPJP) {
         genericEntityService = (GenericEntityService) ServiceLocator.lookup(GenericEntity.class);
         userService = (UserService) ServiceLocator.lookup(User.class);
-        pjpService = (DeliveryPJPService) ServiceLocator.lookup(DeliveryPjp.class);
+        pjpService = (DeliveryPJPService) ServiceLocator.lookup(DeliveryPJP.class);
 
         try {
             if (!deliveryPJP.getExtendedAttributes().has(TENANT_CODE) || deliveryPJP.getExtendedAttributes().get(TENANT_CODE).asText().equalsIgnoreCase("null")) {
@@ -65,7 +65,7 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPjp> {
      *
      * @param deliveryPJP
      */
-    private void updateMonthYearValues(DeliveryPjp deliveryPJP) {
+    private void updateMonthYearValues(DeliveryPJP deliveryPJP) {
         deliveryPJP.setMonth(LocalDate.now().getMonth().name());
         deliveryPJP.setYear(String.valueOf(LocalDate.now().getYear()));
     }
@@ -76,7 +76,7 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPjp> {
      *
      * @param deliveryPJP pjpRecord
      */
-    private void mergePayloadToExtendedAttributes(DeliveryPjp deliveryPJP) {
+    private void mergePayloadToExtendedAttributes(DeliveryPJP deliveryPJP) {
         GenericEntity genericEntity = findRecordByBeatCodeAndDistributor(deliveryPJP.getBeat(), deliveryPJP.getSupplierid(),deliveryPJP.getSource());
 
         JsonNode payload = genericEntity.getPayload();
@@ -138,7 +138,7 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPjp> {
      *
      * @param deliveryPJP pjpRecord to be enriched.
      */
-    private void updateLoginIdActiveStatus(DeliveryPjp deliveryPJP) {
+    private void updateLoginIdActiveStatus(DeliveryPJP deliveryPJP) {
         String beatCode = deliveryPJP.getBeat();
         String distributor = deliveryPJP.getExtendedAttributes().get(TENANT_CODE).asText();
 

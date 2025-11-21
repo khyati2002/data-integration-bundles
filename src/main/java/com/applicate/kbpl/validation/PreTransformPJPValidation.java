@@ -8,7 +8,7 @@ import com.applicate.services.channelkart.services.UserService;
 import com.applicate.services.channelkart.utils.StringUtils;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.validation.AbstractValidationRule;
-import com.salescode.dim.jooq.impl.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPJP;
 import com.salescode.dim.jooq.impl.OutletDetails;
 import com.salescode.dim.jooq.impl.TempMasterMapping;
 import com.salescode.dim.jooq.impl.User;
@@ -17,7 +17,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPjp> {
+public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPJP> {
 
     private static final String TENANT_CODE = "tenantcode";
     OutletDetailsService outletService ;
@@ -25,7 +25,7 @@ public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPj
     TempMasterMappingService masterMappingService ;
 
     @Override
-    public OperationResult.StepResult apply(DeliveryPjp deliveryPJP) {
+    public OperationResult.StepResult apply(DeliveryPJP deliveryPJP) {
         outletService = (OutletDetailsService) ServiceLocator.lookup(OutletDetails.class);
         userService = (UserService) ServiceLocator.lookup(User.class);
         masterMappingService = (TempMasterMappingService) ServiceLocator.lookup(TempMasterMapping.class);
@@ -58,7 +58,7 @@ public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPj
      *
      * @param pjpObject tempPjpOutletCode
      */
-    private List<String> verifyOutlet(DeliveryPjp pjpObject, String supplier) {
+    private List<String> verifyOutlet(DeliveryPJP pjpObject, String supplier) {
         List<String> errorList = new ArrayList<>();
         String outletCode = pjpObject.getOutletcode();
         if (ObjectUtils.isEmpty(outletCode)) {
@@ -87,7 +87,7 @@ public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPj
      *
      * @param pjpObject tempPjpObject
      */
-    private List<String> verifyUser(DeliveryPjp pjpObject) {
+    private List<String> verifyUser(DeliveryPJP pjpObject) {
         List<String> errorList = new ArrayList<>();
         String loginId = pjpObject.getLoginid();
         if (ObjectUtils.isEmpty(loginId)) {

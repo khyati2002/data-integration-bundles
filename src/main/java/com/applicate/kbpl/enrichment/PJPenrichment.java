@@ -9,24 +9,24 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.Arra
 import com.salescode.dim.etl.EnrichmentResult;
 import com.salescode.dim.etl.OperationResult;
 import com.salescode.dim.etl.enrichment.AbstractEnrichment;
-import com.salescode.dim.jooq.impl.DeliveryPjp;
+import com.salescode.dim.jooq.impl.DeliveryPJP;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PJPenrichment extends AbstractEnrichment<DeliveryPjp> {
+public class PJPenrichment extends AbstractEnrichment<DeliveryPJP> {
 
     DeliveryPJPService deliveryPJPService ;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
-    public EnrichmentResult apply(DeliveryPjp cdm) {
-        deliveryPJPService = (DeliveryPJPService) ServiceLocator.lookup(DeliveryPjp.class);
+    public EnrichmentResult apply(DeliveryPJP cdm) {
+        deliveryPJPService = (DeliveryPJPService) ServiceLocator.lookup(DeliveryPJP.class);
         JsonNode dayandfreq = cdm.getDayAndFrequency();
 
         if (ObjectUtils.isNotEmpty(cdm)) {
-            DeliveryPjp dnfMap = deliveryPJPService.findByOutletCodeAndLoginIdAndMonthAndYear(cdm.getOutletcode(), cdm.getLoginid(), cdm.getMonth(), cdm.getYear());
+            DeliveryPJP dnfMap = deliveryPJPService.findByOutletCodeAndLoginIdAndMonthAndYear(cdm.getOutletcode(), cdm.getLoginid(), cdm.getMonth(), cdm.getYear());
             if (dnfMap == null) {
                 return new OperationResult.StepResult(OperationResult.Status.OK);
             } else {
