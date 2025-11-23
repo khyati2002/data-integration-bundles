@@ -77,7 +77,7 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPJP> {
      * @param deliveryPJP pjpRecord
      */
     private void mergePayloadToExtendedAttributes(DeliveryPJP deliveryPJP) {
-        GenericEntity genericEntity = findRecordByBeatCodeAndDistributor(deliveryPJP.getBeat(), deliveryPJP.getSupplierid(),deliveryPJP.getSource());
+        GenericEntity genericEntity = findRecordByBeatCodeAndDistributor(deliveryPJP.getBeat(), deliveryPJP.getSupplierId(),deliveryPJP.getSource());
 
         JsonNode payload = genericEntity.getPayload();
         ObjectNode extendedAttributes = NullUtils.isNotNull(deliveryPJP.getExtendedAttributes()) ? (ObjectNode) deliveryPJP.getExtendedAttributes() : JSONUtils.getObjectMapper().createObjectNode();
@@ -142,7 +142,7 @@ public class PreTransformPJPEnrichment extends AbstractEnrichment<DeliveryPJP> {
         String beatCode = deliveryPJP.getBeat();
         String distributor = deliveryPJP.getExtendedAttributes().get(TENANT_CODE).asText();
 
-        GenericEntity genericEntity = findRecordByBeatCodeAndDistributor(deliveryPJP.getBeat(), deliveryPJP.getSupplierid(),deliveryPJP.getSource());
+        GenericEntity genericEntity = findRecordByBeatCodeAndDistributor(deliveryPJP.getBeat(), deliveryPJP.getSupplierId(),deliveryPJP.getSource());
 
         String loginId = genericEntity.getLoginId();
 
