@@ -57,6 +57,8 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         HashMap<String, Object> extended=new HashMap<>();
         HashMap<String, Object> finalTransformedObj = new HashMap<>();
 
+        Map<String, Object> userName = new HashMap<>();
+
         List<Map<String, Object>> distributorOutletMappings = (List<Map<String, Object>>) stringObjectMap.get("distributor_outlet_mapping");
         Map<String, Object> firstMapping = distributorOutletMappings.get(0);
 
@@ -68,6 +70,11 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         } else{
             outletCode=stringObjectMap.get(OUTLET_CODE_STRING).toString();
             finalTransformedObj.put("outletCode", outletCode);
+
+            userName.put("loginId", outletCode);
+            userName.put("userAccountId", outletCode);
+
+            userName.put("extendedAttributes", extended);
         }
         if(NullUtils.isNull(stringObjectMap.get(MOBILE_STRING)) || ObjectUtils.isEmpty(stringObjectMap.get(MOBILE_STRING)))
         {
@@ -143,6 +150,8 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
         Object businessComplexTypeValue = stringObjectMap.get("category_code_7");
         Object salesModeValue = stringObjectMap.get("sales_mode");
 
+        userName.put("name", ownerNameValue != null && !ObjectUtils.isEmpty(ownerNameValue.toString()) ? ownerNameValue.toString() : "NA");
+
         Object categorycode10Value = stringObjectMap.get("category_code_10");
         extended.put("owner_name", ownerNameValue != null && !ObjectUtils.isEmpty(ownerNameValue.toString()) ? ownerNameValue.toString() : "NA");
         extended.put("tenantcode",tenantcodeValue != null && !ObjectUtils.isEmpty(tenantcodeValue.toString()) ? tenantcodeValue.toString() : "NA");
@@ -176,6 +185,8 @@ public class CokephOutletDetailsTransformer extends AbstractTransformer<Map<Stri
             }
             //parentList.add(immediateParent2); -- salesrep to be added when received
             finalTransformedObj.put(IMMEDIATE_PARENT_STRING, parentList);
+            userName.put(IMMEDIATE_PARENT_STRING, parentList);
+            finalTransformedObj.put("userName", userName);
         }
         else{
             throw new DataTransformationService.TransformationException("No Distributor To Outlet Mapping found in the outlet body");
