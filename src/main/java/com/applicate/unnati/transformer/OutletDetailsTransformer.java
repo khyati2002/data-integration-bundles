@@ -45,8 +45,8 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         String email = getString(responseEnvelope, "email");
         if (email != null && !email.isEmpty()) {
             output.put("email", email);
+            userName.put("email", email);
         }
-        userName.put("email", email);
         String mobile = getString(responseEnvelope, "mobile");
         output.put("contactPhone", mobile);
         String outletLatStr = getString(responseEnvelope, "outletlat");
