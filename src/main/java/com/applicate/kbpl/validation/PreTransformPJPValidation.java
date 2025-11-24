@@ -60,7 +60,7 @@ public class PreTransformPJPValidation extends AbstractValidationRule<DeliveryPJ
      */
     private List<String> verifyOutlet(DeliveryPJP pjpObject, String supplier) {
         List<String> errorList = new ArrayList<>();
-        String outletCode = pjpObject.getOutletcode();
+        String outletCode = pjpObject.getOutletCode();
         if (ObjectUtils.isEmpty(outletCode)) {
             errorList.add("Cannot create pjp with null or empty outletCode");
         } else {
