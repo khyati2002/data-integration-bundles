@@ -26,7 +26,7 @@ public class PJPenrichment extends AbstractEnrichment<DeliveryPJP> {
         JsonNode dayandfreq = cdm.getDayAndFrequency();
 
         if (ObjectUtils.isNotEmpty(cdm)) {
-            DeliveryPJP dnfMap = deliveryPJPService.findByOutletCodeAndLoginIdAndMonthAndYear(cdm.getOutletCode(), cdm.getLoginid(), cdm.getMonth(), cdm.getYear());
+            DeliveryPJP dnfMap = deliveryPJPService.findByOutletCodeAndLoginIdAndMonthAndYear(cdm.getOutletcode(), cdm.getLoginid(), cdm.getMonth(), cdm.getYear());
             if (dnfMap == null) {
                 return new OperationResult.StepResult(OperationResult.Status.OK);
             } else {
