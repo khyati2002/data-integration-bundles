@@ -4,6 +4,7 @@ import com.applicate.services.channelkart.utils.NullUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salescode.dim.etl.transformation.AbstractTransformer;
+import com.salescode.dim.jooq.SalesInfoConverter;
 import com.salescode.dim.jooq.generated.enums.*;
 import com.salescode.dim.jooq.generated.tables.pojos.DmsLoadout;
 import com.salescode.dim.jooq.impl.LoadoutDetails;
@@ -78,12 +79,8 @@ public class DMSLoadoutTransformerCokeSA  extends AbstractTransformer<Map<String
             loadoutDetails.setReturnOtherQty(0.0);
             loadoutDetails.setTotalAmount(BigDecimal.ZERO);
             SalesInfo salesInfo=new SalesInfo(BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO,"OUT FOR DELIVERY");
-            ObjectMapper mapper=new ObjectMapper();
-            JSON salesInfoJson =  mapper.readValue(
-                    mapper.writeValueAsString(salesInfo),
-                    JSON.class
-            );
-            loadoutDetails.setSalesInfo(salesInfoJson);
+//            SalesInfoConverter salesInfoConverter=new SalesInfoConverter();
+            loadoutDetails.setSalesInfo(salesInfo);
 
             loadoutDetails.setActiveStatus(DmsLoadoutDetailsActiveStatus.ACTIVE);
             loadoutDetailsList.add(loadoutDetails);
