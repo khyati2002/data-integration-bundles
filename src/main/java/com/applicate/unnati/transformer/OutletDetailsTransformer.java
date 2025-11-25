@@ -49,6 +49,10 @@ public class OutletDetailsTransformer extends AbstractTransformer<Map<String, Ob
         }
         String mobile = getString(responseEnvelope, "mobile");
         output.put("contactPhone", mobile);
+        String residentialAddress = getString(responseEnvelope, "residential_address");
+        if (residentialAddress != null && !residentialAddress.isEmpty()) {
+            output.put("residentialAddress", residentialAddress);
+        }
         String outletLatStr = getString(responseEnvelope, "outletlat");
         if (outletLatStr != null && !outletLatStr.isEmpty()) {
             output.put("latitude", Double.parseDouble(outletLatStr));
@@ -138,6 +142,7 @@ public static String rawStreamingData = "{\n" +
         "      \"loyaltytype\": \"SWD Others\",\n" +
         "      \"branch\": \"EGAU\",\n" +
         "      \"district\": \"EDIS\",\n" +
+        "      \"residential_address\": \"123 Main Street, Residential Area, City\",\n" +
         "      \"suppliermapping\": \"["
         + "        { \\\"CustID\\\": \\\"C651/20-21\\\", \\\"SIFYID\\\": \\\"GA2799DMM333C651/20-21\\\", "
         + "          \\\"WDDest\\\": \\\"GA2799\\\", \\\"UID\\\": \\\"EGAU-SL-54327\\\", "
